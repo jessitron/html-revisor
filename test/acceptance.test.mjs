@@ -44,6 +44,12 @@ async function withServer(fn, args = []) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notes }),
       }),
+    putTexts: (name, notes, texts) =>
+      fetch(server.base + name, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes, texts }),
+      }),
     putVersioned: (name, version, notes) =>
       fetch(server.base + name, {
         method: 'PUT',
@@ -290,6 +296,43 @@ test('versioned PUT: current version succeeds, stale version gets 409, missing v
 
     // no version: the check is skipped
     assert.equal((await s.put('page.html', { 1: 'curl' })).status, 200);
+  }));
+
+test('text edits: PUT texts rewrites the text of text-only elements, alongside notes', () =>
+  withServer(async (s) => {
+    const { document } = await s.page('page.html');
+    const p = idOf(document, 'p');
+    const b = idOf(document, 'b');
+    const mixed = idOf(document, 'p:nth-of-type(2)');
+    const li = idOf(document, 'li');
+    const res = await s.putTexts('page.html', { [p]: 'reworded' }, {
+      [p]: 'First <para> & more',
+      [b]: 'strong',
+      [mixed]: 'flattened',
+      [li]: '   ',
+    });
+    assert.equal(res.status, 200);
+    assert.equal((await res.json()).count, 1);
+
+    const file = s.read('page.html');
+    assert.match(file, /<p>\n {6}<!-- jess: reworded -->\n {6}First &lt;para&gt; &amp; more\n {4}<\/p>/);
+    assert.ok(file.includes('<p>Second <b>strong</b> paragraph</p>'), 'mixed content keeps its markup');
+    assert.ok(file.includes('<li>one</li>'), 'blank text is ignored');
+    assert.equal(file, normalize(file));
+
+    // texts are idempotent: sending the same set again changes nothing
+    await s.putTexts('page.html', { [p]: 'reworded' }, { [p]: 'First <para> & more', [b]: 'strong' });
+    assert.equal(s.read('page.html'), file);
+    assert.deepEqual((await s.page('page.html')).notes, { [p]: 'reworded' });
+  }));
+
+test('texts must be an object of strings when present', () =>
+  withServer(async (s) => {
+    const res = await fetch(s.base + 'page.html', {
+      method: 'PUT',
+      body: JSON.stringify({ notes: {}, texts: ['x'] }),
+    });
+    assert.equal(res.status, 400);
   }));
 
 test('errors are plain-text 500 and logged', () =>

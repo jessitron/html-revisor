@@ -2,7 +2,7 @@
 //
 // Three tiers, dependencies point downward only:
 //   Tier I   orchestration: CLI, request routing, the GET and PUT flows
-//   Tier II  domain: formatter, notes, element identity (pure functions over a DOM)
+//   Tier II  domain: formatter, notes, text edits, element identity (pure functions over a DOM)
 //   Tier III interface: filesystem gateway, content types, listings, client assets
 import crypto from 'node:crypto';
 import http from 'node:http';
@@ -38,7 +38,7 @@ async function route(req, res, config) {
   const file = resolveUnderRoot(config.root, urlPath);
   const isHtml = /\.html?$/i.test(urlPath);
 
-  if (req.method === 'PUT' && isHtml) return putNotes(req, res, file, urlPath, config);
+  if (req.method === 'PUT' && isHtml) return putEdits(req, res, file, urlPath, config);
   if (req.method !== 'GET' && req.method !== 'HEAD') throw new HttpError(405, 'method not allowed');
 
   const stat = await fs.stat(file);
@@ -71,17 +71,19 @@ async function getPage(res, file, urlPath, { author }) {
 // A short fingerprint of the file bytes. The client sends it back to prove its view is current.
 const versionOf = (bytes) => crypto.createHash('sha1').update(bytes).digest('hex').slice(0, 12);
 
-// PUT: the body is the complete set of notes; rewrite them all into the file.
+// PUT: the body is the complete set of notes, plus the new text of any edited text elements.
+// Rewrite the notes into the file and replace the texts. Both maps are idempotent to resend.
 // Optimistic concurrency: a "version" that differs from the file on disk is rejected with 409.
-async function putNotes(req, res, file, urlPath, { author }) {
-  let notes, version;
+async function putEdits(req, res, file, urlPath, { author }) {
+  let notes, texts, version;
   try {
-    ({ notes, version } = JSON.parse(await readBody(req)));
+    ({ notes, texts = {}, version } = JSON.parse(await readBody(req)));
   } catch {
     throw new HttpError(400, 'body must be JSON');
   }
-  if (!notes || typeof notes !== 'object' || Array.isArray(notes)) {
-    throw new HttpError(400, 'body must look like {"notes": {"<id>": "text"}}');
+  const isMap = (m) => m && typeof m === 'object' && !Array.isArray(m);
+  if (!isMap(notes) || !isMap(texts)) {
+    throw new HttpError(400, 'body must look like {"notes": {"<id>": "text"}, "texts": {"<id>": "text"}}');
   }
   const onDisk = await fs.readFile(file);
   // A missing version skips the check, so curl and scripts can PUT without a GET first.
@@ -93,6 +95,10 @@ async function putNotes(req, res, file, urlPath, { author }) {
   const document = parse(onDisk.toString("utf8"));
   const elements = [...document.querySelectorAll('*')]; // snapshot: ids are indices into this
   removeNotes(document, author);
+  let textCount = 0;
+  for (const [id, text] of Object.entries(texts)) {
+    if (elements[id] && typeof text === 'string' && setText(elements[id], text)) textCount++;
+  }
   let count = 0;
   for (const [id, text] of Object.entries(notes)) {
     const element = elements[id];
@@ -103,7 +109,7 @@ async function putNotes(req, res, file, urlPath, { author }) {
   unstamp(document);
   const written = serialize(document);
   await fs.writeFile(file, written);
-  console.log(`${urlPath} — saved ${count} notes`);
+  console.log(`${urlPath} — saved ${count} notes` + (textCount ? `, ${textCount} texts` : ''));
   res.writeHead(200, { 'Content-Type': 'application/json' });
   res.end(JSON.stringify({ ok: true, count, version: versionOf(written) }));
 }
@@ -382,6 +388,29 @@ export function placeNote(el, text, author) {
   const comment = el.ownerDocument.createComment(` ${author}: ${escapeNoteText(text.trim())} `);
   if (noteGoesBefore(el) && el.parentNode) el.parentNode.insertBefore(comment, el);
   else el.insertBefore(comment, el.firstChild);
+}
+
+// ---- Text edits ---------------------------------------------------------
+
+// A text element holds nothing but text (once notes are lifted out), so replacing its text
+// loses no markup. Elements whose text is code or not shown are excluded.
+const NOT_TEXT = new Set([...VOID, ...TEXT_ONLY, 'script', 'style', 'template', 'textarea']);
+
+export function isTextElement(el) {
+  const kids = [...el.childNodes];
+  return (
+    !NOT_TEXT.has(el.localName) &&
+    kids.length > 0 &&
+    kids.every((n) => n.nodeType === 3) &&
+    trimAscii(el.textContent) !== ''
+  );
+}
+
+// Replace the element's text. Refuses (returns false) for non-text elements and blank text.
+export function setText(el, text) {
+  if (!isTextElement(el) || trimAscii(text) === '') return false;
+  el.textContent = text;
+  return true;
 }
 
 // ======================================================================
