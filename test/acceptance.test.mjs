@@ -296,3 +296,18 @@ test('--author changes the prefix', () =>
     },
     ['--author', 'sam'],
   ));
+
+test('served page carries the client and still re-parses with the same element count', () =>
+  withServer(async (s) => {
+    const { html, document } = await s.page('demo.html');
+    assert.ok(html.includes('#hn-layer'), 'client CSS present');
+    assert.ok(html.includes("id = 'hn-layer'"), 'client JS present');
+    // exactly one client script plus the notes JSON, appended after stamping
+    const stamped = document.querySelectorAll('[data-n]').length;
+    const onDisk = parseHTML(s.read('demo.html')).document.querySelectorAll('*').length;
+    assert.equal(stamped, onDisk);
+    assert.equal(document.querySelector('#hn-layer'), null, 'layer is built by the script, not the server');
+    // the inlined script must not close early
+    const scripts = [...document.querySelectorAll('script')];
+    assert.ok(scripts.some((el) => el.textContent.includes('hn-layer')));
+  }));

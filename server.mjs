@@ -415,8 +415,379 @@ function directoryListing(urlPath, entries) {
 }
 
 // Client assets. Appended to the served copy after stamping, so none of it gets a data-n.
-const CLIENT_CSS = `/* html-notes client styles */`;
-const CLIENT_JS = `/* html-notes client script */`;
+const CLIENT_CSS = `/* html-notes client styles. Page elements get only hn-hover and hn-noted. */
+.hn-hover { outline: 2px dashed #d6336c !important; outline-offset: 1px !important; cursor: copy !important; }
+.hn-noted { box-shadow: inset 3px 0 0 #d6336c !important; }
+
+/* Reset everything inside the layer so the page's CSS cannot leak in. */
+#hn-layer { all: initial; display: block; position: absolute; top: 0; left: 0; width: 0; height: 0; z-index: 2147483647; }
+#hn-layer *, #hn-layer *::before, #hn-layer *::after {
+  all: initial; box-sizing: border-box; margin: 0;
+  font: 13px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; color: #222;
+}
+#hn-layer div { display: block; }
+
+#hn-layer .hn-marker {
+  position: absolute; width: 18px; height: 18px; border-radius: 50%;
+  background: #d6336c; color: #fff; font-size: 11px; line-height: 18px; text-align: center;
+  cursor: pointer; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+#hn-layer .hn-marker:hover { background: #a61e4d; }
+
+#hn-layer .hn-box {
+  position: absolute; width: 320px; padding: 8px; background: #fff; color: #222;
+  border: 1px solid #bbb; border-radius: 8px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.28);
+}
+#hn-layer .hn-box textarea {
+  display: block; width: 100%; height: 96px; min-height: 56px; padding: 6px;
+  border: 1px solid #bbb; border-radius: 4px; background: #fff; color: #222;
+  resize: vertical; overflow: auto; white-space: pre-wrap; cursor: text;
+}
+#hn-layer .hn-box textarea:focus { outline: 2px solid #d6336c; outline-offset: -1px; }
+#hn-layer .hn-row { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+#hn-layer .hn-hint { flex: 1; font-size: 11px; color: #666; }
+#hn-layer .hn-btn {
+  display: inline-block; padding: 4px 10px; border: 1px solid #bbb; border-radius: 4px;
+  background: #f3f3f3; color: #222; text-align: center; cursor: pointer;
+}
+#hn-layer .hn-btn:hover { background: #e4e4e4; }
+#hn-layer .hn-save { background: #d6336c; border-color: #d6336c; color: #fff; }
+#hn-layer .hn-save:hover { background: #a61e4d; }
+
+#hn-layer .hn-toast {
+  position: fixed; right: 16px; bottom: 16px; padding: 6px 12px; border-radius: 6px;
+  background: #222; color: #fff; opacity: 0; transition: opacity 0.3s; pointer-events: none;
+}
+#hn-layer .hn-toast.hn-show { opacity: 1; }
+#hn-layer .hn-toast.hn-error { background: #b02a37; }
+
+@media (prefers-color-scheme: dark) {
+  #hn-layer .hn-box { background: #25272b; color: #eee; border-color: #555; }
+  #hn-layer .hn-box textarea { background: #1a1b1e; color: #eee; border-color: #555; }
+  #hn-layer .hn-hint { color: #aaa; }
+  #hn-layer .hn-btn { background: #383b40; color: #eee; border-color: #555; }
+  #hn-layer .hn-btn:hover { background: #4a4d53; }
+  #hn-layer .hn-save { background: #d6336c; border-color: #d6336c; color: #fff; }
+}
+`;
+const CLIENT_JS = `// html-notes client. Notes live in the file on disk; this script edits them through PUT.
+(function () {
+  'use strict';
+
+  var notes = {};           // id -> text, the full current set
+  var markers = {};         // id -> marker element
+  var box = null;           // the open comment box, if any
+  var boxId = null;         // id of the element the open box is for
+  var saveTimer = null;
+  var saving = false;       // a PUT is in flight
+  var again = false;        // an edit arrived while a PUT was in flight
+  var edited = false;       // changes not yet sent
+  var toastTimer = null;
+
+  try {
+    notes = JSON.parse(document.getElementById('hn-notes').textContent) || {};
+  } catch (e) {
+    notes = {};
+  }
+
+  var layer = document.createElement('div');
+  layer.id = 'hn-layer';
+  var toast = document.createElement('div');
+  toast.className = 'hn-toast';
+  layer.appendChild(toast);
+  document.body.appendChild(layer);
+
+  // ---- helpers ----
+
+  function hasText(id) {
+    return typeof notes[id] === 'string' && notes[id].trim() !== '';
+  }
+
+  function elementFor(id) {
+    return document.querySelector('[data-n="' + id + '"]');
+  }
+
+  function inLayer(node) {
+    return node instanceof Node && layer.contains(node);
+  }
+
+  // The nearest stamped ancestor, never html or body.
+  function targetElement(node) {
+    if (!(node instanceof Element)) return null;
+    var el = node.closest('[data-n]');
+    if (!el || el === document.documentElement || el === document.body) return null;
+    return el;
+  }
+
+  // Where the layer's origin sits in the document. Zero unless body is positioned.
+  function layerOrigin() {
+    var r = layer.getBoundingClientRect();
+    return { x: r.left + window.scrollX, y: r.top + window.scrollY };
+  }
+
+  function isHidden(rect) {
+    return rect.width === 0 && rect.height === 0;
+  }
+
+  // ---- hover ----
+
+  var hovered = null;
+
+  function setHover(el) {
+    if (el === hovered) return;
+    if (hovered) hovered.classList.remove('hn-hover');
+    hovered = el;
+    if (hovered) hovered.classList.add('hn-hover');
+  }
+
+  document.addEventListener('mouseover', function (e) {
+    setHover(inLayer(e.target) ? null : targetElement(e.target));
+  }, true);
+
+  document.addEventListener('mouseout', function (e) {
+    if (!e.relatedTarget) setHover(null);
+  }, true);
+
+  // ---- markers ----
+
+  function positionMarker(id) {
+    var marker = markers[id];
+    var el = elementFor(id);
+    if (!marker) return;
+    if (!el) { marker.style.display = 'none'; return; }
+    var rect = el.getBoundingClientRect();
+    if (isHidden(rect)) { marker.style.display = 'none'; return; }
+    var o = layerOrigin();
+    marker.style.display = 'block';
+    marker.style.left = Math.max(2, rect.left + window.scrollX - 9) - o.x + 'px';
+    marker.style.top = Math.max(2, rect.top + window.scrollY - 9) - o.y + 'px';
+  }
+
+  function positionBox() {
+    if (!box) return;
+    var el = elementFor(boxId);
+    if (!el) return;
+    var rect = el.getBoundingClientRect();
+    var o = layerOrigin();
+    var viewW = document.documentElement.clientWidth;
+    var width = Math.min(320, viewW - 16);
+    box.style.width = width + 'px';
+    var left = rect.left + window.scrollX;
+    left = Math.min(left, window.scrollX + viewW - width - 8);
+    left = Math.max(left, window.scrollX + 8);
+    var top = rect.top < 0 ? window.scrollY + 8 : rect.top + window.scrollY + 20;
+    box.style.left = left - o.x + 'px';
+    box.style.top = top - o.y + 'px';
+  }
+
+  function positionAll() {
+    for (var id in markers) positionMarker(id);
+    positionBox();
+  }
+
+  var frame = 0;
+  function schedulePosition() {
+    if (frame) return;
+    frame = requestAnimationFrame(function () {
+      frame = 0;
+      positionAll();
+    });
+  }
+
+  // Make the marker and the hn-noted class match the note text.
+  function syncMarker(id) {
+    var el = elementFor(id);
+    if (hasText(id)) {
+      var marker = markers[id];
+      if (!marker) {
+        marker = document.createElement('div');
+        marker.className = 'hn-marker';
+        marker.textContent = '✎';
+        marker.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          openBox(id);
+        });
+        layer.appendChild(marker);
+        markers[id] = marker;
+      }
+      marker.title = notes[id];
+      if (el) el.classList.add('hn-noted');
+      positionMarker(id);
+    } else {
+      if (markers[id]) {
+        markers[id].remove();
+        delete markers[id];
+      }
+      if (el) el.classList.remove('hn-noted');
+    }
+  }
+
+  window.addEventListener('scroll', schedulePosition, { passive: true });
+  window.addEventListener('resize', schedulePosition);
+  if (window.ResizeObserver) new ResizeObserver(schedulePosition).observe(document.body);
+
+  // ---- saving ----
+
+  function showToast(text, isError) {
+    toast.textContent = text;
+    toast.className = 'hn-toast hn-show' + (isError ? ' hn-error' : '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () {
+      toast.className = 'hn-toast';
+    }, isError ? 4000 : 1500);
+  }
+
+  function currentNotes() {
+    var out = {};
+    for (var id in notes) if (hasText(id)) out[id] = notes[id];
+    return out;
+  }
+
+  // One PUT at a time. An edit during a PUT sets "again" and a new PUT follows.
+  function saveNow() {
+    clearTimeout(saveTimer);
+    saveTimer = null;
+    if (saving) { again = true; return; }
+    saving = true;
+    again = false;
+    edited = false;
+    var failed = false;
+    fetch(location.pathname, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notes: currentNotes() })
+    }).then(function (res) {
+      if (res.ok) return res.json();
+      return res.text().then(function (t) {
+        throw new Error(t || ('HTTP ' + res.status));
+      });
+    }).then(function (data) {
+      var n = data.count;
+      showToast('saved · ' + n + (n === 1 ? ' comment' : ' comments'), false);
+    }).catch(function (err) {
+      failed = true;
+      edited = true;
+      showToast('save failed: ' + (err && err.message ? err.message : err), true);
+    }).then(function () {
+      saving = false;
+      // A later edit retries after a failure; an edit made during the PUT goes out now.
+      if (again && !failed) saveNow();
+    });
+  }
+
+  function scheduleSave() {
+    edited = true;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveNow, 400);
+  }
+
+  // ---- comment box ----
+
+  function setNote(id, text) {
+    if (text.trim() === '') delete notes[id];
+    else notes[id] = text;
+    syncMarker(id);
+  }
+
+  // Commit and close the open box.
+  function closeBox() {
+    if (!box) return;
+    var ta = box.querySelector('textarea');
+    var id = boxId;
+    setNote(id, ta.value);
+    box.remove();
+    box = null;
+    boxId = null;
+    if (edited || saveTimer) saveNow();
+  }
+
+  function openBox(id) {
+    if (box && boxId === id) {
+      box.querySelector('textarea').focus();
+      return;
+    }
+    closeBox();
+    if (!elementFor(id)) return;
+    boxId = id;
+    box = document.createElement('div');
+    box.className = 'hn-box';
+
+    var ta = document.createElement('textarea');
+    ta.value = notes[id] || '';
+    ta.placeholder = 'Comment on this element';
+    ta.addEventListener('input', function () {
+      setNote(id, ta.value);
+      scheduleSave();
+    });
+    ta.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' || (e.key === 'Enter' && (e.metaKey || e.ctrlKey))) {
+        e.preventDefault();
+        closeBox();
+      }
+    });
+
+    var hint = document.createElement('div');
+    hint.className = 'hn-hint';
+    hint.textContent = '⌘↵ to save · esc to close';
+
+    var del = document.createElement('div');
+    del.className = 'hn-btn';
+    del.textContent = 'Delete';
+    del.addEventListener('click', function () {
+      ta.value = '';
+      setNote(id, '');
+      edited = true;
+      closeBox();
+    });
+
+    var save = document.createElement('div');
+    save.className = 'hn-btn hn-save';
+    save.textContent = 'Save';
+    save.addEventListener('click', function () {
+      edited = true;
+      closeBox();
+    });
+
+    var row = document.createElement('div');
+    row.className = 'hn-row';
+    row.appendChild(hint);
+    row.appendChild(del);
+    row.appendChild(save);
+
+    box.appendChild(ta);
+    box.appendChild(row);
+    // Keep keystrokes in the box away from the page's own shortcuts.
+    ['keydown', 'keyup', 'keypress'].forEach(function (type) {
+      box.addEventListener(type, function (e) { e.stopPropagation(); });
+    });
+    layer.appendChild(box);
+    positionBox();
+    ta.focus({ preventScroll: true });
+    ta.setSelectionRange(ta.value.length, ta.value.length);
+  }
+
+  // ---- click handling ----
+
+  // Capture phase on document, so page handlers and link navigation lose.
+  document.addEventListener('click', function (e) {
+    if (inLayer(e.target)) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    var el = targetElement(e.target);
+    if (!el) {
+      closeBox();
+      return;
+    }
+    e.preventDefault();
+    e.stopPropagation();
+    openBox(el.getAttribute('data-n'));
+  }, true);
+
+  // ---- start ----
+
+  for (var id in notes) syncMarker(id);
+})();
+`;
 
 export function injectClient(document, notes) {
   const head = document.querySelector('head') ?? document.documentElement;
