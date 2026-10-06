@@ -527,6 +527,9 @@ const CLIENT_CSS = `/* html-notes client styles. Page elements get only hn-hover
   border: 1px solid #bbb; border-radius: 4px; background: #fff; color: #222;
   resize: vertical; overflow: auto; white-space: pre-wrap; cursor: text;
 }
+#hn-layer .hn-box textarea.hn-text { height: 56px; }
+#hn-layer .hn-label { display: block; margin: 6px 0 2px; font-size: 11px; color: #666; }
+#hn-layer .hn-label:first-child { margin-top: 0; }
 #hn-layer .hn-box textarea:focus { outline: 2px solid #d6336c; outline-offset: -1px; }
 #hn-layer .hn-row { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
 #hn-layer .hn-hint { flex: 1; font-size: 11px; color: #666; }
@@ -548,7 +551,7 @@ const CLIENT_CSS = `/* html-notes client styles. Page elements get only hn-hover
 @media (prefers-color-scheme: dark) {
   #hn-layer .hn-box { background: #25272b; color: #eee; border-color: #555; }
   #hn-layer .hn-box textarea { background: #1a1b1e; color: #eee; border-color: #555; }
-  #hn-layer .hn-hint { color: #aaa; }
+  #hn-layer .hn-hint, #hn-layer .hn-label { color: #aaa; }
   #hn-layer .hn-btn { background: #383b40; color: #eee; border-color: #555; }
   #hn-layer .hn-btn:hover { background: #4a4d53; }
   #hn-layer .hn-save { background: #d6336c; border-color: #d6336c; color: #fff; }
@@ -559,6 +562,7 @@ const CLIENT_JS = `// html-notes client. Notes live in the file on disk; this sc
   'use strict';
 
   var notes = {};           // id -> text, the full current set
+  var texts = {};           // id -> new text of each text element edited in this tab
   var markers = {};         // id -> marker element
   var box = null;           // the open comment box, if any
   var boxId = null;         // id of the element the open box is for
@@ -605,6 +609,25 @@ const CLIENT_JS = `// html-notes client. Notes live in the file on disk; this sc
     var el = node.closest('[data-n]');
     if (!el || el === document.documentElement || el === document.body) return null;
     return el;
+  }
+
+  // An element holding only text, so the box can edit it without losing markup.
+  // Same rule as isTextElement on the server.
+  var NOT_TEXT = ('area base br col embed hr img input link meta param source track wbr ' +
+    'title iframe xmp noembed noframes script style template textarea').split(' ');
+  var SPACE = /[ \\t\\n\\r\\f]+/g;   // the whitespace HTML collapses; not U+00A0
+
+  function isTextElement(el) {
+    var kids = el.childNodes;
+    if (NOT_TEXT.indexOf(el.localName) >= 0 || kids.length === 0) return false;
+    for (var i = 0; i < kids.length; i++) if (kids[i].nodeType !== 3) return false;
+    return el.textContent.replace(SPACE, '') !== '';
+  }
+
+  // The text as the reader sees it. Outside pre, layout whitespace collapses.
+  function shownText(el) {
+    if (el.localName === 'pre') return el.textContent;
+    return el.textContent.replace(SPACE, ' ').trim();
   }
 
   // Where the layer's origin sits in the document. Zero unless body is positioned.
@@ -746,7 +769,7 @@ const CLIENT_JS = `// html-notes client. Notes live in the file on disk; this sc
     fetch(location.pathname, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ version: version, notes: currentNotes() })
+      body: JSON.stringify({ version: version, notes: currentNotes(), texts: texts })
     }).then(function (res) {
       if (res.ok) return res.json();
       if (res.status === 409) return { conflict: true };
@@ -790,7 +813,7 @@ const CLIENT_JS = `// html-notes client. Notes live in the file on disk; this sc
   // Commit and close the open box.
   function closeBox() {
     if (!box) return;
-    var ta = box.querySelector('textarea');
+    var ta = box.querySelector('textarea.hn-comment');
     var id = boxId;
     setNote(id, ta.value);
     box.remove();
@@ -801,23 +824,43 @@ const CLIENT_JS = `// html-notes client. Notes live in the file on disk; this sc
 
   function openBox(id) {
     if (box && boxId === id) {
-      box.querySelector('textarea').focus();
+      box.querySelector('textarea.hn-comment').focus();
       return;
     }
     closeBox();
-    if (!elementFor(id)) return;
+    var el = elementFor(id);
+    if (!el) return;
     boxId = id;
     box = document.createElement('div');
     box.className = 'hn-box';
 
+    // Text elements get a field for their text above the comment.
+    // The page shows each edit at once; blank text is not applied.
+    if (isTextElement(el)) {
+      var textArea = document.createElement('textarea');
+      textArea.className = 'hn-text';
+      textArea.value = shownText(el);
+      textArea.addEventListener('input', function () {
+        if (textArea.value.replace(SPACE, '') === '') return;
+        el.textContent = textArea.value;
+        texts[id] = textArea.value;
+        scheduleSave();
+        schedulePosition();
+      });
+      box.appendChild(label('Text'));
+      box.appendChild(textArea);
+      box.appendChild(label('Comment'));
+    }
+
     var ta = document.createElement('textarea');
+    ta.className = 'hn-comment';
     ta.value = notes[id] || '';
     ta.placeholder = 'Comment on this element';
     ta.addEventListener('input', function () {
       setNote(id, ta.value);
       scheduleSave();
     });
-    ta.addEventListener('keydown', function (e) {
+    box.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' || (e.key === 'Enter' && (e.metaKey || e.ctrlKey))) {
         e.preventDefault();
         closeBox();
@@ -831,6 +874,7 @@ const CLIENT_JS = `// html-notes client. Notes live in the file on disk; this sc
     var del = document.createElement('div');
     del.className = 'hn-btn';
     del.textContent = 'Delete';
+    del.title = 'Delete the comment';
     del.addEventListener('click', function () {
       ta.value = '';
       setNote(id, '');
@@ -862,6 +906,13 @@ const CLIENT_JS = `// html-notes client. Notes live in the file on disk; this sc
     positionBox();
     ta.focus({ preventScroll: true });
     ta.setSelectionRange(ta.value.length, ta.value.length);
+  }
+
+  function label(text) {
+    var div = document.createElement('div');
+    div.className = 'hn-label';
+    div.textContent = text;
+    return div;
   }
 
   // ---- click handling ----

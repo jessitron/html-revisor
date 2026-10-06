@@ -2,6 +2,8 @@
 
 Review agent-generated HTML in a browser and leave comments on specific elements. Comments are saved in the HTML file itself as `<!-- jess: ... -->` comments. Nothing lives in the browser or a sidecar file.
 
+You can also fix wording directly. When the clicked element holds only text (no child elements), the box shows a Text field above the comment. Edits show on the page as you type and are written into the file.
+
 ## Run
 
 ```
@@ -59,6 +61,8 @@ Open a fixture page (for example `test/fixtures/demo.html`) in a browser.
 - [ ] Hovering an element shows a dashed outline and a copy cursor; `html` and `body` show none.
 - [ ] Clicking an element opens a comment box below its top edge, with focus in the textarea.
 - [ ] A marker appears as soon as you type.
+- [ ] A text-only element (`<p>First paragraph</p>`, `<b>bold</b>`) shows a Text field above the comment; an element with child elements (`<p>Second <b>bold</b> paragraph</p>`) shows only the comment.
+- [ ] Typing in the Text field changes the page at once and the file within about half a second. Blanking it changes nothing.
 - [ ] The file on disk updates within about half a second; the toast says `saved · N comments`.
 - [ ] Reloading the page shows the marker; the element has a left accent.
 - [ ] Clicking a marker opens its box for editing.
@@ -76,6 +80,7 @@ Open a fixture page (for example `test/fixtures/demo.html`) in a browser.
 Everything is in `server.mjs`, in three tiers. Dependencies point down.
 
 - **Tier I, orchestration**: CLI arguments, the HTTP request handler, and the GET and PUT flows (normalize, stamp, collect or inject; read, strip notes, place notes, write).
-- **Tier II, domain**: pure functions. The formatter (`normalize`), the notes language (`collectNotes`, `removeNotes`, `placeNote`, escaping), and element identity (`stamp`, `unstamp`: `data-n` is the element's document-order index).
+- **Tier II, domain**: pure functions. The formatter (`normalize`), the notes language (`collectNotes`, `removeNotes`, `placeNote`, escaping), text edits (`isTextElement`, `setText`), and element identity (`stamp`, `unstamp`: `data-n` is the element's document-order index).
 - **Tier III, interface**: the filesystem gateway (paths under the root, 403 on escape), content types, directory listing, and the client assets (`CLIENT_CSS`, `CLIENT_JS`) injected into served pages.
+- **Text edits**: PUT also carries `texts`, `{"<id>": "new text"}`, holding every element the tab has edited. Resending is harmless. The server replaces the text only of elements that hold nothing but text (after notes are lifted out) and ignores blank text, so no markup is lost.
 - **Deviation from the spec**: PUT carries an optional `version` (hash of the file bytes, from `data-version` on the `#hn-notes` script); a mismatch gets 409 and no write. A PUT without `version` skips the check.
