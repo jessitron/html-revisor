@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Start html-notes. Usage: ./run [rootDir] [--port 7777] [--author jess]
+set -euo pipefail
+cd "$(dirname "$0")"
+[ -d node_modules ] || npm install --silent
+exec node server.mjs "$@"
