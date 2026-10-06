@@ -257,7 +257,9 @@ export function unstamp(document) {
 // ---- Notes --------------------------------------------------------------
 
 // Notes go before these elements; for everything else a note is the first child.
-const NOTE_BEFORE = new Set([...VOID, ...RAW]);
+// Elements whose content is parsed as plain text (title, iframe, ...) cannot hold a comment.
+const TEXT_ONLY = 'title iframe xmp noembed noframes'.split(' ');
+const NOTE_BEFORE = new Set([...VOID, ...RAW, ...TEXT_ONLY]);
 const noteGoesBefore = (el) => NOTE_BEFORE.has(el.localName);
 
 // A note is a comment inside an element whose text starts with "<author>:".
