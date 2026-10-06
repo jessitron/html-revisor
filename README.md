@@ -17,6 +17,8 @@ You can also fix wording directly. When the clicked element holds only text (no 
 
 Tests: `npm test`.
 
+To try it by hand, run `./run` here and open `try-me.html`. Comments and text edits write into it, so `git checkout try-me.html` resets it.
+
 ## Comment format
 
 A comment is an HTML comment whose text starts with `<author>:`.
