@@ -59,7 +59,7 @@ async function getPage(res, file, urlPath, { author }) {
     await fs.writeFile(file, formatted);
     console.log(`${urlPath} (normalized)`);
   }
-  const { document } = parseHTML(formatted);
+  const document = parse(formatted);
   stamp(document);
   const notes = collectNotes(document, author);
   removeNotes(document, author);
@@ -90,7 +90,7 @@ async function putNotes(req, res, file, urlPath, { author }) {
     res.writeHead(409, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({ ok: false, error: 'file changed on disk; reload to continue' }));
   }
-  const { document } = parseHTML(onDisk.toString('utf8'));
+  const document = parse(onDisk.toString("utf8"));
   const elements = [...document.querySelectorAll('*')]; // snapshot: ids are indices into this
   removeNotes(document, author);
   let count = 0;
@@ -142,7 +142,49 @@ const ONE_LINE_LIMIT = 90; // inline-only blocks shorter than this stay on one l
 // ---- Formatter ----------------------------------------------------------
 
 export function parse(html) {
-  return parseHTML(html).document;
+  return ensureSkeleton(parseHTML(html).document);
+}
+
+// Browsers supply a missing <html>, <head> or <body>; linkedom does not. It makes the first
+// element the root, and reading document.head/body creates empty ones inside that root.
+// So build the skeleton the way a browser does: head content goes in <head> until the first
+// other element or non-blank text, and the rest goes in <body>. Only direct children are
+// inspected, to avoid the document.head/body getters.
+const HEAD_CONTENT = new Set('base link meta noscript script style template title'.split(' '));
+
+function ensureSkeleton(document) {
+  const isEl = (n, name) => n.nodeType === 1 && n.localName === name;
+  let html = [...document.childNodes].find((n) => isEl(n, 'html'));
+  if (!html) {
+    html = document.createElement('html');
+    for (const n of [...document.childNodes]) if (n.nodeType !== 10) html.appendChild(n);
+    document.appendChild(html);
+  }
+  let head = [...html.childNodes].find((n) => isEl(n, 'head'));
+  let body = [...html.childNodes].find((n) => isEl(n, 'body'));
+  const headCreated = !head;
+  const bodyCreated = !body;
+  head ??= document.createElement('head');
+  body ??= document.createElement('body');
+  const beforeBody = [];
+  let inHead = true;
+  let seenBody = false;
+  for (const n of [...html.childNodes]) {
+    if (n === head) continue;
+    if (n === body) { seenBody = true; inHead = false; continue; }
+    if (inHead) {
+      // Comments and blank text before the content stay put, so a note on <html> stays there.
+      if (n.nodeType === 8 || (n.nodeType === 3 && !n.data.trim())) continue;
+      if (n.nodeType === 1 && HEAD_CONTENT.has(n.localName)) { head.appendChild(n); continue; }
+      inHead = false;
+    }
+    if (seenBody || bodyCreated) body.appendChild(n);
+    else beforeBody.push(n);
+  }
+  body.prepend(...beforeBody);
+  if (headCreated) html.prepend(head);
+  if (bodyCreated) html.appendChild(body);
+  return document;
 }
 
 export function normalize(html) {

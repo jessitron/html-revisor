@@ -351,3 +351,14 @@ test('served page carries the client and still re-parses with the same element c
     const scripts = [...document.querySelectorAll('script')];
     assert.ok(scripts.some((el) => el.textContent.includes('hn-layer')));
   }));
+
+test('a page without html, head or body gets them, and the client lands in them', () =>
+  withServer(async (s) => {
+    const { html, document } = await s.page('bare.html');
+    const onDisk = s.read('bare.html');
+    assert.match(onDisk, /<html>\s*<head>\s*<title>Bare page<\/title>[\s\S]*<\/head>\s*<body>\s*<main>/);
+    assert.match(onDisk, /<script>document\.title \+= '!';<\/script>\s*<\/body>\s*<\/html>\s*$/);
+    assert.equal(document.querySelector('title').textContent, 'Bare page', 'client CSS stays out of <title>');
+    assert.ok(html.indexOf('#hn-layer') < html.indexOf('</head>'), 'client CSS in head');
+    assert.match(html, /<\/script><\/body>\s*<\/html>\s*$/, 'client script at end of body');
+  }));
