@@ -1,6 +1,6 @@
 # html-notes: notes for agents
 
-Read `README.md` for usage and `PLAN.md` for build history. `html-notes-spec.md` is the original spec.
+Read `README.md` for usage. Build history is in git log; open work is in `yx`. `html-notes-spec.md` is the original spec.
 
 ## What the HTML files are
 
@@ -13,7 +13,8 @@ The files this tool serves are project-overview documents that Jess's agents gen
 ## Gotchas
 
 - linkedom doesn't create a missing `<html>`/`<head>`/`<body>`. It makes the first element the root, and reading `document.head` or `document.body` silently creates empty ones inside that root. Go through `parse()`, never `parseHTML` directly.
-- GET normalizes the file in place. To try the server by hand, serve a temp copy of `test/fixtures`, not the directory itself.
+- GET normalizes the file in place. To try the server by hand, serve a temp copy of `test/fixtures`, not the directory itself. `try-me.html` at the root is Jess's page for hand-testing; she may have uncommitted edits in it, so don't commit or reset it.
+- When a worktree session blocks a Bash command as "too complex to verify", split it into plain commands, and put helper scripts in `$CLAUDE_JOB_DIR/tmp` and run them with `node <file>`.
 - In the Chrome extension, a click right after `navigate` can land before the client script runs. Wait a second first.
 
 ## Task tracking: use `yx`

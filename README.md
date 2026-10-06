@@ -17,7 +17,11 @@ You can also fix wording directly. When the clicked element holds only text (no 
 
 Tests: `npm test`.
 
-To try it by hand, run `./run` here and open `try-me.html`. Comments and text edits write into it, so `git checkout try-me.html` resets it.
+## Try it
+
+`try-me.html` is a sample page for testing by hand. Run `./run` in this directory and open `http://localhost:7777/try-me.html`. It holds one of each case the client handles: text-only elements (Text field plus comment), a paragraph with inline markup (comment only), entities, a link, a list, a table, `hr` and `pre` (notes sit beside them), and a wrapper card.
+
+Your comments and text edits write into the file, so it shows as changed in git. `git checkout try-me.html` resets it. It is committed in normalized form, so loading it does not change it.
 
 ## Comment format
 
@@ -58,7 +62,7 @@ comment is thrown away.
 
 Each served page carries a version (a hash of the file on disk), and every save sends it back. If the file changed since the page loaded, the server answers 409 and the client stops saving and shows a lasting warning, so a stale tab cannot resurrect deleted notes or misplace notes on shifted elements.
 
-Open a fixture page (for example `test/fixtures/demo.html`) in a browser.
+Open `try-me.html` in a browser (see [Try it](#try-it)).
 
 - [ ] Hovering an element shows a dashed outline and a copy cursor; `html` and `body` show none.
 - [ ] Clicking an element opens a comment box below its top edge, with focus in the textarea.
