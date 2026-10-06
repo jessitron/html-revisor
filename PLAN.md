@@ -23,7 +23,7 @@ One source file, `server.mjs`, in three sections. Dependencies only point down:
 
 ## Steps
 
-1. Scaffold: `package.json` (type: module, linkedom), `.gitignore`, `./run`, `test/fixtures/`.
-2. Server and domain (subagent): formatter, notes, endpoints, plus acceptance and unit tests. All tests pass.
-3. Client UI and README (subagent): the injected CSS/JS, plus a README with run instructions, the comment format, the agent-instructions paragraph, and the manual checklist.
+1. [x] Scaffold: `package.json` (type: module, linkedom), `.gitignore`, `./run`, `test/fixtures/`.
+2. [x] Server and domain (subagent): formatter, notes, endpoints, plus acceptance and unit tests. All tests pass.
+3. [x] Client UI and README (subagent): the injected CSS/JS, plus a README with run instructions, the comment format, the agent-instructions paragraph, and the manual checklist.
 4. Browser verification (me): go through the checklist in real Chrome and fix what breaks.
