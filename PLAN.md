@@ -27,3 +27,4 @@ One source file, `server.mjs`, in three sections. Dependencies only point down:
 2. [x] Server and domain (subagent): formatter, notes, endpoints, plus acceptance and unit tests. All tests pass.
 3. [x] Client UI and README (subagent): the injected CSS/JS, plus a README with run instructions, the comment format, the agent-instructions paragraph, and the manual checklist.
 4. [x] Browser verification (me): went through the checklist in real Chrome. Found and fixed: a stale tab resurrected notes the agent had deleted (now a 409 version check). Not verified: dark mode.
+5. [x] First real use: a page without `<html>`/`<head>`/`<body>` got the client injected into `<title>`. Now the formatter adds the skeleton (see CLAUDE.md gotchas).

@@ -11,7 +11,7 @@ Review agent-generated HTML in a browser and leave comments on specific elements
 - `rootDir` defaults to the directory you run it from.
 - `--author` sets the comment prefix (default `jess`).
 - The server prints a URL on startup. Open an `.html` file under it.
-- First load normalizes the file's formatting and rewrites it on disk.
+- First load normalizes the file's formatting and rewrites it on disk. It also adds `<html>`, `<head>` and `<body>` if the file lacks them, the way a browser would. These files are agent-generated documents we control, so the tool rewrites them into the shape it needs.
 
 Tests: `npm test`.
 
@@ -63,7 +63,7 @@ Open a fixture page (for example `test/fixtures/demo.html`) in a browser.
 - [ ] Reloading the page shows the marker; the element has a left accent.
 - [ ] Clicking a marker opens its box for editing.
 - [ ] Delete (or emptying the text) removes the comment and the marker.
-- [ ] `⌘↵`, `Esc`, Save, and clicking outside each commit and close the box.
+- [ ] `⌘↵`, `Esc`, Save, and clicking outside each commit and close the box. (On a page with a full-width wrapper element, clicking the margin opens a box on the wrapper instead; use Esc.)
 - [ ] Opening a second box commits and closes the first.
 - [ ] Plain click on a link comments; ⌘-click on a link navigates.
 - [ ] The page's own layout and styles look the same with the UI loaded.
