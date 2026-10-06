@@ -44,6 +44,12 @@ async function withServer(fn, args = []) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notes }),
       }),
+    putVersioned: (name, version, notes) =>
+      fetch(server.base + name, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ version, notes }),
+      }),
     // Wait until the log has a line matching re (stdout arrives slightly after the response).
     async waitForLog(re, count = 1) {
       for (let i = 0; i < 200; i++) {
@@ -125,7 +131,9 @@ test('4. round-trip: PUT notes, file placement, GET returns the same map', () =>
       [ids.body]: 'about the whole page',
     };
     const res = await s.put('page.html', notes);
-    assert.deepEqual(await res.json(), { ok: true, count: 4 });
+    const body = await res.json();
+    assert.equal(body.ok, true);
+    assert.equal(body.count, 4);
 
     const file = s.read('page.html');
     assert.match(file, /<body>\n {4}<!-- jess: about the whole page -->/);
@@ -161,7 +169,9 @@ test('6. PUT is the full set', () =>
     assert.ok(file.includes('<!-- jess: two -->'));
 
     const res = await s.put('page.html', {});
-    assert.deepEqual(await res.json(), { ok: true, count: 0 });
+    const body = await res.json();
+    assert.equal(body.ok, true);
+    assert.equal(body.count, 0);
     assert.equal(countOf(s.read('page.html'), '<!-- jess:'), 0);
   }));
 
@@ -250,6 +260,36 @@ test('other files: assets, directory listing, 404', () =>
     assert.equal((await s.get('nope.html')).status, 404);
     const put404 = await s.put('nope.html', {});
     assert.equal(put404.status, 404);
+  }));
+
+test('versioned PUT: current version succeeds, stale version gets 409, missing version still works', () =>
+  withServer(async (s) => {
+    const { document } = await s.page('page.html');
+    const v0 = document.querySelector('script#hn-notes').getAttribute('data-version');
+    assert.match(v0, /^[0-9a-f]{12}$/);
+
+    const first = await s.putVersioned('page.html', v0, { 1: 'one' });
+    assert.equal(first.status, 200);
+    const firstBody = await first.json();
+    assert.equal(firstBody.count, 1);
+    assert.match(firstBody.version, /^[0-9a-f]{12}$/);
+    assert.notEqual(firstBody.version, v0);
+
+    const second = await s.putVersioned('page.html', firstBody.version, { 1: 'two' });
+    assert.equal(second.status, 200);
+    const secondVersion = (await second.json()).version;
+
+    // someone else edits the file on disk
+    s.write('page.html', s.read('page.html').replace('two', 'changed elsewhere'));
+    const before = s.read('page.html');
+    const stale = await s.putVersioned('page.html', secondVersion, { 1: 'mine' });
+    assert.equal(stale.status, 409);
+    assert.deepEqual(await stale.json(), { ok: false, error: 'file changed on disk; reload to continue' });
+    assert.equal(s.read('page.html'), before);
+    await s.waitForLog('stale write rejected');
+
+    // no version: the check is skipped
+    assert.equal((await s.put('page.html', { 1: 'curl' })).status, 200);
   }));
 
 test('errors are plain-text 500 and logged', () =>

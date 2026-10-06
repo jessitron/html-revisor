@@ -52,6 +52,8 @@ comment is thrown away.
 
 ## Manual client checklist
 
+Each served page carries a version (a hash of the file on disk), and every save sends it back. If the file changed since the page loaded, the server answers 409 and the client stops saving and shows a lasting warning, so a stale tab cannot resurrect deleted notes or misplace notes on shifted elements.
+
 Open a fixture page (for example `test/fixtures/demo.html`) in a browser.
 
 - [ ] Hovering an element shows a dashed outline and a copy cursor; `html` and `body` show none.
@@ -66,6 +68,7 @@ Open a fixture page (for example `test/fixtures/demo.html`) in a browser.
 - [ ] Plain click on a link comments; ⌘-click on a link navigates.
 - [ ] The page's own layout and styles look the same with the UI loaded.
 - [ ] Stopping the server and typing shows `save failed: ...`; restarting and typing again saves.
+- [ ] Edit the file on disk while the tab is open, then type: the toast warns that the file changed, the file stays untouched, and the box keeps your text.
 - [ ] Dark mode gives the box a dark theme.
 
 ## Design
@@ -75,3 +78,4 @@ Everything is in `server.mjs`, in three tiers. Dependencies point down.
 - **Tier I, orchestration**: CLI arguments, the HTTP request handler, and the GET and PUT flows (normalize, stamp, collect or inject; read, strip notes, place notes, write).
 - **Tier II, domain**: pure functions. The formatter (`normalize`), the notes language (`collectNotes`, `removeNotes`, `placeNote`, escaping), and element identity (`stamp`, `unstamp`: `data-n` is the element's document-order index).
 - **Tier III, interface**: the filesystem gateway (paths under the root, 403 on escape), content types, directory listing, and the client assets (`CLIENT_CSS`, `CLIENT_JS`) injected into served pages.
+- **Deviation from the spec**: PUT carries an optional `version` (hash of the file bytes, from `data-version` on the `#hn-notes` script); a mismatch gets 409 and no write. A PUT without `version` skips the check.

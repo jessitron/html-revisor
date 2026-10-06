@@ -4,6 +4,7 @@
 //   Tier I   orchestration: CLI, request routing, the GET and PUT flows
 //   Tier II  domain: formatter, notes, element identity (pure functions over a DOM)
 //   Tier III interface: filesystem gateway, content types, listings, client assets
+import crypto from 'node:crypto';
 import http from 'node:http';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -62,23 +63,34 @@ async function getPage(res, file, urlPath, { author }) {
   stamp(document);
   const notes = collectNotes(document, author);
   removeNotes(document, author);
-  injectClient(document, notes);
+  injectClient(document, notes, versionOf(formatted));
   console.log(`${urlPath} — ${Object.keys(notes).length} pending notes`);
   sendHtml(res, document.toString());
 }
 
+// A short fingerprint of the file bytes. The client sends it back to prove its view is current.
+const versionOf = (bytes) => crypto.createHash('sha1').update(bytes).digest('hex').slice(0, 12);
+
 // PUT: the body is the complete set of notes; rewrite them all into the file.
+// Optimistic concurrency: a "version" that differs from the file on disk is rejected with 409.
 async function putNotes(req, res, file, urlPath, { author }) {
-  let notes;
+  let notes, version;
   try {
-    notes = JSON.parse(await readBody(req)).notes;
+    ({ notes, version } = JSON.parse(await readBody(req)));
   } catch {
     throw new HttpError(400, 'body must be JSON');
   }
   if (!notes || typeof notes !== 'object' || Array.isArray(notes)) {
     throw new HttpError(400, 'body must look like {"notes": {"<id>": "text"}}');
   }
-  const { document } = parseHTML(await fs.readFile(file, 'utf8'));
+  const onDisk = await fs.readFile(file);
+  // A missing version skips the check, so curl and scripts can PUT without a GET first.
+  if (version !== undefined && version !== versionOf(onDisk)) {
+    console.log(`${urlPath} — stale write rejected (file changed on disk)`);
+    res.writeHead(409, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ ok: false, error: 'file changed on disk; reload to continue' }));
+  }
+  const { document } = parseHTML(onDisk.toString('utf8'));
   const elements = [...document.querySelectorAll('*')]; // snapshot: ids are indices into this
   removeNotes(document, author);
   let count = 0;
@@ -89,10 +101,11 @@ async function putNotes(req, res, file, urlPath, { author }) {
     count++;
   }
   unstamp(document);
-  await fs.writeFile(file, serialize(document));
+  const written = serialize(document);
+  await fs.writeFile(file, written);
   console.log(`${urlPath} — saved ${count} notes`);
   res.writeHead(200, { 'Content-Type': 'application/json' });
-  res.end(JSON.stringify({ ok: true, count }));
+  res.end(JSON.stringify({ ok: true, count, version: versionOf(written) }));
 }
 
 function sendError(res, err) {
@@ -483,9 +496,13 @@ const CLIENT_JS = `// html-notes client. Notes live in the file on disk; this sc
   var again = false;        // an edit arrived while a PUT was in flight
   var edited = false;       // changes not yet sent
   var toastTimer = null;
+  var version = null;       // fingerprint of the file as this tab last saw it
+  var stale = false;        // the file changed on disk; no more saves
 
   try {
-    notes = JSON.parse(document.getElementById('hn-notes').textContent) || {};
+    var data = document.getElementById('hn-notes');
+    notes = JSON.parse(data.textContent) || {};
+    version = data.getAttribute('data-version');
   } catch (e) {
     notes = {};
   }
@@ -629,10 +646,11 @@ const CLIENT_JS = `// html-notes client. Notes live in the file on disk; this sc
 
   // ---- saving ----
 
-  function showToast(text, isError) {
+  function showToast(text, isError, sticky) {
     toast.textContent = text;
     toast.className = 'hn-toast hn-show' + (isError ? ' hn-error' : '');
     clearTimeout(toastTimer);
+    if (sticky) return;
     toastTimer = setTimeout(function () {
       toast.className = 'hn-toast';
     }, isError ? 4000 : 1500);
@@ -648,6 +666,7 @@ const CLIENT_JS = `// html-notes client. Notes live in the file on disk; this sc
   function saveNow() {
     clearTimeout(saveTimer);
     saveTimer = null;
+    if (stale) return;
     if (saving) { again = true; return; }
     saving = true;
     again = false;
@@ -656,13 +675,20 @@ const CLIENT_JS = `// html-notes client. Notes live in the file on disk; this sc
     fetch(location.pathname, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ notes: currentNotes() })
+      body: JSON.stringify({ version: version, notes: currentNotes() })
     }).then(function (res) {
       if (res.ok) return res.json();
+      if (res.status === 409) return { conflict: true };
       return res.text().then(function (t) {
         throw new Error(t || ('HTTP ' + res.status));
       });
     }).then(function (data) {
+      if (data.conflict) {
+        stale = true;
+        showToast('file changed on disk — reload to see it (your unsaved text is in the box)', true, true);
+        return;
+      }
+      version = data.version;
       var n = data.count;
       showToast('saved · ' + n + (n === 1 ? ' comment' : ' comments'), false);
     }).catch(function (err) {
@@ -789,7 +815,7 @@ const CLIENT_JS = `// html-notes client. Notes live in the file on disk; this sc
 })();
 `;
 
-export function injectClient(document, notes) {
+export function injectClient(document, notes, version) {
   const head = document.querySelector('head') ?? document.documentElement;
   const body = document.querySelector('body') ?? document.documentElement;
 
@@ -800,6 +826,7 @@ export function injectClient(document, notes) {
   const data = document.createElement('script');
   data.setAttribute('type', 'application/json');
   data.setAttribute('id', 'hn-notes');
+  if (version) data.setAttribute('data-version', version);
   data.textContent = JSON.stringify(notes).replace(/</g, '\\u003c');
   body.appendChild(data);
 
