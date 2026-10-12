@@ -172,6 +172,17 @@ test('a save keeps IDs: an edited item keeps its own, a new one beside it gets n
   assert.deepEqual([back, ...back.children].map((e) => e.getAttribute('data-hrv')), [ul, null, first, second]);
 });
 
+test('an item you type more into keeps its ID over a short new item beside it', () => {
+  assert.deepEqual(
+    itemIdsAfter(['First item', 'Second item', 'Third item'], '- First item\n- Second item, **edited**\n- Brand new item\n- Third item'),
+    [0, 1, null, 2],
+  );
+  assert.deepEqual(
+    itemIdsAfter(['First item', 'Second item', 'Third item'], '- First item\n- Brand new item\n- Second item, which now explains itself at length\n- Third item'),
+    [0, null, 1, 2],
+  );
+});
+
 test('two images of one picture that swap places keep their own sizes', () => {
   const { document, el } = scopeIn('<p><img src="a.png" alt="big" width="90"> <img src="a.png" alt="small" width="9"></p>');
   const back = canonicalHTML(document, scopeFromMarkdown(el, '![small](a.png) ![big](a.png)'));

@@ -630,8 +630,13 @@ function pairGap(before, after, b0, b1, a0, a1, pairs, beforeKeys, afterKeys) {
   }
 }
 
-// How alike two pieces of HTML are, 0 to 1: the Dice coefficient of their character pairs.
+// How alike two elements of one tag are, by their content: of the character pairs in the
+// shorter, the share the other holds too. Typing more into an item keeps it alike; its tags,
+// the same on both, don't count. Ties go to the closer length (the Dice coefficient). An
+// element with no content, like an img, compares its tag.
 function likeness(x, y) {
+  const inner = (s) => s.replace(/^<[^>]*>/, '').replace(/<\/[^>]*>$/, '');
+  if (inner(x) && inner(y)) [x, y] = [inner(x), inner(y)];
   const pairsOf = (s) => {
     const counts = new Map();
     for (let i = 0; i < s.length - 1; i++) counts.set(s.slice(i, i + 2), (counts.get(s.slice(i, i + 2)) ?? 0) + 1);
@@ -640,7 +645,9 @@ function likeness(x, y) {
   const [px, py] = [pairsOf(x), pairsOf(y)];
   let shared = 0;
   for (const [p, n] of px) shared += Math.min(n, py.get(p) ?? 0);
-  return (2 * shared) / Math.max(x.length + y.length - 2, 1);
+  const contained = shared / Math.max(Math.min(x.length, y.length) - 1, 1);
+  const dice = (2 * shared) / Math.max(x.length + y.length - 2, 1);
+  return contained + dice / 100;
 }
 
 // Index pairs of a longest common subsequence, in order. Of the longest, the one whose pairs
