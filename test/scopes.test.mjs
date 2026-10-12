@@ -152,6 +152,19 @@ test('a destination with a space or parenthesis goes in angle brackets; a title 
   assert.ok(same);
 });
 
+// The IDs of a list's items after saving markdown over it, by their place in the prior list.
+const itemIdsAfter = (items, markdown) => {
+  const { el } = scopeIn(`<ul>${items.map((i) => `<li>${i}</li>`).join('')}</ul>`);
+  const place = new Map([...el.children].map((li, n) => [li.getAttribute('data-hrv'), n]));
+  const [back] = scopeFromMarkdown(el, markdown);
+  return [...back.children].map((li) => place.get(li.getAttribute('data-hrv')) ?? null);
+};
+
+test('an item edited into a copy of its neighbor keeps its place, and so does the neighbor', () => {
+  assert.deepEqual(itemIdsAfter(['x', 'yak', 'z'], '- yak\n- yak\n- z'), [0, 1, 2]);
+  assert.deepEqual(itemIdsAfter(['x', 'x', 'y'], "- x'\n- x\n- y"), [0, 1, 2]);
+});
+
 test('a save keeps IDs: an edited item keeps its own, a new one beside it gets none', () => {
   const { el } = scopeIn('<ul><li>ship the formatter</li><li>then deploy</li></ul>');
   const [ul, first, second] = [el, ...el.children].map((e) => e.getAttribute('data-hrv'));
