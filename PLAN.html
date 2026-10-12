@@ -72,26 +72,63 @@
         </tr>
         <tr>
           <td>author default</td>
-          <td>
-            <!-- @AI: ugh. this needs to change but we can do that later as a yak -->
-            <code>jess</code>
-          </td>
+          <td><code>jess</code> → <code>@AI</code> in stage 1</td>
           <td><code>@AI</code></td>
         </tr>
         <tr>
           <td>PUT body</td>
           <td><code>{directives, texts, version}</code></td>
-          <td>
-            <code><!-- @AI: change that as part of the push.
-This is an example of - if we do the push from here, we're messing with iterate-on-docs code.
-If we do it from there, then we need a changelog here.
-
-I'm open to suggestions from you on this.
-
-rn we're clarifying that first step, and that's useful. -->{notes, texts, version}</code>
-          </td>
+          <td><code>{notes, texts, version}</code>, catches up at the first deploy</td>
         </tr>
       </table>
+    </section>
+    <section id="contract">
+      <h2>The contract</h2>
+      <p class="sub">
+        What iterate-on-docs code relies on. Everything else is inside the output, ours to change.
+      </p>
+      <table>
+        <tr>
+          <th>the skill relies on</th>
+          <th>today</th>
+        </tr>
+        <tr>
+          <td>server path</td>
+          <td><code>../../html-with-comments/server.mjs</code></td>
+        </tr>
+        <tr>
+          <td>CLI</td>
+          <td><code>node &lt;server&gt; &lt;dir&gt; --port 0</code></td>
+        </tr>
+        <tr>
+          <td>startup line</td>
+          <td><code>html-notes: http://localhost:&lt;port&gt;/ serving &lt;dir&gt;</code></td>
+        </tr>
+        <tr>
+          <td>directive syntax</td>
+          <td>
+            <code>&lt;!-- @AI: … --&gt;</code>, first child, or before a void or raw-text element
+          </td>
+        </tr>
+        <tr>
+          <td>GET rewrites the file</td>
+          <td>fetch before each commit</td>
+        </tr>
+      </table>
+      <div class="card">
+        <strong>Suggestion: deploy from here, into the output folder only.</strong>
+        <ul class="yaks">
+          <li>
+            <code>iterate-on-docs/html-with-comments/</code> is ours: deploy overwrites it and writes the commit hash into VENDORED.md. The PUT body change rides along; nothing in iterate-on-docs notices.
+          </li>
+          <li>
+            A change to the contract is not a deploy. It needs a matching edit to the skill, made on purpose in the same session. The grep fix and the rename are contract changes.
+          </li>
+          <li>
+            Our README gets a “Contract” section listing the rows above. That replaces a changelog: the only changes iterate-on-docs has to hear about are changes to that list.
+          </li>
+        </ul>
+      </div>
     </section>
     <section id="stages">
       <h2>Now</h2>
@@ -133,8 +170,10 @@ rn we're clarifying that first step, and that's useful. -->{notes, texts, versio
               Rename this project and its output <span class="yak">rename…html-revisor-udqv</span>
             </li>
             <li>
-              <!-- @AI: I'm fine with pushing 'directive' through. I suspect Arlo will not have direction for me on this, and he's busy anyway. You can remove the "talk to arlo" part -->
-              Carry “directive” into iterate-on-docs's README and skills; talk with Arlo <span class="yak">standardize-the-name…ly1y</span>
+              Carry “directive” into iterate-on-docs's README and skills <span class="yak">standardize-the-name…ly1y</span>
+            </li>
+            <li>
+              The startup line says <code>html-notes:</code>, and the skill reads it. Change both together.
             </li>
           </ul>
           <div class="ships">
@@ -182,14 +221,13 @@ rn we're clarifying that first step, and that's useful. -->{notes, texts, versio
     </section>
     <section id="polish">
       <h2>Polish lane</h2>
-      <p class="sub">Any time. Each ships with the next deploy.</p>
+      <p class="sub">Each ships with the next deploy.</p>
       <div class="lane">
         <div class="card">
-          <strong>Movable box</strong><br>see the element behind it <span class="yak">a8t2</span>
+          <strong>Movable box</strong><br>see the element behind it; any time <span class="yak">a8t2</span>
         </div>
         <div class="card">
-          <!-- @AI: this can be progressed in parallel separate from other work -->
-          <strong>Client style guide</strong><br>box, marker, toast, hover; mocks follow it <span class="yak">vrc3</span>
+          <strong>Client style guide</strong><br>box, marker, toast, hover; mocks follow it. In parallel, separate from other work <span class="yak">vrc3</span>
         </div>
       </div>
     </section>
