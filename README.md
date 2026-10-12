@@ -52,12 +52,12 @@ Paste this into the agent's instructions:
 ```
 HTML files in this project may hold directives written as HTML comments that
 start with "@AI:", for example <!-- @AI: this section is out of date -->.
-To find them, run: grep -n '@AI:' file.html
+To find them, run: grep -n '<!-- *@AI:' file.html
 Each directive is a request about the element that contains it (it is the element's
 first child), or about the element right after it when that element is an img, hr,
 br, input, pre, textarea, script, or style. Address every directive, then delete the
 directive from the file. Leave HTML comments that do not start with "@AI:" alone.
-Before you regenerate an HTML file from scratch, run grep -c '@AI:' file.html.
+Before you regenerate an HTML file from scratch, run grep -c '<!-- *@AI:' file.html.
 The count must be 0. If it is not, address those directives first so no unresolved
 directive is thrown away.
 ```
