@@ -2,14 +2,15 @@
 //
 // Three tiers, dependencies point downward only:
 //   Tier I   orchestration: CLI, request routing, the GET and PUT flows
-//   Tier II  domain: formatter, directives, text edits, element identity (pure functions over a DOM)
+//   Tier II  domain: directives, text edits, element identity (pure functions over a DOM);
+//            the formatter is Tier II too, in formatter.mjs
 //   Tier III interface: filesystem gateway, content types, listings, client assets
 import crypto from 'node:crypto';
 import http from 'node:http';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { parseHTML } from './vendor/linkedom.mjs';
+import { parse, normalize, serialize, VOID, RAW, trimAscii, escapeText } from './formatter.mjs';
 
 // ======================================================================
 // Tier I: orchestration
@@ -134,174 +135,6 @@ async function main() {
 // ======================================================================
 // Tier II: domain
 // ======================================================================
-
-const VOID = new Set('area base br col embed hr img input link meta param source track wbr'.split(' '));
-const RAW = new Set('pre textarea script style template'.split(' ')); // inner content is kept as-is
-const BLOCK = new Set(
-  `html head body main header footer nav section article aside div p h1 h2 h3 h4 h5 h6
-   ul ol li dl dt dd table thead tbody tfoot tr th td blockquote pre figure figcaption hr
-   form fieldset details summary meta link script style noscript template iframe video
-   audio canvas svg`.split(/\s+/),
-);
-const ONE_LINE_LIMIT = 90; // inline-only blocks shorter than this stay on one line
-
-// ---- Formatter ----------------------------------------------------------
-
-export function parse(html) {
-  return ensureSkeleton(parseHTML(html).document);
-}
-
-// Browsers supply a missing <html>, <head> or <body>; linkedom does not. It makes the first
-// element the root, and reading document.head/body creates empty ones inside that root.
-// So build the skeleton the way a browser does: head content goes in <head> until the first
-// other element or non-blank text, and the rest goes in <body>. Only direct children are
-// inspected, to avoid the document.head/body getters.
-const HEAD_CONTENT = new Set('base link meta noscript script style template title'.split(' '));
-
-function ensureSkeleton(document) {
-  const isEl = (n, name) => n.nodeType === 1 && n.localName === name;
-  let html = [...document.childNodes].find((n) => isEl(n, 'html'));
-  if (!html) {
-    html = document.createElement('html');
-    for (const n of [...document.childNodes]) if (n.nodeType !== 10) html.appendChild(n);
-    document.appendChild(html);
-  }
-  let head = [...html.childNodes].find((n) => isEl(n, 'head'));
-  let body = [...html.childNodes].find((n) => isEl(n, 'body'));
-  const headCreated = !head;
-  const bodyCreated = !body;
-  head ??= document.createElement('head');
-  body ??= document.createElement('body');
-  const beforeBody = [];
-  let inHead = true;
-  let seenBody = false;
-  for (const n of [...html.childNodes]) {
-    if (n === head) continue;
-    if (n === body) { seenBody = true; inHead = false; continue; }
-    if (inHead) {
-      // Comments and blank text before the content stay put, so a directive on <html> stays there.
-      if (n.nodeType === 8 || (n.nodeType === 3 && !n.data.trim())) continue;
-      if (n.nodeType === 1 && HEAD_CONTENT.has(n.localName)) { head.appendChild(n); continue; }
-      inHead = false;
-    }
-    if (seenBody || bodyCreated) body.appendChild(n);
-    else beforeBody.push(n);
-  }
-  body.prepend(...beforeBody);
-  if (headCreated) html.prepend(head);
-  if (bodyCreated) html.appendChild(body);
-  return document;
-}
-
-export function normalize(html) {
-  return serialize(parse(html));
-}
-
-// Canonical serialization of a whole document.
-export function serialize(document) {
-  const doctype = document.doctype?.name || 'html';
-  const lines = [`<!DOCTYPE ${doctype}>`, ...formatChildren(document, 0)];
-  return lines.join('\n') + '\n';
-}
-
-const ASCII_SPACE = '[ \\t\\n\\r\\f]'; // the only whitespace HTML collapses; U+00A0 is not in it
-const collapse = (s) => s.replace(new RegExp(`${ASCII_SPACE}+`, 'g'), ' ');
-const trimAscii = (s) => s.replace(new RegExp(`^${ASCII_SPACE}+|${ASCII_SPACE}+$`, 'g'), '');
-const pad = (depth) => '  '.repeat(depth);
-
-// Parsers decoded the entities already, so escape on the way out.
-const escapeText = (s) =>
-  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/ /g, '&nbsp;');
-const escapeAttr = (s) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
-
-// Child nodes with adjacent text nodes merged into one string (entities split text in linkedom).
-// Elements and comments pass through; other node types (doctype) are dropped.
-function childrenOf(parent) {
-  const items = [];
-  for (const node of parent.childNodes) {
-    if (node.nodeType === 3) {
-      if (typeof items.at(-1) === 'string') items[items.length - 1] += node.data;
-      else items.push(node.data);
-    } else if (node.nodeType === 1 || node.nodeType === 8) {
-      items.push(node);
-    }
-  }
-  return items;
-}
-
-// A block element by name, or any element holding a block element.
-function isBlockish(el) {
-  return BLOCK.has(el.localName) || [...el.childNodes].some((n) => n.nodeType === 1 && isBlockish(n));
-}
-
-const isBlockItem = (item) =>
-  typeof item !== 'string' && (item.nodeType === 8 || isBlockish(item));
-
-// Lay out the children of a block container: block items on their own lines,
-// runs of inline items joined onto one line.
-function formatChildren(parent, depth) {
-  const lines = [];
-  let run = [];
-  const flush = () => {
-    const text = trimAscii(inlineHTML(run));
-    run = [];
-    if (text) lines.push(pad(depth) + text);
-  };
-  for (const item of childrenOf(parent)) {
-    if (isBlockItem(item)) {
-      flush();
-      lines.push(...formatBlock(item, depth));
-    } else {
-      run.push(item);
-    }
-  }
-  flush();
-  return lines;
-}
-
-function formatBlock(node, depth) {
-  if (node.nodeType === 8) return [`${pad(depth)}<!--${node.data}-->`];
-  const open = openTag(node);
-  if (VOID.has(node.localName)) return [pad(depth) + open];
-  const close = `</${node.localName}>`;
-  if (RAW.has(node.localName)) return [pad(depth) + open + rawInner(node) + close];
-
-  const kids = childrenOf(node);
-  if (kids.some(isBlockItem)) {
-    return [pad(depth) + open, ...formatChildren(node, depth + 1), pad(depth) + close];
-  }
-  const inner = trimAscii(inlineHTML(kids));
-  if ((open + inner + close).length < ONE_LINE_LIMIT) return [pad(depth) + open + inner + close];
-  return [pad(depth) + open, pad(depth + 1) + inner, pad(depth) + close];
-}
-
-// Inline content: whitespace collapses to single spaces, and a whitespace-only
-// string between two inline nodes survives as one space.
-function inlineHTML(items) {
-  return items
-    .map((item) => {
-      if (typeof item === 'string') return escapeText(collapse(item));
-      if (item.nodeType === 8) return `<!--${item.data}-->`;
-      const open = openTag(item);
-      if (VOID.has(item.localName)) return open;
-      const inner = RAW.has(item.localName) ? rawInner(item) : inlineHTML(childrenOf(item));
-      return `${open}${inner}</${item.localName}>`;
-    })
-    .join('');
-}
-
-function openTag(el) {
-  const attrs = [...el.attributes]
-    .map((a) => (a.value === '' ? ` ${a.name}` : ` ${a.name}="${escapeAttr(a.value)}"`))
-    .join('');
-  return `<${el.localName}${attrs}>`;
-}
-
-// pre/textarea/script/style/template: linkedom's own inner serialization, no re-indenting.
-// linkedom writes U+00A0 as &#160;; use the named entity instead.
-function rawInner(el) {
-  return el.innerHTML.replace(/&#160;/g, '&nbsp;');
-}
 
 // ---- Element identity ---------------------------------------------------
 

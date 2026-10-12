@@ -53,6 +53,7 @@ The iterate-on-a-document skill and the README in iterate-on-docs run and descri
 | Page URL | the startup address plus the file's path under `<dir>` |
 | Directive syntax | `<!-- @AI: … -->`, first child of its element, or just before a void or raw-text element (full list under [Directive format](#directive-format)) |
 | Finding directives | `grep '<!-- *@AI:'` |
+| Formatter CLI | `node ../../html-revisor/formatter.mjs <file>...`, from the skill's base directory. Rewrites each file in place into the same canonical form a page load gives. Silent and exit 0 on success; exit 1 with `<file>: <problem>` on stderr when a file can't be read or written or breaks a rule the formatter can't fix (it still writes the fixable part); exit 2 with usage when given no files |
 | Loading a page reformats its file | each GET rewrites the file on disk into canonical formatting. The skill fetches the page before each commit, so the reformat lands in the agent's commit and doesn't show up as the user's next edit |
 | Browser behavior | click any element to leave a directive on it or change its wording; both save into the file as you type |
 | README | this README ships in the output and keeps its "Directive format" section; iterate-on-docs links to it |
@@ -124,12 +125,13 @@ Open `try-me.html` in a browser (see [Try it](#try-it)).
 
 ## Design
 
-The code is in `server.mjs`, in three tiers, plus `client.css`. Dependencies point down. How the UI looks, and the design decisions so far, are in [DESIGN.html](DESIGN.html); it links `client.css`, so it shows the real styles.
+The code is in `server.mjs` and `formatter.mjs`, in three tiers, plus `client.css`. Dependencies point down: `server.mjs` imports `formatter.mjs`, and `formatter.mjs` imports nothing from `server.mjs`. How the UI looks, and the design decisions so far, are in [DESIGN.html](DESIGN.html); it links `client.css`, so it shows the real styles.
 
 The HTML parser is [linkedom](https://github.com/WebReflection/linkedom), bundled with its dependencies into `vendor/linkedom.mjs` (licenses in `vendor/linkedom.LICENSES.txt`) so the tool runs where `npm install` can't, such as behind a corporate proxy. To upgrade it: change the version in `package.json`'s devDependencies, then `npm install && npm run vendor`, and commit `vendor/`.
 
 - **Tier I, orchestration**: CLI arguments, the HTTP request handler, and the GET and PUT flows (normalize, stamp, collect or inject; read, strip directives, place directives, write). The PUT body is `{"directives": {"<id>": "text"}, "texts": {"<id>": "text"}, "version": "..."}`.
-- **Tier II, domain**: pure functions. The formatter (`normalize`), the directives language (`collectDirectives`, `removeDirectives`, `placeDirective`, escaping), text edits (`isTextElement`, `setText`), and element identity (`stamp`, `unstamp`: `data-n` is the element's document-order index).
+- **Formatter**: `formatter.mjs` stands alone. Its Tier II is `parse` (adds a missing skeleton), `serialize` (canonical layout), `normalize` (both), and `validate`, the rules normalizing can't fix (none yet). Its Tier I is a CLI, `node formatter.mjs <file>...` (see the [Contract](#contract-with-iterate-on-docs)).
+- **Tier II, domain**: pure functions. The formatter (imported from `formatter.mjs`), the directives language (`collectDirectives`, `removeDirectives`, `placeDirective`, escaping), text edits (`isTextElement`, `setText`), and element identity (`stamp`, `unstamp`: `data-n` is the element's document-order index).
 - **Tier III, interface**: the filesystem gateway (paths under the root, 403 on escape), content types, directory listing, and the client assets injected into served pages: `client.css`, read on each GET, and `CLIENT_JS`.
 - **Text edits**: PUT also carries `texts`, `{"<id>": "new text"}`, holding every element the tab has edited. Resending is harmless. The server replaces the text only of elements that hold nothing but text (after directives are lifted out) and ignores blank text, so no markup is lost.
 - **Files it serves**: agent-generated documents whose generation we control. The tool may require things of them, limit what they contain, and rewrite them on disk. When a file shape causes trouble, normalize it into a shape the tool handles rather than supporting every HTML a browser accepts. If a requirement can't be met by normalizing, add it to the agent instructions above.
@@ -137,6 +139,6 @@ The HTML parser is [linkedom](https://github.com/WebReflection/linkedom), bundle
 
 ## Gotchas for maintainers
 
-- linkedom doesn't create a missing `<html>`/`<head>`/`<body>`. It makes the first element the root, and reading `document.head` or `document.body` silently creates empty ones inside that root. Go through `parse()`, never `parseHTML` directly.
+- linkedom doesn't create a missing `<html>`/`<head>`/`<body>`. It makes the first element the root, and reading `document.head` or `document.body` silently creates empty ones inside that root. Go through `parse()` in `formatter.mjs`, never `parseHTML` directly.
 - `vendor/linkedom.mjs` is a generated bundle. Don't edit it. After changing the linkedom version, run `npm run vendor`.
 - GET normalizes the file in place. To try the server by hand, serve a temp copy of `test/fixtures`, not the directory itself.

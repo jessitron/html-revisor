@@ -20,7 +20,8 @@ The files this tool serves are project-overview documents that Jess's agents gen
 
 ## Gotchas
 
-- linkedom doesn't create a missing `<html>`/`<head>`/`<body>`. It makes the first element the root, and reading `document.head` or `document.body` silently creates empty ones inside that root. Go through `parse()`, never `parseHTML` directly.
+- linkedom doesn't create a missing `<html>`/`<head>`/`<body>`. It makes the first element the root, and reading `document.head` or `document.body` silently creates empty ones inside that root. Go through `parse()` in `formatter.mjs`, never `parseHTML` directly.
+- After editing an HTML file here by hand (OVERVIEW.html, PLAN.html), run `node formatter.mjs <file>` so it is committed in canonical form and the next page load doesn't rewrite it.
 - `vendor/linkedom.mjs` is a generated 480 KB bundle. Don't edit it, and leave `vendor/` out of searches. To read linkedom's source, `npm install` and look in `node_modules/linkedom`. After changing the linkedom version, run `npm run vendor`.
 - GET normalizes the file in place. To try the server by hand, serve a temp copy of `test/fixtures`, not the directory itself. `try-me.html` at the root is Jess's page for hand-testing; she may have uncommitted edits in it, so don't commit or reset it.
 - When a worktree session blocks a Bash command as "too complex to verify", split it into plain commands, and put helper scripts in `$CLAUDE_JOB_DIR/tmp` and run them with `node <file>`. The guard also trips on the word "git" inside a perl or sed script, as when editing `deploy`,; use the Edit tool for those.
