@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-hrv-next="187" lang="en">
+<html data-hrv-next="193" lang="en">
   <head>
     <meta charset="utf-8">
     <title>html-revisor — the path</title>
@@ -127,24 +127,27 @@
             <li data-hrv="170">
               Done: the client script lives in <code>client.js</code>, so client work no longer collides with server work. <span class="yak">tl5y</span>
             </li>
-            <li data-hrv="76">
-              Canonical tags: the formatter rewrites <code>b</code>→<code>strong</code>, <code>i</code>→<code>em</code>, so markdown's one syntax maps back to one tag. Formatting, not a validation rule: no agent hears of it.
+            <li data-hrv="187">
+              <strong>Parser:</strong> markdown-it, vendored like linkedom. CommonMark with GFM tables; raw HTML passes through; a newline is <code>&lt;br&gt;</code> (A4). <strong>Writer:</strong> our own, in <code>scopes.mjs</code>: it carries the Decided rules, and turndown would need each one overridden. <span class="yak">6u05</span>
             </li>
-            <li data-hrv="78">
-              Libraries: a markdown parser and an HTML-to-markdown writer, vendored like linkedom
+            <li data-hrv="188">
+              The inverse, markdown to a scope's content, and a property test: scope → markdown → scope is identity, IDs aside. Seeded scopes in the shapes agents write, plus every scope in this repo's pages. Watch <code>* _ ` [</code> escaping. What it catches gets fixed in the writer. <span class="yak">s8s3</span>
             </li>
-            <li data-hrv="77">
-              A property test: scope → markdown → scope is identity. Watch <code>* _ ` [</code> escaping.
+            <li data-hrv="189">
+              Canonical tags: the formatter rewrites <code>b</code>→<code>strong</code>, <code>i</code>→<code>em</code>, so markdown's one syntax maps back to one tag. Formatting, not a validation rule: no agent hears of it. <span class="yak">w3yn</span>
             </li>
-            <li data-hrv="79">
-              Reconcile against the prior HTML: elements a markdown edit leaves unchanged keep their IDs and the attributes markdown can't say (<code>data-hrv</code>, <code>img</code> width and height). New elements get fresh IDs. How to match is open.
+            <li data-hrv="190">
+              What markdown holds as a stand-in: <code>⟦svg⟧</code> comes back as the original element, and a directive inside the scope rides with its element. <span class="yak">25ov</span>
             </li>
-            <li data-hrv="171">
-              <code>scopeMarkdown(el)</code> from <code>scopes.mjs</code> replaces <code>isTextElement</code>; the client offers markdown on every block.
+            <li data-hrv="191">
+              Reconcile against the prior HTML: elements a markdown edit leaves unchanged keep their IDs and the attributes markdown can't say (<code>data-hrv</code>, <code>img</code> width and height). New elements get fresh IDs. How to match is open. <span class="yak">eq9q</span>
+            </li>
+            <li data-hrv="192">
+              Wire it: PUT <code>{id, base, markdown}</code>, converted on the server, where <code>scopes.mjs</code> and linkedom already run. <code>scopeMarkdown(el)</code> replaces <code>isTextElement</code>; the client offers markdown on every block. <span class="yak">i12d</span>
             </li>
           </ul>
           <div data-hrv="80" class="q">
-            A scope can hold directives on the elements inside it: a list item, a link. When you edit the list as markdown, where do they go? Likely with their element, through the same reconciliation. And where does conversion run: server (the client stays small) or client (a live preview)?
+            A scope can hold directives on the elements inside it: a list item, a link. When you edit the list as markdown, where do they go? Likely with their element, through the same reconciliation. Conversion: on the server, unless we want a live preview in the client. Jess to confirm.
           </div>
           <div data-hrv="86" class="ships">
             editable prose; the PUT body changes, the contract doesn't
