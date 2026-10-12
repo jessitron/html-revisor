@@ -499,64 +499,7 @@ function directoryListing(urlPath, entries) {
 }
 
 // Client assets. Appended to the served copy after stamping, so none of it gets a data-n.
-const CLIENT_CSS = `/* html-revisor client styles. Page elements get only hrv-hover and hrv-has-directive. */
-.hrv-hover { outline: 2px dashed #d6336c !important; outline-offset: 1px !important; cursor: copy !important; }
-.hrv-has-directive { box-shadow: inset 3px 0 0 #d6336c !important; }
-
-/* Reset everything inside the layer so the page's CSS cannot leak in. */
-#hrv-layer { all: initial; display: block; position: absolute; top: 0; left: 0; width: 0; height: 0; z-index: 2147483647; }
-#hrv-layer *, #hrv-layer *::before, #hrv-layer *::after {
-  all: initial; box-sizing: border-box; margin: 0;
-  font: 13px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; color: #222;
-}
-#hrv-layer div { display: block; }
-
-#hrv-layer .hrv-marker {
-  position: absolute; width: 18px; height: 18px; border-radius: 50%;
-  background: #d6336c; color: #fff; font-size: 11px; line-height: 18px; text-align: center;
-  cursor: pointer; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
-}
-#hrv-layer .hrv-marker:hover { background: #a61e4d; }
-
-#hrv-layer .hrv-box {
-  position: absolute; width: 320px; padding: 8px; background: #fff; color: #222;
-  border: 1px solid #bbb; border-radius: 8px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.28);
-}
-#hrv-layer .hrv-box textarea {
-  display: block; width: 100%; height: 96px; min-height: 56px; padding: 6px;
-  border: 1px solid #bbb; border-radius: 4px; background: #fff; color: #222;
-  resize: vertical; overflow: auto; white-space: pre-wrap; cursor: text;
-}
-#hrv-layer .hrv-box textarea.hrv-text { height: 56px; }
-#hrv-layer .hrv-label { display: block; margin: 6px 0 2px; font-size: 11px; color: #666; }
-#hrv-layer .hrv-label:first-child { margin-top: 0; }
-#hrv-layer .hrv-box textarea:focus { outline: 2px solid #d6336c; outline-offset: -1px; }
-#hrv-layer .hrv-row { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
-#hrv-layer .hrv-hint { flex: 1; font-size: 11px; color: #666; }
-#hrv-layer .hrv-btn {
-  display: inline-block; padding: 4px 10px; border: 1px solid #bbb; border-radius: 4px;
-  background: #f3f3f3; color: #222; text-align: center; cursor: pointer;
-}
-#hrv-layer .hrv-btn:hover { background: #e4e4e4; }
-#hrv-layer .hrv-save { background: #d6336c; border-color: #d6336c; color: #fff; }
-#hrv-layer .hrv-save:hover { background: #a61e4d; }
-
-#hrv-layer .hrv-toast {
-  position: fixed; right: 16px; bottom: 16px; padding: 6px 12px; border-radius: 6px;
-  background: #222; color: #fff; opacity: 0; transition: opacity 0.3s; pointer-events: none;
-}
-#hrv-layer .hrv-toast.hrv-show { opacity: 1; }
-#hrv-layer .hrv-toast.hrv-error { background: #b02a37; }
-
-@media (prefers-color-scheme: dark) {
-  #hrv-layer .hrv-box { background: #25272b; color: #eee; border-color: #555; }
-  #hrv-layer .hrv-box textarea { background: #1a1b1e; color: #eee; border-color: #555; }
-  #hrv-layer .hrv-hint, #hrv-layer .hrv-label { color: #aaa; }
-  #hrv-layer .hrv-btn { background: #383b40; color: #eee; border-color: #555; }
-  #hrv-layer .hrv-btn:hover { background: #4a4d53; }
-  #hrv-layer .hrv-save { background: #d6336c; border-color: #d6336c; color: #fff; }
-}
-`;
+const CLIENT_CSS = await fs.readFile(new URL('client.css', import.meta.url), 'utf8');
 const CLIENT_JS = `// html-revisor client. Directives live in the file on disk; this script edits them through PUT.
 (function () {
   'use strict';
