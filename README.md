@@ -53,7 +53,7 @@ The iterate-on-a-document skill and the README in iterate-on-docs run and descri
 | Page URL | the startup address plus the file's path under `<dir>` |
 | Directive syntax | `<!-- @AI: … -->`, first child of its element, or just before a void or raw-text element (full list under [Directive format](#directive-format)) |
 | Finding directives | `grep '<!-- *@AI:'` |
-| GET rewrites the file | the skill fetches the page before each commit |
+| Loading a page reformats its file | each GET rewrites the file on disk into canonical formatting. The skill fetches the page before each commit, so the reformat lands in the agent's commit and doesn't show up as the user's next edit |
 | Browser behavior | click any element to leave a directive on it or change its wording; both save into the file as you type |
 | README | this README ships in the output and keeps its "Directive format" section; iterate-on-docs links to it |
 | Vocabulary | the words the user sees: **directive** (the directive box says "Directive", "Directive for this element", "Delete the directive", and the toast "saved · N directives"). Not note, comment or annotation |

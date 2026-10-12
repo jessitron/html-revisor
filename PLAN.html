@@ -47,8 +47,8 @@
     </p>
     <section id="map">
       <h2>What we know</h2>
-      <svg viewBox="0 0 900 170" role="img" aria-label="Done: deploy and rename. Then formatter, prose chunks, markdown round-trip, edit in browser, undo. Later: lists and code blocks.">
-        <line x1="60" y1="70" x2="780" y2="70" stroke="var(--line)" stroke-width="8" stroke-linecap="round"></line> <line x1="780" y1="70" x2="880" y2="70" stroke="var(--dir)" stroke-width="3" stroke-dasharray="6 6"></line> <circle cx="60" cy="70" r="14" fill="var(--now)"></circle> <text x="60" y="115" text-anchor="middle" font-size="14" font-weight="600">Done</text> <text x="60" y="135" text-anchor="middle" font-size="12" class="muted">deploy, rename</text> <circle cx="200" cy="70" r="14" fill="var(--bg)" stroke="var(--accent)" stroke-width="3"></circle> <text x="200" y="75" text-anchor="middle" font-size="13" font-weight="700">1</text> <text x="200" y="115" text-anchor="middle" font-size="14" font-weight="600">Formatter</text> <text x="200" y="135" text-anchor="middle" font-size="12" class="muted">its own module,</text> <text x="200" y="150" text-anchor="middle" font-size="12" class="muted">runs alone</text> <circle cx="345" cy="70" r="14" fill="var(--bg)" stroke="var(--accent)" stroke-width="3"></circle> <text x="345" y="75" text-anchor="middle" font-size="13" font-weight="700">2</text> <text x="345" y="115" text-anchor="middle" font-size="14" font-weight="600">Prose chunks</text> <text x="345" y="135" text-anchor="middle" font-size="12" class="muted">the editing unit</text> <circle cx="490" cy="70" r="14" fill="var(--bg)" stroke="var(--accent)" stroke-width="3"></circle> <text x="490" y="75" text-anchor="middle" font-size="13" font-weight="700">3</text> <text x="490" y="115" text-anchor="middle" font-size="14" font-weight="600">Round-trip</text> <text x="490" y="135" text-anchor="middle" font-size="12" class="muted">HTML ⇄ markdown,</text> <text x="490" y="150" text-anchor="middle" font-size="12" class="muted">no change on open</text> <circle cx="635" cy="70" r="14" fill="var(--bg)" stroke="var(--accent)" stroke-width="3"></circle> <text x="635" y="75" text-anchor="middle" font-size="13" font-weight="700">4</text> <text x="635" y="115" text-anchor="middle" font-size="14" font-weight="600">Edit in browser</text> <text x="635" y="135" text-anchor="middle" font-size="12" class="muted">markdown field</text> <text x="635" y="150" text-anchor="middle" font-size="12" class="muted">in the box</text> <circle cx="780" cy="70" r="14" fill="var(--bg)" stroke="var(--accent)" stroke-width="3"></circle> <text x="780" y="75" text-anchor="middle" font-size="13" font-weight="700">5</text> <text x="780" y="115" text-anchor="middle" font-size="14" font-weight="600">Undo</text> <text x="780" y="135" text-anchor="middle" font-size="12" class="muted">for text edits</text> <text x="850" y="50" text-anchor="middle" font-size="13" class="dirtext">lists, code</text> <text x="850" y="115" text-anchor="middle" font-size="12" class="muted">sketched</text>
+      <svg viewBox="0 0 900 170" role="img" aria-label="Done: deploy and rename. Then formatter, what makes a chunk, prose chunks, markdown round-trip, nonprose inside prose, edit in browser, reset.">
+        <line x1="50" y1="70" x2="860" y2="70" stroke="var(--line)" stroke-width="8" stroke-linecap="round"></line> <circle cx="50" cy="70" r="14" fill="var(--now)"></circle> <text x="50" y="115" text-anchor="middle" font-size="13" font-weight="600">Done</text> <text x="50" y="135" text-anchor="middle" font-size="12" class="muted">deploy,</text> <text x="50" y="150" text-anchor="middle" font-size="12" class="muted">rename</text> <circle cx="165" cy="70" r="14" fill="var(--bg)" stroke="var(--accent)" stroke-width="3"></circle> <text x="165" y="75" text-anchor="middle" font-size="13" font-weight="700">1</text> <text x="165" y="115" text-anchor="middle" font-size="13" font-weight="600">Formatter</text> <text x="165" y="135" text-anchor="middle" font-size="12" class="muted">alone, in</text> <text x="165" y="150" text-anchor="middle" font-size="12" class="muted">the contract</text> <circle cx="280" cy="70" r="14" fill="var(--bg)" stroke="var(--accent)" stroke-width="3"></circle> <text x="280" y="75" text-anchor="middle" font-size="13" font-weight="700">2</text> <text x="280" y="115" text-anchor="middle" font-size="13" font-weight="600">What's a chunk</text> <text x="280" y="135" text-anchor="middle" font-size="12" class="muted">decide, with</text> <text x="280" y="150" text-anchor="middle" font-size="12" class="muted">examples</text> <circle cx="395" cy="70" r="14" fill="var(--bg)" stroke="var(--accent)" stroke-width="3"></circle> <text x="395" y="75" text-anchor="middle" font-size="13" font-weight="700">3</text> <text x="395" y="115" text-anchor="middle" font-size="13" font-weight="600">Chunks</text> <text x="395" y="135" text-anchor="middle" font-size="12" class="muted">found, IDed</text> <circle cx="510" cy="70" r="14" fill="var(--bg)" stroke="var(--accent)" stroke-width="3"></circle> <text x="510" y="75" text-anchor="middle" font-size="13" font-weight="700">4</text> <text x="510" y="115" text-anchor="middle" font-size="13" font-weight="600">Round-trip</text> <text x="510" y="135" text-anchor="middle" font-size="12" class="muted">HTML ⇄</text> <text x="510" y="150" text-anchor="middle" font-size="12" class="muted">markdown</text> <circle cx="625" cy="70" r="14" fill="var(--bg)" stroke="var(--q)" stroke-width="3" stroke-dasharray="4 3"></circle> <text x="625" y="75" text-anchor="middle" font-size="13" font-weight="700">5</text> <text x="625" y="115" text-anchor="middle" font-size="13" font-weight="600">Nonprose</text> <text x="625" y="135" text-anchor="middle" font-size="12" class="muted">inside prose;</text> <text x="625" y="150" text-anchor="middle" font-size="12" class="muted">before 4?</text> <circle cx="740" cy="70" r="14" fill="var(--bg)" stroke="var(--accent)" stroke-width="3"></circle> <text x="740" y="75" text-anchor="middle" font-size="13" font-weight="700">6</text> <text x="740" y="115" text-anchor="middle" font-size="13" font-weight="600">Edit</text> <text x="740" y="135" text-anchor="middle" font-size="12" class="muted">markdown</text> <text x="740" y="150" text-anchor="middle" font-size="12" class="muted">in the box</text> <circle cx="855" cy="70" r="14" fill="var(--bg)" stroke="var(--accent)" stroke-width="3"></circle> <text x="855" y="75" text-anchor="middle" font-size="13" font-weight="700">7</text> <text x="855" y="115" text-anchor="middle" font-size="13" font-weight="600">Reset</text> <text x="855" y="135" text-anchor="middle" font-size="12" class="muted">to first load</text>
       </svg>
     </section>
     <section id="stages">
@@ -58,7 +58,7 @@
         <div class="card">
           <h3>The formatter stands alone</h3>
           <p class="why">
-            Today it is a section of <code>server.mjs</code>. On its own, it runs without the server and can take validation steps, which the round-trip in stage 3 will need.
+            Today it is a section of <code>server.mjs</code>. On its own, it runs without the server and can take validation steps, which the round-trip in stage 4 will need.
           </p>
           <ul class="yaks">
             <li>
@@ -68,41 +68,52 @@
               A CLI: <code>node formatter.mjs &lt;file&gt;</code> rewrites the file in place, or reports what it can't fix and exits nonzero <span class="yak">yp92</span>, merges into stez
             </li>
             <li>Validation rules: none until a stage asks for one.</li>
+            <li>
+              The CLI joins the contract: agents in iterate-on-docs that generate pages run it before Jess sees them. Same deploy, matching edits to the skills there.
+            </li>
           </ul>
-          <div class="q">
-            <!-- @AI: Yes, it's part of the contract. This will be a change in iterate-with-docs -->
-            Is the CLI part of the contract? If the skill runs it before handing a page to Jess, yes, and the skill changes with it. If only we run it, no.
+          <div class="ships">
+            a second file in the deploy; a new contract row; skills in iterate-on-docs run the formatter
           </div>
-          <div class="ships">a second file in the deploy; nothing visible</div>
         </div>
       </div>
       <div class="stage">
         <div class="num">2</div>
         <div class="card">
+          <h3>Decide what makes a chunk</h3>
+          <p class="why">
+            Which elements belong to a prose chunk, and which start a new one. Phrasing content (text, <code>strong</code>, <code>a</code>, <code>code</code>…) belongs. Lists, code blocks, and other containers get decided here too, not later.
+          </p>
+          <ul class="yaks">
+            <li>
+              A tool for deciding: example HTML in, chunk boundaries out, so we can look at the cases
+            </li>
+            <li>A set of examples from real overview pages</li>
+          </ul>
+        </div>
+      </div>
+      <div class="stage">
+        <div class="num">3</div>
+        <div class="card">
           <h3>Prose chunks</h3>
           <p class="why">
-            The editing unit: an element whose children are all phrasing content (text, <code>b</code>, <code>em</code>, <code>a</code>, <code>code</code>, <code>br</code>…), the spec's list. Today's “text element” is the plain-text case of it.
+            The rule from stage 2, in code. Today's “text element” is the plain-text case of it.
           </p>
           <ul class="yaks">
             <li>
               <code>isProseChunk(el)</code> replaces <code>isTextElement</code>; the client marks chunks editable
             </li>
             <li>
-              Element identity: <code>data-n</code> per element, stamped on GET and stripped on save. IDs stay out of the file. <span class="yak">a17m</span>
+              Element identity: a save that adds or removes an element inside a chunk shifts the <code>data-n</code> of every element after it. The client keeps its old stamps today. Restamp after save, or key some other way. IDs stay out of the file. <span class="yak">a17m</span>
             </li>
           </ul>
-          <div class="q">
-            <!-- @AI: ok, here's the thing. there's a step before this that is: decide what HTML elements are part of a prose chunk, and which start a new prose chunk. We'll probably make a tool for deciding, with examples -->
-            A list: one chunk, as the overview mock shows, or one chunk per <code>&lt;li&gt;</code>? Per item fits the phrasing rule; the whole list waits for “Later”.
-          </div>
         </div>
       </div>
       <div class="stage">
-        <div class="num">3</div>
+        <div class="num">4</div>
         <div class="card">
           <h3>HTML ⇄ markdown round-trip</h3>
           <p class="why">
-            <!-- @AI: oh yeah here's a beautiful thing: prose chunks can contain nonprose chunks! but we have to figure out how they appear in the text. Break this out as a separate task: handle nonprose inside prose. Do we do this before or after the markdown ones? open question -->
             CommonMark passes raw inline HTML through, so any chunk can be markdown. Opening a chunk and saving it unchanged must leave the file unchanged.
           </p>
           <ul class="yaks">
@@ -113,17 +124,29 @@
               A property test: chunk → markdown → chunk is identity. Watch <code>* _ ` [</code> escaping.
             </li>
             <li>
+              Directives on elements inside the chunk ride along as raw <code>&lt;!-- @AI: … --&gt;</code> in the markdown, and come back on save.
+            </li>
+            <li>
               Libraries: a markdown parser and an HTML-to-markdown writer, vendored like linkedom
             </li>
           </ul>
           <div class="q">
-            <!-- @AI: whoa this is a great question! What's the keying complication if it's in the client? -->
-            Where does conversion run: server or client? Server keeps the client small and the PUT keyed by <code>data-n</code>; client gives a live preview.
+            Where does conversion run: server or client? Keying is the same either way: the chunk's <code>data-n</code>. The difference: the server has the file with directives in place, so its markdown carries them. The client's page has them lifted out into JSON. The client gives a live preview.
           </div>
         </div>
       </div>
       <div class="stage">
-        <div class="num">4</div>
+        <div class="num">5</div>
+        <div class="card">
+          <h3>Nonprose inside prose</h3>
+          <p class="why">
+            A prose chunk can hold a nonprose chunk: an <code>&lt;svg&gt;</code> in a paragraph, a code block in a list item. Figure out how it appears in the markdown text.
+          </p>
+          <div class="q">Before stage 4 or after it?</div>
+        </div>
+      </div>
+      <div class="stage">
+        <div class="num">6</div>
         <div class="card">
           <h3>Edit in the browser</h3>
           <p class="why">
@@ -131,50 +154,16 @@
           </p>
           <ul class="yaks">
             <li>The field grows with the text</li>
-            <li>
-              <!-- @AI: what do you mean by this? -->
-              A directive on an element inside the chunk, a <code>&lt;b&gt;</code> say, is lost on re-render
-            </li>
           </ul>
-          <div class="q">
-            <!-- @AI: wtf? that shit gets translated to markdown and back -->
-            Inner directives: lift them to the chunk on save, or refuse the edit until they're gone?
-          </div>
           <div class="ships">editable prose; the PUT body changes, the contract doesn't</div>
         </div>
       </div>
       <div class="stage">
-        <div class="num">5</div>
+        <div class="num">7</div>
         <div class="card">
-          <h3>
-            <!-- @AI: yeah. This can actually be "reset" - as in, put the text back to what it was when we this doc first loaded. Which itself needs an undo -->
-            Undo for text edits
-          </h3>
+          <h3>Reset</h3>
           <p class="why">
-            Once prose edits rewrite markup, a mistake costs more. <span class="yak">x8yp</span>
-          </p>
-        </div>
-      </div>
-    </section>
-    <section id="later">
-      <h2>Later, sketched</h2>
-      <div class="later-grid">
-        <div class="card later">
-          <h3>
-            <!-- @AI: no, this is part of it, when we decide what makes a chunk -->
-            Containers as markdown
-          </h3>
-          <p class="why">
-            Lists and code blocks are flow content, not phrasing. Editing a whole list as markdown is a second pass, after chunks work.
-          </p>
-        </div>
-        <div class="card later">
-          <h3>
-            <!-- @AI: this is part of the deploy of the formatter-breakout, we update this in iterate-on-docs -->
-            Formatter for agents
-          </h3>
-          <p class="why">
-            If the CLI earns its keep, agents that generate pages run it before Jess sees them.
+            Put a chunk's text back to what it was when the page first loaded. Reset itself needs an undo. <span class="yak">x8yp</span>
           </p>
         </div>
       </div>
@@ -187,7 +176,7 @@
           <strong>Movable box</strong><br>see the element behind it <span class="yak">a8t2</span>
         </div>
         <div class="card">
-          <strong>Client style guide</strong><br>box, marker, toast, hover; mocks follow it. Before stage 4 adds a field to the box, ideally. <span class="yak">vrc3</span>
+          <strong>Client style guide</strong><br>box, marker, toast, hover; mocks follow it. Before stage 6 adds a field to the box, ideally. <span class="yak">vrc3</span>
         </div>
       </div>
     </section>
@@ -220,11 +209,14 @@
           </td>
         </tr>
         <tr>
-          <td>GET rewrites the file</td>
+          <td>loading a page reformats its file</td>
           <td>
-            <!-- @AI: what on earth does this mean -->
-            fetch before each commit
+            The skill loads the page before each commit, so the reformat lands in the agent's commit and doesn't read as the user's next edit.
           </td>
+        </tr>
+        <tr>
+          <td>formatter CLI</td>
+          <td>coming in stage 1</td>
         </tr>
       </table>
     </section>
@@ -250,6 +242,18 @@
         <tr>
           <td>Editing notation</td>
           <td>Markdown, not contenteditable. Research in commit <code>8683442</code>.</td>
+        </tr>
+        <tr>
+          <td>Formatter CLI in the contract?</td>
+          <td>Yes. iterate-on-docs changes with it.</td>
+        </tr>
+        <tr>
+          <td>Directives inside a chunk</td>
+          <td>Translated to markdown and back, as raw comments.</td>
+        </tr>
+        <tr>
+          <td>Lists and code blocks</td>
+          <td>Part of deciding what makes a chunk, not a later phase.</td>
         </tr>
         <tr>
           <td>Shipping</td>
