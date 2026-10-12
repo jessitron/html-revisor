@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-hrv-next="197" lang="en">
+<html data-hrv-next="199" lang="en">
   <head>
     <meta charset="utf-8">
     <title>html-revisor — the path</title>
@@ -147,7 +147,7 @@
             </li>
           </ul>
           <div data-hrv="80" class="q">
-            A scope can hold directives on the elements inside it: a list item, a link. When you edit the list as markdown, where do they go? Likely with their element, through the same reconciliation. Conversion: on the server, unless we want a live preview in the client. Jess to confirm.
+            A scope can hold directives on the elements inside it: a list item, a link. When you edit the list as markdown, where do they go? Likely with their element, through the same reconciliation.
           </div>
           <div data-hrv="86" class="ships">
             editable prose; the PUT body changes, the contract doesn't
@@ -312,7 +312,7 @@
           <tr>
             <td data-hrv="145">Code blocks</td>
             <td data-hrv="146">
-              A fenced block: backticks for <code>&lt;pre&gt;&lt;code&gt;</code>, tildes for a bare <code>&lt;pre&gt;</code>. A pre holding markup (highlighting) is HTML, so its spans survive. Revised 2026-10-12.
+              A fenced block: backticks for <code>&lt;pre&gt;&lt;code&gt;</code>, tildes for a bare <code>&lt;pre&gt;</code>. A pre holding markup (highlighting) is HTML, so its spans survive (Jess, 2026-10-12).
             </td>
           </tr>
           <tr>
@@ -372,7 +372,13 @@
           <tr>
             <td data-hrv="195">What isn't text</td>
             <td data-hrv="196">
-              A stand-in: <code>⟦svg⟧</code>, <code>⟦script⟧</code>, restored in order from the prior HTML. A literal ⟦ is <code>\⟦</code>. Revises "hidden elements never in the markdown": saving would have dropped them.
+              A stand-in: <code>⟦svg⟧</code>, <code>⟦script⟧</code>, restored in order from the prior HTML. A literal ⟦ is <code>\⟦</code>. Hidden elements used to be left out of the markdown, so saving would have dropped them (Jess, 2026-10-12).
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="197">Where markdown converts</td>
+            <td data-hrv="198">
+              On the server, where <code>scopes.mjs</code> and linkedom run; the client stays small. No live preview for now (Jess, 2026-10-12).
             </td>
           </tr>
           <tr>
