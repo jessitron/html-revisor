@@ -60,7 +60,7 @@
             <strong>Distinct by form, not color.</strong> Any color clashes with some page. A shape and material that never change hold up on all of them.
           </li>
           <li>
-            <strong>The tool draws over the page and never styles it.</strong> Hover, selection, and directive marks are elements in the layer, placed over their target. Page elements get no classes. (direction) Today <code>.hrv-hover</code> and <code>.hrv-has-directive</code> restyle the element and replace its own box-shadow and outline.
+            <strong>The tool draws over the page and never styles it.</strong> Hover, selection, and directive marks are elements in the layer, placed over their target. Page elements get no classes. The one rule that reaches them is the copy cursor.
           </li>
           <li>
             <strong>One material for every component:</strong> near-black surface, 1px light ring, shadow, square corners, the same in light and dark mode. Agent-made pages round their corners; square ones read as not from this page. (direction)
@@ -70,9 +70,9 @@
           </li>
           <li>An icon appears in every UI element html-revisor adds. (direction)</li>
           <li>
-            <strong>Crop marks</strong> show hover and selection: four corners with the halo, thin on hover, heavier while the element's box is open. They never touch the text. (direction)
+            <strong>Crop marks</strong> show hover and selection: four corners with the halo, thin on hover, heavier while the element's box is open. Square corners. They never touch the text.
           </li>
-          <li>No stripe. The marker says the element has a directive. (direction)</li>
+          <li>No stripe. The marker says the element has a directive.</li>
           <li>
             <strong>The directive box opens beside its element, never over it,</strong> and points at it. Placement is chosen at runtime: below, above, or in the margin when there is room. Phones count. (direction)
           </li>
@@ -292,7 +292,7 @@
           <div class="hrv-layer"></div>
         </div>
         <p class="note">
-          <code>.hrv-crop</code>: four 10px corners, 2px thick, <code>--hrv-crop-gap</code> (4px) outside the element's box, with the halo.
+          <code>.hrv-crop</code>: four 10px corners, 2px thick, <code>--hrv-crop-gap</code> (4px) outside the element's box, with the halo. Each arm is at most 30% of its side, so a small SVG label still shows four corners. <code>.hrv-selected</code>, while the box is open: 16px corners, 3px thick, and a 1px outline.
         </p>
       </div>
       <div>
