@@ -789,6 +789,7 @@ const CLIENT_JS = `// html-revisor client. Directives live in the file on disk; 
     saving = true;
     var change = unsent.shift();
     var failed = false;
+    var fromBox = !!box;   // a save made while a box is open reports in the box
     fetch(location.pathname, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -802,6 +803,7 @@ const CLIENT_JS = `// html-revisor client. Directives live in the file on disk; 
       if (!data.ok) {
         // A conflict: we weren't taking turns. Say so; the reload is up to the human.
         failed = true;
+        boxStatus('not saved');
         showProblem('not saved: ' + data.error + '. Copy what you wrote, then reload to see the page as it is now');
         return;
       }
@@ -809,9 +811,12 @@ const CLIENT_JS = `// html-revisor client. Directives live in the file on disk; 
       if (data.before !== version) changedOnDisk = true;
       version = data.after;
       showProblem(changedOnDisk ? 'the page changed on disk; reload to see it' : null);
+      // A newer edit, waiting or queued, keeps the box at "saving…".
+      if (fromBox && box && unsent.length === 0 && !saveTimer) boxStatus('saved');
     }).catch(function (err) {
       failed = true;
       addUnsent(change.kind, change.id); // a later edit retries it
+      boxStatus('');
       showProblem('save failed: ' + (err && err.message ? err.message : err));
     }).then(function () {
       saving = false;
@@ -821,11 +826,55 @@ const CLIENT_JS = `// html-revisor client. Directives live in the file on disk; 
 
   function scheduleSave(kind, id) {
     addUnsent(kind, id);
+    boxStatus('saving…');
     clearTimeout(saveTimer);
     saveTimer = setTimeout(saveNow, 400);
   }
 
   // ---- directive box ----
+
+  var MAC = /Mac|iPhone|iPad/.test(navigator.platform);
+  var HINT = (MAC ? '⌘↵' : 'Ctrl+Enter') + ' or esc to close';
+  // Delete's hotkey: Option-Command-Backspace (Ctrl+Alt+Backspace elsewhere). In a textarea,
+  // ⌘⌫ and ⌥⌫ delete text, and the browser takes ⌘⇧⌫; nothing claims this one.
+  var DELETE_KEY = MAC ? '⌥⌘⌫' : 'Ctrl+Alt+Backspace';
+  var statusTimer = null;
+
+  // The box footer's words: the hint, or the save status while one is current.
+  function boxStatus(text) {
+    if (!box) return;
+    var hint = box.querySelector('.hrv-hint');
+    clearTimeout(statusTimer);
+    hint.textContent = text || HINT;
+    hint.className = 'hrv-hint' + (text ? ' hrv-status' : '');
+    if (text === 'saved') statusTimer = setTimeout(function () { boxStatus(''); }, 2000);
+  }
+
+  // What the header calls the element: its tag, then the start of its text.
+  // An element with no text falls back to its alt, aria-label, or title.
+  function describe(el) {
+    var text = (el.textContent || '').replace(SPACE, ' ').trim() ||
+      el.getAttribute('alt') || el.getAttribute('aria-label') || el.getAttribute('title') || '';
+    if (text.length > 80) text = text.slice(0, 80);
+    return el.localName + (text ? ' · ' + text : '');
+  }
+
+  // Grow a textarea to fit its text; CSS max-height caps it, and past that it scrolls.
+  function fit(ta) {
+    ta.style.height = '0px';
+    ta.style.height = ta.scrollHeight + ta.offsetHeight - ta.clientHeight + 'px';
+  }
+
+  // The Text field wears the element's own font, so editing feels like editing the page.
+  // Size stays between 12 and 20px: a hero heading would crowd the box, a footnote strain the eye.
+  function wearFont(ta, el) {
+    var cs = getComputedStyle(el);
+    ta.style.fontFamily = cs.fontFamily;
+    ta.style.fontStyle = cs.fontStyle;
+    ta.style.fontWeight = cs.fontWeight;
+    ta.style.fontSize = Math.max(12, Math.min(20, parseFloat(cs.fontSize) || 13)) + 'px';
+    ta.style.lineHeight = '1.35';
+  }
 
   function setDirective(id, text) {
     if (text.trim() === '') delete directives[id];
@@ -840,12 +889,20 @@ const CLIENT_JS = `// html-revisor client. Directives live in the file on disk; 
     var ta = box.querySelector('textarea.hrv-directive');
     var id = boxId;
     setDirective(id, ta.value);
+    clearTimeout(statusTimer);
     box.remove();
     box = null;
     boxId = null;
     positionCrop(selectedCrop, null);
     positionHover();
     saveNow();
+  }
+
+  function deleteDirective(ta, id) {
+    ta.value = '';
+    setDirective(id, '');
+    addUnsent('directive', id);
+    closeBox();
   }
 
   function openBox(id) {
@@ -860,18 +917,31 @@ const CLIENT_JS = `// html-revisor client. Directives live in the file on disk; 
     box = document.createElement('div');
     box.className = 'hrv-box';
 
+    var head = document.createElement('div');
+    head.className = 'hrv-head';
+    var what = document.createElement('span');
+    what.className = 'hrv-what';
+    what.textContent = describe(el);
+    head.appendChild(icon());
+    head.appendChild(what);
+    box.appendChild(head);
+
     // Text elements get a field for their text above the directive.
     // The page shows each edit at once; blank text is not applied.
+    var textArea = null;
     if (isTextElement(el)) {
-      var textArea = document.createElement('textarea');
+      textArea = document.createElement('textarea');
       textArea.className = 'hrv-text';
       textArea.value = shownText(el);
+      wearFont(textArea, el);
       textArea.addEventListener('input', function () {
+        fit(textArea);
+        schedulePosition();
         if (textArea.value.replace(SPACE, '') === '') return;
         el.textContent = textArea.value;
         texts[id] = textArea.value;
+        what.textContent = describe(el);
         scheduleSave('text', id);
-        schedulePosition();
       });
       box.appendChild(label('Text'));
       box.appendChild(textArea);
@@ -883,6 +953,8 @@ const CLIENT_JS = `// html-revisor client. Directives live in the file on disk; 
     ta.value = directives[id] || '';
     ta.placeholder = 'Directive for this element';
     ta.addEventListener('input', function () {
+      fit(ta);
+      schedulePosition();
       setDirective(id, ta.value);
       scheduleSave('directive', id);
     });
@@ -890,36 +962,33 @@ const CLIENT_JS = `// html-revisor client. Directives live in the file on disk; 
       if (e.key === 'Escape' || (e.key === 'Enter' && (e.metaKey || e.ctrlKey))) {
         e.preventDefault();
         closeBox();
+      } else if (e.key === 'Backspace' && e.altKey && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        deleteDirective(ta, id);
       }
     });
 
     var hint = document.createElement('div');
     hint.className = 'hrv-hint';
-    hint.textContent = '⌘↵ to save · esc to close';
+    hint.textContent = HINT;
 
     var del = document.createElement('div');
-    del.className = 'hrv-btn';
+    del.className = 'hrv-btn hrv-quiet';
     del.textContent = 'Delete';
-    del.title = 'Delete the directive';
-    del.addEventListener('click', function () {
-      ta.value = '';
-      setDirective(id, '');
-      addUnsent('directive', id);
-      closeBox();
-    });
+    del.title = 'Delete the directive (' + DELETE_KEY + ')';
+    del.addEventListener('click', function () { deleteDirective(ta, id); });
 
-    var save = document.createElement('div');
-    save.className = 'hrv-btn hrv-save';
-    save.textContent = 'Save';
-    save.addEventListener('click', function () {
-      closeBox();
-    });
+    var done = document.createElement('div');
+    done.className = 'hrv-btn hrv-done';
+    done.textContent = 'Done';
+    done.title = 'Close the box. Typing saves.';
+    done.addEventListener('click', closeBox);
 
     var row = document.createElement('div');
     row.className = 'hrv-row';
     row.appendChild(hint);
     row.appendChild(del);
-    row.appendChild(save);
+    row.appendChild(done);
 
     box.appendChild(ta);
     box.appendChild(row);
@@ -928,6 +997,8 @@ const CLIENT_JS = `// html-revisor client. Directives live in the file on disk; 
       box.addEventListener(type, function (e) { e.stopPropagation(); });
     });
     layer.appendChild(box);
+    if (textArea) fit(textArea);
+    fit(ta);
     // The box's height changes as its fields grow; placement measures it each time.
     if (window.ResizeObserver) new ResizeObserver(schedulePosition).observe(box);
     positionBox();
