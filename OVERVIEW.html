@@ -87,7 +87,7 @@
     <section id="architecture-now">
       <h2>Architecture now</h2>
       <svg viewBox="0 0 900 370" role="img" aria-label="GET and PUT pipelines through server.mjs, which imports formatter.mjs">
-        <text x="20" y="28" font-size="15" font-weight="600">GET page.html</text> <rect class="box" x="20" y="45" width="120" height="50" rx="8"></rect> <text x="80" y="75" text-anchor="middle" font-size="13">file on disk</text> <a href="#d-normalize"> <rect class="box now" x="170" y="45" width="130" height="50" rx="8"></rect> <text x="235" y="67" text-anchor="middle" font-size="13">parse, normalize</text> <text x="235" y="84" text-anchor="middle" font-size="11" class="muted">rewrites disk if changed</text> </a> <a href="#d-stamp"> <rect class="box now" x="330" y="45" width="130" height="50" rx="8"></rect> <text x="395" y="67" text-anchor="middle" font-size="13">stamp IDs</text> <text x="395" y="84" text-anchor="middle" font-size="11" class="muted mono">data-n = 0,1,2…</text> </a> <a href="#d-lift"> <rect class="box now" x="490" y="45" width="130" height="50" rx="8"></rect> <text x="555" y="67" text-anchor="middle" font-size="13">lift directives</text> <text x="555" y="84" text-anchor="middle" font-size="11" class="muted">HTML comments → JSON</text> </a> <a href="#d-inject"> <rect class="box now" x="650" y="45" width="110" height="50" rx="8"></rect> <text x="705" y="67" text-anchor="middle" font-size="13">inject client</text> <text x="705" y="84" text-anchor="middle" font-size="11" class="muted">+ version hash</text> </a> <rect class="box" x="790" y="45" width="95" height="50" rx="8"></rect> <text x="837" y="75" text-anchor="middle" font-size="13">browser</text> <path class="arrow" d="M140 70 H168" marker-end="url(#ah)"></path> <path class="arrow" d="M300 70 H328" marker-end="url(#ah)"></path> <path class="arrow" d="M460 70 H488" marker-end="url(#ah)"></path> <path class="arrow" d="M620 70 H648" marker-end="url(#ah)"></path> <path class="arrow" d="M760 70 H788" marker-end="url(#ah)"></path> <text x="20" y="143" font-size="15" font-weight="600">PUT page.html <tspan class="mono muted" font-size="12">{directives, texts, version}</tspan></text> <text x="885" y="143" text-anchor="end" font-size="11" class="muted">sent 0.4 s after you stop typing</text> <rect class="box" x="790" y="160" width="95" height="50" rx="8"></rect> <text x="837" y="190" text-anchor="middle" font-size="13">browser</text> <a href="#d-version"> <rect class="box now" x="650" y="160" width="110" height="50" rx="8"></rect> <text x="705" y="182" text-anchor="middle" font-size="13">version check</text> <text x="705" y="199" text-anchor="middle" font-size="11" class="muted">stale → 409</text> </a> <a href="#d-texts"> <rect class="box now" x="490" y="160" width="130" height="50" rx="8"></rect> <text x="555" y="182" text-anchor="middle" font-size="13">set texts</text> <text x="555" y="199" text-anchor="middle" font-size="11" class="muted">text-only elements</text> </a> <a href="#d-place"> <rect class="box now" x="330" y="160" width="130" height="50" rx="8"></rect> <text x="395" y="182" text-anchor="middle" font-size="13">place directives</text> <text x="395" y="199" text-anchor="middle" font-size="11" class="muted">all of them, by ID</text> </a> <a href="#d-serialize"> <rect class="box now" x="170" y="160" width="130" height="50" rx="8"></rect> <text x="235" y="182" text-anchor="middle" font-size="13">serialize</text> <text x="235" y="199" text-anchor="middle" font-size="11" class="muted">canonical format</text> </a> <rect class="box" x="20" y="160" width="120" height="50" rx="8"></rect> <text x="80" y="190" text-anchor="middle" font-size="13">file on disk</text> <path class="arrow" d="M790 185 H762" marker-end="url(#ah)"></path> <path class="arrow" d="M650 185 H622" marker-end="url(#ah)"></path> <path class="arrow" d="M490 185 H462" marker-end="url(#ah)"></path> <path class="arrow" d="M330 185 H302" marker-end="url(#ah)"></path> <path class="arrow" d="M170 185 H142" marker-end="url(#ah)"></path> <rect x="170" y="250" width="590" height="106" rx="8" fill="none" stroke="var(--line)"></rect> <text x="185" y="274" font-size="13" font-weight="600" class="mono">server.mjs</text> <text x="185" y="298" font-size="12"><tspan font-weight="600">I · orchestration</tspan> CLI, routing, the GET and PUT flows</text> <text x="185" y="318" font-size="12"><tspan font-weight="600">II · domain</tspan> directives, text edits, element IDs; formatter from formatter.mjs</text> <text x="185" y="338" font-size="12"><tspan font-weight="600">III · interface</tspan> filesystem gateway, client assets</text> <text x="745" y="274" text-anchor="end" font-size="11" class="muted">parser: vendor/linkedom.mjs</text>
+        <text x="20" y="28" font-size="15" font-weight="600">GET page.html</text> <rect class="box" x="20" y="45" width="120" height="50" rx="8"></rect> <text x="80" y="75" text-anchor="middle" font-size="13">file on disk</text> <a href="#d-normalize"> <rect class="box now" x="170" y="45" width="130" height="50" rx="8"></rect> <text x="235" y="67" text-anchor="middle" font-size="13">parse, normalize</text> <text x="235" y="84" text-anchor="middle" font-size="11" class="muted">rewrites disk if changed</text> </a> <a href="#d-ids"> <rect class="box now" x="330" y="45" width="130" height="50" rx="8"></rect> <text x="395" y="67" text-anchor="middle" font-size="13">assign IDs</text> <text x="395" y="84" text-anchor="middle" font-size="11" class="muted">in the file, never reused</text> </a> <a href="#d-lift"> <rect class="box now" x="490" y="45" width="130" height="50" rx="8"></rect> <text x="555" y="67" text-anchor="middle" font-size="13">lift directives</text> <text x="555" y="84" text-anchor="middle" font-size="11" class="muted">HTML comments → JSON</text> </a> <a href="#d-inject"> <rect class="box now" x="650" y="45" width="110" height="50" rx="8"></rect> <text x="705" y="67" text-anchor="middle" font-size="13">inject client</text> <text x="705" y="84" text-anchor="middle" font-size="11" class="muted">+ bases, file hash</text> </a> <rect class="box" x="790" y="45" width="95" height="50" rx="8"></rect> <text x="837" y="75" text-anchor="middle" font-size="13">browser</text> <path class="arrow" d="M140 70 H168" marker-end="url(#ah)"></path> <path class="arrow" d="M300 70 H328" marker-end="url(#ah)"></path> <path class="arrow" d="M460 70 H488" marker-end="url(#ah)"></path> <path class="arrow" d="M620 70 H648" marker-end="url(#ah)"></path> <path class="arrow" d="M760 70 H788" marker-end="url(#ah)"></path> <text x="20" y="143" font-size="15" font-weight="600">PUT page.html <tspan class="mono muted" font-size="12">{one change: id, base, directive or text}</tspan></text> <text x="885" y="143" text-anchor="end" font-size="11" class="muted">sent 0.4 s after you stop typing</text> <rect class="box" x="790" y="160" width="95" height="50" rx="8"></rect> <text x="837" y="190" text-anchor="middle" font-size="13">browser</text> <a href="#d-conflict"> <rect class="box now" x="650" y="160" width="110" height="50" rx="8"></rect> <text x="705" y="182" text-anchor="middle" font-size="13">conflict check</text> <text x="705" y="199" text-anchor="middle" font-size="11" class="muted">one element, by base</text> </a> <a href="#d-texts"> <rect class="box now" x="490" y="160" width="130" height="50" rx="8"></rect> <text x="555" y="182" text-anchor="middle" font-size="13">set texts</text> <text x="555" y="199" text-anchor="middle" font-size="11" class="muted">text-only elements</text> </a> <a href="#d-place"> <rect class="box now" x="330" y="160" width="130" height="50" rx="8"></rect> <text x="395" y="182" text-anchor="middle" font-size="13">place directive</text> <text x="395" y="199" text-anchor="middle" font-size="11" class="muted">the one, by ID</text> </a> <a href="#d-serialize"> <rect class="box now" x="170" y="160" width="130" height="50" rx="8"></rect> <text x="235" y="182" text-anchor="middle" font-size="13">serialize</text> <text x="235" y="199" text-anchor="middle" font-size="11" class="muted">IDs stay in</text> </a> <rect class="box" x="20" y="160" width="120" height="50" rx="8"></rect> <text x="80" y="190" text-anchor="middle" font-size="13">file on disk</text> <path class="arrow" d="M790 185 H762" marker-end="url(#ah)"></path> <path class="arrow" d="M650 185 H622" marker-end="url(#ah)"></path> <path class="arrow" d="M490 185 H462" marker-end="url(#ah)"></path> <path class="arrow" d="M330 185 H302" marker-end="url(#ah)"></path> <path class="arrow" d="M170 185 H142" marker-end="url(#ah)"></path> <rect x="170" y="250" width="590" height="106" rx="8" fill="none" stroke="var(--line)"></rect> <text x="185" y="274" font-size="13" font-weight="600" class="mono">server.mjs</text> <text x="185" y="298" font-size="12"><tspan font-weight="600">I · orchestration</tspan> CLI, routing, the GET and PUT flows</text> <text x="185" y="318" font-size="12"><tspan font-weight="600">II · domain</tspan> directives, text edits, element IDs; formatter from formatter.mjs</text> <text x="185" y="338" font-size="12"><tspan font-weight="600">III · interface</tspan> filesystem gateway, client assets</text> <text x="745" y="274" text-anchor="end" font-size="11" class="muted">parser: vendor/linkedom.mjs</text>
       </svg>
       <p class="sub">
         ⌘-click a box for its step below. (A plain click opens a directive box.)
@@ -105,7 +105,7 @@
     <section id="architecture-direction">
       <h2>Architecture direction <span class="directional">directional</span></h2>
       <svg viewBox="0 0 900 290" role="img" aria-label="Planned GET and PUT pipelines, changes dashed">
-        <text x="20" y="28" font-size="15" font-weight="600">GET page.html</text> <rect class="box" x="20" y="45" width="120" height="50" rx="8"></rect> <text x="80" y="75" text-anchor="middle" font-size="13">file on disk</text> <a href="#d-normalize"> <rect class="box dir" x="170" y="45" width="130" height="50" rx="8"></rect> <text x="235" y="67" text-anchor="middle" font-size="13">format</text> <text x="235" y="84" text-anchor="middle" font-size="11" class="dirtext">normalize + validate</text> </a> <a href="#d-stamp"> <rect class="box dir" x="330" y="45" width="130" height="50" rx="8"></rect> <text x="395" y="67" text-anchor="middle" font-size="13">assign IDs</text> <text x="395" y="84" text-anchor="middle" font-size="11" class="dirtext">in the file, never reused</text> </a> <a href="#d-lift"> <rect class="box now" x="490" y="45" width="130" height="50" rx="8"></rect> <text x="555" y="67" text-anchor="middle" font-size="13">lift directives</text> <text x="555" y="84" text-anchor="middle" font-size="11" class="muted">HTML comments → JSON</text> </a> <a href="#d-inject"> <rect class="box dir" x="650" y="45" width="110" height="50" rx="8"></rect> <text x="705" y="67" text-anchor="middle" font-size="13">inject client</text> <text x="705" y="84" text-anchor="middle" font-size="11" class="dirtext">+ markdown editor</text> </a> <rect class="box" x="790" y="45" width="95" height="50" rx="8"></rect> <text x="837" y="75" text-anchor="middle" font-size="13">browser</text> <path class="arrow" d="M140 70 H168" marker-end="url(#ah)"></path> <path class="arrow" d="M300 70 H328" marker-end="url(#ah)"></path> <path class="arrow" d="M460 70 H488" marker-end="url(#ah)"></path> <path class="arrow" d="M620 70 H648" marker-end="url(#ah)"></path> <path class="arrow" d="M760 70 H788" marker-end="url(#ah)"></path> <text x="235" y="118" text-anchor="middle" font-size="12" class="dirtext">↑ 🤖 agent runs format too</text> <text x="20" y="168" font-size="15" font-weight="600">PUT page.html <tspan class="mono dirtext" font-size="12">{one change: id, base, directive or markdown}</tspan></text> <rect class="box" x="790" y="185" width="95" height="50" rx="8"></rect> <text x="837" y="215" text-anchor="middle" font-size="13">browser</text> <a href="#d-conflict"> <rect class="box dir" x="650" y="185" width="110" height="50" rx="8"></rect> <text x="705" y="207" text-anchor="middle" font-size="13">conflict check</text> <text x="705" y="224" text-anchor="middle" font-size="11" class="dirtext">one scope, by base</text> </a> <a href="#d-texts"> <rect class="box dir" x="490" y="185" width="130" height="50" rx="8"></rect> <text x="555" y="207" text-anchor="middle" font-size="13">set prose</text> <text x="555" y="224" text-anchor="middle" font-size="11" class="dirtext">markdown → HTML</text> </a> <a href="#d-place"> <rect class="box dir" x="330" y="185" width="130" height="50" rx="8"></rect> <text x="395" y="207" text-anchor="middle" font-size="13">place directive</text> <text x="395" y="224" text-anchor="middle" font-size="11" class="dirtext">the one, by ID</text> </a> <a href="#d-serialize"> <rect class="box dir" x="170" y="185" width="130" height="50" rx="8"></rect> <text x="235" y="207" text-anchor="middle" font-size="13">serialize</text> <text x="235" y="224" text-anchor="middle" font-size="11" class="dirtext">IDs stay in</text> </a> <rect class="box" x="20" y="185" width="120" height="50" rx="8"></rect> <text x="80" y="215" text-anchor="middle" font-size="13">file on disk</text> <path class="arrow" d="M790 210 H762" marker-end="url(#ah)"></path> <path class="arrow" d="M650 210 H622" marker-end="url(#ah)"></path> <path class="arrow" d="M490 210 H462" marker-end="url(#ah)"></path> <path class="arrow" d="M330 210 H302" marker-end="url(#ah)"></path> <path class="arrow" d="M170 210 H142" marker-end="url(#ah)"></path> <text x="450" y="275" text-anchor="middle" font-size="12" class="muted">Dashed purple = changes from today. Solid green = stays.</text>
+        <text x="20" y="28" font-size="15" font-weight="600">GET page.html</text> <rect class="box" x="20" y="45" width="120" height="50" rx="8"></rect> <text x="80" y="75" text-anchor="middle" font-size="13">file on disk</text> <a href="#d-normalize"> <rect class="box dir" x="170" y="45" width="130" height="50" rx="8"></rect> <text x="235" y="67" text-anchor="middle" font-size="13">format</text> <text x="235" y="84" text-anchor="middle" font-size="11" class="dirtext">normalize + validate</text> </a> <a href="#d-ids"> <rect class="box now" x="330" y="45" width="130" height="50" rx="8"></rect> <text x="395" y="67" text-anchor="middle" font-size="13">assign IDs</text> <text x="395" y="84" text-anchor="middle" font-size="11" class="muted">in the file, never reused</text> </a> <a href="#d-lift"> <rect class="box now" x="490" y="45" width="130" height="50" rx="8"></rect> <text x="555" y="67" text-anchor="middle" font-size="13">lift directives</text> <text x="555" y="84" text-anchor="middle" font-size="11" class="muted">HTML comments → JSON</text> </a> <a href="#d-inject"> <rect class="box dir" x="650" y="45" width="110" height="50" rx="8"></rect> <text x="705" y="67" text-anchor="middle" font-size="13">inject client</text> <text x="705" y="84" text-anchor="middle" font-size="11" class="dirtext">+ markdown editor</text> </a> <rect class="box" x="790" y="45" width="95" height="50" rx="8"></rect> <text x="837" y="75" text-anchor="middle" font-size="13">browser</text> <path class="arrow" d="M140 70 H168" marker-end="url(#ah)"></path> <path class="arrow" d="M300 70 H328" marker-end="url(#ah)"></path> <path class="arrow" d="M460 70 H488" marker-end="url(#ah)"></path> <path class="arrow" d="M620 70 H648" marker-end="url(#ah)"></path> <path class="arrow" d="M760 70 H788" marker-end="url(#ah)"></path> <text x="235" y="118" text-anchor="middle" font-size="12" class="dirtext">↑ 🤖 agent runs format too</text> <text x="20" y="168" font-size="15" font-weight="600">PUT page.html <tspan class="mono dirtext" font-size="12">{one change: id, base, directive or markdown}</tspan></text> <rect class="box" x="790" y="185" width="95" height="50" rx="8"></rect> <text x="837" y="215" text-anchor="middle" font-size="13">browser</text> <a href="#d-conflict"> <rect class="box now" x="650" y="185" width="110" height="50" rx="8"></rect> <text x="705" y="207" text-anchor="middle" font-size="13">conflict check</text> <text x="705" y="224" text-anchor="middle" font-size="11" class="muted">one scope, by base</text> </a> <a href="#d-texts"> <rect class="box dir" x="490" y="185" width="130" height="50" rx="8"></rect> <text x="555" y="207" text-anchor="middle" font-size="13">set prose</text> <text x="555" y="224" text-anchor="middle" font-size="11" class="dirtext">markdown → HTML</text> </a> <a href="#d-place"> <rect class="box now" x="330" y="185" width="130" height="50" rx="8"></rect> <text x="395" y="207" text-anchor="middle" font-size="13">place directive</text> <text x="395" y="224" text-anchor="middle" font-size="11" class="muted">the one, by ID</text> </a> <a href="#d-serialize"> <rect class="box now" x="170" y="185" width="130" height="50" rx="8"></rect> <text x="235" y="207" text-anchor="middle" font-size="13">serialize</text> <text x="235" y="224" text-anchor="middle" font-size="11" class="muted">IDs stay in</text> </a> <rect class="box" x="20" y="185" width="120" height="50" rx="8"></rect> <text x="80" y="215" text-anchor="middle" font-size="13">file on disk</text> <path class="arrow" d="M790 210 H762" marker-end="url(#ah)"></path> <path class="arrow" d="M650 210 H622" marker-end="url(#ah)"></path> <path class="arrow" d="M490 210 H462" marker-end="url(#ah)"></path> <path class="arrow" d="M330 210 H302" marker-end="url(#ah)"></path> <path class="arrow" d="M170 210 H142" marker-end="url(#ah)"></path> <text x="450" y="275" text-anchor="middle" font-size="12" class="muted">Dashed purple = changes from today. Solid green = stays.</text>
       </svg>
     </section>
     <section id="details">
@@ -165,34 +165,22 @@ OVERVIEW.html: &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing content
             </div>
           </div>
         </div>
-        <div class="step" id="d-stamp">
+        <div class="step" id="d-ids">
           <div class="rail">
-            <div class="node">stamp IDs</div>
-            <div class="node dir">assign IDs</div>
+            <div class="node">assign IDs</div>
           </div>
           <div class="body">
             <p>
-              Every element gets an <strong>element ID</strong>, <code>data-n</code>: its index in document order. Served copy only. HTML comments are not elements, so adding a directive shifts no ID.
+              One <strong>element ID</strong> per scope (every block), and per link, image, <code>hr</code>, and part of an SVG. The formatter writes them into the file, from a counter whose high-water mark sits on <code>&lt;html&gt;</code>, so an edit can't shift them. It assigns IDs on every GET and first thing on every PUT. An ID never changes and is never reused; duplicates (an agent's copy-paste) retire the ID, and every copy gets a fresh one.
             </p>
-            <div class="label">served</div>
-            <pre>&lt;h1 data-n="3"&gt;Plan&lt;/h1&gt;
-&lt;p data-n="4"&gt;Ship the &lt;b data-n="5"&gt;formatter&lt;/b&gt; first.&lt;/p&gt;
-&lt;ul data-n="6"&gt;
-  &lt;li data-n="7"&gt;one&lt;/li&gt;
-  &lt;li data-n="8"&gt;two&lt;/li&gt;
-&lt;/ul&gt;
-&lt;img data-n="9" src="map.png"&gt;</pre>
-            <div class="dirpart" id="d-ids">
-              <h3>assign IDs <span class="directional">directional</span></h3>
-              <p>
-                One ID per scope (every block), and per link and image. The formatter writes them into the file, from a counter whose high-water mark sits on <code>&lt;html&gt;</code>, so an edit can't shift them. It assigns IDs on every GET and first thing on every PUT. An ID never changes and is never reused; duplicates (an agent's copy-paste) retire the ID, and every copy gets a fresh one.
-              </p>
-              <div class="label">on disk, headed</div>
-              <pre>&lt;html data-hrv-next="8"&gt;
+            <div class="label">on disk</div>
+            <pre>&lt;html data-hrv-next="8"&gt;
 …
 &lt;p data-hrv="4"&gt;Ship the &lt;b&gt;formatter&lt;/b&gt; first.&lt;/p&gt;
-&lt;ul data-hrv="5"&gt;&lt;li data-hrv="6"&gt;one&lt;/li&gt;&lt;li data-hrv="7"&gt;two&lt;/li&gt;&lt;/ul&gt;</pre>
-            </div>
+&lt;ul data-hrv="5"&gt;
+  &lt;li data-hrv="6"&gt;one&lt;/li&gt;
+  &lt;li data-hrv="7"&gt;two&lt;/li&gt;
+&lt;/ul&gt;</pre>
           </div>
         </div>
         <div class="step" id="d-lift">
@@ -210,7 +198,7 @@ OVERVIEW.html: &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing content
               </div>
               <div>
                 <div class="label">served</div>
-                <pre>&lt;p data-n="4"&gt;Ship the …&lt;/p&gt;
+                <pre>&lt;p data-hrv="4"&gt;Ship the …&lt;/p&gt;
 …
 &lt;script type="application/json"
         id="hrv-directives"&gt;
@@ -250,14 +238,12 @@ OVERVIEW.html: &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing content
     … the page, stamped …
 <span class="add">    &lt;script type="application/json" id="hrv-directives"
             data-version="3f9a0c1b2d4e"&gt; {…} &lt;/script&gt;
+    &lt;script type="application/json" id="hrv-bases"&gt; {"4":"a1c4…"} &lt;/script&gt;
     &lt;script&gt; hover · click · box · PUT &lt;/script&gt;</span>
   &lt;/body&gt;
 &lt;/html&gt;</pre>
             <p class="sub">
-              The green lines exist only in the served copy. They go in after IDs are stamped, so the client's own elements have no <code>data-n</code> and can't take a directive. <code>data-version</code> fingerprints the file on disk; the PUT sends it back for the <a href="#d-version">version check</a>.
-            </p>
-            <p class="sub">
-              <span class="directional">directional</span> The fingerprint stays, only to notice a changed page; it never blocks a save. See <a href="#d-conflict">conflict check</a>.
+              The green lines exist only in the served copy, never in the file, so the client's own elements have no ID and can't take a directive. <code>data-version</code> fingerprints the file on disk; a save's answer says whether the file changed (see <a href="#d-conflict">conflict check</a>). <code>hrv-bases</code> holds each element's base, which a save sends back.
             </p>
           </div>
         </div>
@@ -268,40 +254,37 @@ OVERVIEW.html: &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing content
           <div class="body"></div>
         </div>
       </div>
-      <div class="flowhead">PUT page.html <code>{directives, texts, version}</code></div>
+      <div class="flowhead">
+        PUT page.html <code>{id, base, directive}</code> or <code>{id, base, text}</code>
+      </div>
       <div class="flow">
         <div class="step">
           <div class="rail">
             <div class="node end">browser</div>
           </div>
           <div class="body">
-            <p class="sub">Sent 0.4 s after you stop typing. Carries every directive on the page.</p>
             <p class="sub">
-              <span class="directional">directional</span> Carries one change: a directive or a scope's markdown, with the <code>base</code> it started from.
+              Sent 0.4 s after you stop typing. Carries one change, a directive or a text, with the <code>base</code> it started from. Changes go out one at a time.
+            </p>
+            <p class="sub">
+              <span class="directional">directional</span> A scope's markdown is a third kind of change, <code>{id, base, markdown}</code>.
             </p>
           </div>
         </div>
-        <div class="step" id="d-version">
+        <div class="step" id="d-conflict">
           <div class="rail">
-            <div class="node">version check</div>
+            <div class="node">conflict check</div>
           </div>
           <div class="body">
-            <svg viewBox="0 0 620 230" role="img" aria-label="Stale tab gets a 409">
-              <text x="80" y="20" text-anchor="middle" font-size="13" font-weight="600">tab</text> <text x="300" y="20" text-anchor="middle" font-size="13" font-weight="600">server</text> <text x="520" y="20" text-anchor="middle" font-size="13" font-weight="600">file</text> <line class="life" x1="80" y1="28" x2="80" y2="225"></line> <line class="life" x1="300" y1="28" x2="300" y2="225"></line> <line class="life" x1="520" y1="28" x2="520" y2="225"></line> <path class="arrow" d="M300 55 H84" marker-end="url(#ah)"></path> <text x="190" y="48" text-anchor="middle" font-size="12">GET → page, version <tspan class="mono">3f9a</tspan></text> <text x="520" y="55" text-anchor="middle" font-size="12" class="mono">3f9a</text> <path class="arrow" d="M610 95 H526" marker-end="url(#ah)"></path> <text x="600" y="88" text-anchor="end" font-size="12">🤖 agent edits</text> <text x="520" y="115" text-anchor="middle" font-size="12" class="mono">77b2</text> <path class="arrow" d="M80 145 H296" marker-end="url(#ah)"></path> <text x="190" y="138" text-anchor="middle" font-size="12">PUT version <tspan class="mono">3f9a</tspan></text> <text x="300" y="168" text-anchor="middle" font-size="12" class="muted">3f9a ≠ 77b2 · writes nothing</text> <path class="arrow" d="M300 195 H84" marker-end="url(#ah)"></path> <text x="190" y="188" text-anchor="middle" font-size="12" class="warntext">409</text> <text x="80" y="218" text-anchor="middle" font-size="12" class="warntext">⚠ file changed; reload</text>
-            </svg>
-            <p class="sub">The tab stops saving and keeps your text in the box.</p>
-            <div class="dirpart" id="d-conflict">
-              <h3>conflict check <span class="directional">directional</span></h3>
-              <p>
-                No file-wide version. A save carries one change and the content it started from; the server compares that <code>base</code> with the scope now, directives and IDs stripped. Only that change can conflict. A changed child changes its parent, so nesting needs no special case.
-              </p>
-              <pre>{id: "6", base: "a1c4", markdown: "one, revised"}
-  base matches li 6       →  applied
-  base differs, or no li 6 →  error: reload suggested</pre>
-              <p class="sub">
-                A conflict means we weren't taking turns; it's an edge case. An agent's edit elsewhere doesn't block the save. The tab hears of it as a notice, "page changed — reload": from the save response, and later live.
-              </p>
-            </div>
+            <p>
+              No file-wide version. The server compares the change's <code>base</code> with the element now, directives and IDs stripped. Only that change can conflict. A changed child changes its parent, so nesting needs no special case.
+            </p>
+            <pre>{id: "6", base: "a1c4", directive: "say more"}
+  base matches li 6        →  applied; answer has new bases
+  base differs, or no li 6 →  412, nothing written: error, reload suggested</pre>
+            <p class="sub">
+              A conflict means we weren't taking turns; it's an edge case. An agent's edit elsewhere doesn't block the save. The answer carries the file's hash before the save; if that isn't the page the tab loaded, the tab says "the page changed on disk; reload to see it". <span class="directional">directional</span> Later the tab hears of it live.
+            </p>
           </div>
         </div>
         <div class="step" id="d-texts">
@@ -311,8 +294,8 @@ OVERVIEW.html: &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing content
           </div>
           <div class="body">
             <p>Only elements whose children are all text. <span class="current">current</span></p>
-            <pre>texts {"3": "Plan B"}  &lt;h1&gt;Plan&lt;/h1&gt;          →  &lt;h1&gt;Plan B&lt;/h1&gt;
-texts {"4": "…"}       &lt;p&gt;Ship the &lt;b&gt;…&lt;/p&gt;  →  refused</pre>
+            <pre>{id: "3", base, text: "Plan B"}  &lt;h1&gt;Plan&lt;/h1&gt;          →  &lt;h1&gt;Plan B&lt;/h1&gt;
+{id: "4", base, text: "…"}       &lt;p&gt;Ship the &lt;b&gt;…&lt;/p&gt;  →  refused</pre>
             <div class="dirpart" id="d-prose">
               <h3>set prose <span class="directional">directional</span></h3>
               <pre>prose {"4": "Ship the **formatter** last."}
@@ -328,11 +311,11 @@ texts {"4": "…"}       &lt;p&gt;Ship the &lt;b&gt;…&lt;/p&gt;  →  refused<
         </div>
         <div class="step" id="d-place">
           <div class="rail">
-            <div class="node">place directives</div>
+            <div class="node">place directive</div>
           </div>
           <div class="body">
             <p>
-              Remove all, write back all. First child of its element; before a void or raw-text element (<code>img</code>, <code>hr</code>, <code>pre</code>…).
+              A save carries one directive; empty text removes it. The rest stay where they are, so a directive the agent finished and removed can't come back. First child of its element; before a void or raw-text element (<code>img</code>, <code>hr</code>, <code>pre</code>…).
             </p>
             <div class="label">on disk</div>
             <pre>&lt;p&gt;
@@ -341,12 +324,6 @@ texts {"4": "…"}       &lt;p&gt;Ship the &lt;b&gt;…&lt;/p&gt;  →  refused<
 &lt;/p&gt;
 &lt;!-- @AI: needs alt text --&gt;
 &lt;img src="map.png"&gt;</pre>
-            <div class="dirpart">
-              <h3>place one directive <span class="directional">directional</span></h3>
-              <p>
-                A save carries one directive, <code>{id, base, text}</code>; empty text removes it. The rest stay where they are, so a directive the agent finished and removed can't come back.
-              </p>
-            </div>
           </div>
         </div>
         <div class="step" id="d-serialize">
@@ -355,14 +332,11 @@ texts {"4": "…"}       &lt;p&gt;Ship the &lt;b&gt;…&lt;/p&gt;  →  refused<
           </div>
           <div class="body">
             <p>
-              Strip the IDs, write the canonical format. The agent's diff shows the human's change, not markup churn.
+              Write the canonical format, IDs and all. IDs are part of the file. The first format of each page is one noisy diff; after that a diff shows only new IDs.
             </p>
-            <div class="dirpart">
-              <h3>IDs stay in <span class="directional">directional</span></h3>
-              <p>
-                IDs are part of the file. The first format of each page is one noisy diff; after that a diff shows only new IDs. Before a page leaves the tool, a cleanup script strips them.
-              </p>
-            </div>
+            <p class="sub">
+              <span class="directional">directional</span> Before a page leaves the tool, a cleanup script strips them.
+            </p>
           </div>
         </div>
         <div class="step">
@@ -420,15 +394,8 @@ texts {"4": "…"}       &lt;p&gt;Ship the &lt;b&gt;…&lt;/p&gt;  →  refused<
           A directive is <code>&lt;!-- @AI: … --&gt;</code>, attached to exactly one element.
         </li>
         <li>Formatting is idempotent: a normalized file loads unchanged.</li>
-        <li>
-          A stale tab cannot write (version check, 409). <span class="current">current</span>
-        </li>
-        <li>
-          A save can't overwrite a scope its tab didn't see (conflict check). <span class="directional">directional</span>
-        </li>
-        <li>
-          An element ID never changes and is never reused. <span class="directional">directional</span>
-        </li>
+        <li>A save can't overwrite an element its tab didn't see (conflict check).</li>
+        <li>An element ID never changes and is never reused.</li>
         <li>Dependencies point down: orchestration → domain → interface.</li>
       </ul>
     </section>
@@ -445,7 +412,7 @@ texts {"4": "…"}       &lt;p&gt;Ship the &lt;b&gt;…&lt;/p&gt;  →  refused<
         </dd>
         <dt>element ID</dt>
         <dd>
-          How the browser and server name an element: <code>data-n</code>, assigned by the <a href="#d-stamp">stamp</a> step. <span class="directional">directional</span>: <code>data-hrv</code>, written into the file by <a href="#d-ids">assign IDs</a>.
+          How the browser and server name an element: <code>data-hrv</code>, written into the file by <a href="#d-ids">assign IDs</a>.
         </dd>
         <dt>text element <span class="current">current</span></dt>
         <dd>Today's unit of editing: an element whose children are only text.</dd>

@@ -77,17 +77,17 @@
         <div class="card">
           <h3>Scopes</h3>
           <p class="why">
-            The rule from stage 2, in code. Every block element takes directives and offers its whole content as markdown. Scopes nest, so one edit can change the elements inside another scope. Starts with the element ID rewrite. <span class="yak">ckba</span>
+            The rule from stage 2, in code. Every block element takes directives and offers its whole content as markdown. Scopes nest, so one edit can change the elements inside another scope. The element ID rewrite is done; markdown editing is next. <span class="yak">ckba</span>
           </p>
           <ul class="yaks">
             <li>
               <code>scopeMarkdown(el)</code> replaces <code>isTextElement</code>; the client offers markdown on every block
             </li>
             <li>
-              Inline elements, per element: <code>a</code> and <code>img</code> take hover and directives; <code>strong</code> doesn't
+              Done: inline elements, per element: <code>a</code> and <code>img</code> take hover and directives; <code>strong</code> doesn't. Only elements with an ID take them.
             </li>
             <li>
-              IDs written into the file, so an edit that adds or removes elements shifts no one's ID. <span class="yak">a17m</span>
+              Done: IDs written into the file, so an edit that adds or removes elements shifts no one's ID. <span class="yak">a17m</span>
               <ul>
                 <li>
                   <code>data-hrv="7"</code> from a counter; the high-water mark is <code>&lt;html data-hrv-next="…"&gt;</code>. Never reused. Duplicates retire the ID: every copy gets a fresh one.
@@ -96,16 +96,16 @@
                   The formatter assigns IDs on every GET and first thing on every PUT. Existing IDs never change.
                 </li>
                 <li>
-                  A save carries one change and the content it started from: <code>{id, base, text}</code> for a directive, <code>{id, base, markdown}</code> for a scope. No file-wide version, no 409.
+                  A save carries one change and the base it started from: <code>{id, base, directive}</code>, <code>{id, base, text}</code> for a text element, and later <code>{id, base, markdown}</code> for a scope. No file-wide version, no 409. A conflict is a 412.
                 </li>
                 <li>
                   A conflict means turn-taking broke: the save shows an error and suggests a reload. <span class="yak">cqsh</span>
                 </li>
                 <li>
-                  The tab hears of outside changes as a notice, never a block: on save <span class="yak">0so7</span>, then live <span class="yak">b0zb</span>
+                  The tab hears of outside changes as a notice, never a block: on save (done) <span class="yak">0so7</span>, then live (not yet) <span class="yak">b0zb</span>
                 </li>
                 <li>
-                  Contract: agents leave <code>data-hrv</code> alone. Matching edit in iterate-on-docs.
+                  Contract: agents leave <code>data-hrv</code> and <code>data-hrv-next</code> alone. Matching edit in iterate-on-docs.
                 </li>
               </ul>
             </li>
