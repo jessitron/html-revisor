@@ -1,6 +1,6 @@
 # html-notes: notes for agents
 
-Read `README.md` for usage. Build history is in git log; open work is in `yx`. `html-notes-spec.md` is the original spec. `OVERVIEW.html` is the picture of the project for humans: architecture now and planned. When a change alters the architecture or lands something marked directional there, update it in the same commit and tell Jess.
+Read `README.md` for usage. Build history is in git log; open work is in `yx`. `html-notes-spec.md` is the original spec. `OVERVIEW.html` is the picture of the project for humans: architecture now and planned. `PLAN.html` is the path: order of work, what's decided, what's blocked. When a change alters the architecture or lands something marked directional there, update it in the same commit and tell Jess.
 
 ## Where the code lives
 
@@ -22,6 +22,7 @@ The files this tool serves are project-overview documents that Jess's agents gen
 - `vendor/linkedom.mjs` is a generated 480 KB bundle. Don't edit it, and leave `vendor/` out of searches. To read linkedom's source, `npm install` and look in `node_modules/linkedom`. After changing the linkedom version, run `npm run vendor`.
 - GET normalizes the file in place. To try the server by hand, serve a temp copy of `test/fixtures`, not the directory itself. `try-me.html` at the root is Jess's page for hand-testing; she may have uncommitted edits in it, so don't commit or reset it.
 - When a worktree session blocks a Bash command as "too complex to verify", split it into plain commands, and put helper scripts in `$CLAUDE_JOB_DIR/tmp` and run them with `node <file>`.
+- Iterating on a page here (iterate-on-docs) in a background session: edits in the shared checkout get refused, so the loop has to run in a worktree. Enter the worktree before the first turn and start the server on the worktree directory, so Jess's browser saves land where you edit. If you start in the main checkout and move later, commit her turn on main first (the worktree branches from it), then restart the server on the worktree and give her the new URL. When the loop ends, fast-forward main.
 - In the Chrome extension, a click right after `navigate` can land before the client script runs. Wait a second first.
 - To find directives in a page, grep `'<!-- *@AI:'`, not `'@AI:'`. A page that talks about directives (OVERVIEW.html does) holds the bare prefix in examples. The formatter decodes entities, so escaping can't hide it.
 - The formatter puts all of an `<svg>` on one line, and every element inside it can take a directive. Commenting on SVG text works and Jess likes it; see the SVG yak before changing either.
