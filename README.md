@@ -18,7 +18,7 @@ This repo is where html-revisor is developed. Its built output ships inside the 
 - First load normalizes the file's formatting and rewrites it on disk. It also adds `<html>`, `<head>` and `<body>` if the file lacks them, the way a browser would. These files are agent-generated documents we control, so the tool rewrites them into the shape it needs.
 - Loading also writes an element ID, `data-hrv="<n>"`, on each element you can pick, and the next unused number on `<html data-hrv-next="<n>">`. The first load of a page makes one noisy diff; after that a diff shows only new IDs.
 
-Needs Node 20 or later. No `npm install`: the one dependency, linkedom, is bundled into `vendor/linkedom.mjs`.
+Needs Node 20 or later. No `npm install`: the two dependencies, linkedom and markdown-it, are bundled into `vendor/`.
 
 Tests: `npm test`.
 
@@ -47,7 +47,7 @@ The skills and the README in iterate-on-docs run and describe this tool. They re
 | What | Value |
 | --- | --- |
 | Server path | `../../html-revisor/server.mjs`, from the skill's base directory |
-| Runtime | Node 20 or later. No `npm install`: the output runs as copied, linkedom is in `vendor/` |
+| Runtime | Node 20 or later. No `npm install`: the output runs as copied, its dependencies are in `vendor/` |
 | CLI | `node <server> <file> --port 0`. On startup it formats `<file>` the way the formatter CLI does, then serves the file's directory. If the formatter fails, the server exits 1 with the formatter's stderr and serves nothing |
 | Default author | `@AI` (the skill passes no `--author`) |
 | Startup line | `html-revisor: <page URL> serving <dir>`, as in `html-revisor: http://localhost:4123/OVERVIEW.html serving /path/to/repo` |
@@ -139,7 +139,7 @@ Open `try-me.html` in a browser (see [Try it](#try-it)).
 
 The code is in `server.mjs` and `formatter.mjs`, in three tiers, plus `client.css` and `client.js`, which the server inlines into each page. Dependencies point down: `server.mjs` imports `formatter.mjs`, and `formatter.mjs` imports nothing from `server.mjs`. How the UI looks, and the design decisions so far, are in [DESIGN.html](DESIGN.html); it links `client.css`, so it shows the real styles.
 
-The HTML parser is [linkedom](https://github.com/WebReflection/linkedom), bundled with its dependencies into `vendor/linkedom.mjs` (licenses in `vendor/linkedom.LICENSES.txt`) so the tool runs where `npm install` can't, such as behind a corporate proxy. To upgrade it: change the version in `package.json`'s devDependencies, then `npm install && npm run vendor`, and commit `vendor/`.
+The HTML parser is [linkedom](https://github.com/WebReflection/linkedom), bundled with its dependencies into `vendor/linkedom.mjs` (licenses in `vendor/linkedom.LICENSES.txt`) so the tool runs where `npm install` can't, such as behind a corporate proxy. The markdown parser is [markdown-it](https://github.com/markdown-it/markdown-it), bundled the same way into `vendor/markdown-it.mjs`. The HTML-to-markdown writer is our own, in `scopes.mjs`. To upgrade either: change the version in `package.json`'s devDependencies, then `npm install && npm run vendor`, and commit `vendor/`.
 
 - **Tier I, orchestration**: CLI arguments, the HTTP request handler, and the GET and PUT flows (format with IDs, lift directives, compute bases, inject; read, assign IDs, check the base, apply the one change, write). The PUT body is one change: `{"id": "<id>", "base": "<base>", "directive": "text"}` (empty text removes the directive) or `{"id": "<id>", "base": "<base>", "text": "new text"}`. The answer is `{"ok": true, "count", "bases": {"<id>": "<base>"}, "before", "after"}`: new bases for the element, its ancestors, and the IDs inside it, and the file's hash before and after the save. A base that doesn't match, or an ID that isn't in the file, gets 412 and `{"ok": false, "error"}`.
 - **Formatter**: `formatter.mjs`. Its Tier II is `parse` (adds a missing skeleton), `assignIds` (element IDs), `serialize` (canonical layout), `normalize` (all three), and `validate`, the rules normalizing can't fix (none yet). Its Tier I is a CLI, `node formatter.mjs <file>...` (see the [Contract](#contract-with-iterate-on-docs)). It takes the rule for which elements are scopes from `scopes.mjs`.
@@ -153,5 +153,5 @@ The HTML parser is [linkedom](https://github.com/WebReflection/linkedom), bundle
 ## Gotchas for maintainers
 
 - linkedom doesn't create a missing `<html>`/`<head>`/`<body>`. It makes the first element the root, and reading `document.head` or `document.body` silently creates empty ones inside that root. Go through `parse()` in `formatter.mjs`, never `parseHTML` directly.
-- `vendor/linkedom.mjs` is a generated bundle. Don't edit it. After changing the linkedom version, run `npm run vendor`.
+- `vendor/linkedom.mjs` and `vendor/markdown-it.mjs` are generated bundles. Don't edit them. After changing either version, run `npm run vendor`.
 - GET normalizes the file in place. To try the server by hand, serve a temp copy of `test/fixtures`, not the directory itself.
