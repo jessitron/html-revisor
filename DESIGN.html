@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>html-revisor: design</title>
+    <link rel="stylesheet" href="client.css">
+    <style>
+  :root { --ink: #222; --muted: #666; --line: #ddd; --page: #fafafa; }
+  @media (prefers-color-scheme: dark) { :root { --ink: #eee; --muted: #aaa; --line: #444; --page: #1d1e21; } body { background: #141517; } }
+  body { margin: 0 auto; max-width: 900px; padding: 24px; font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--ink); }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  h2 { font-size: 18px; margin: 36px 0 8px; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+  .lede, .note { color: var(--muted); }
+  .note { font-size: 13px; margin: 6px 0 0; }
+  code { font: 13px ui-monospace, Menlo, monospace; }
+  .stage { position: relative; background: var(--page); border: 1px solid var(--line); border-radius: 8px; padding: 24px; margin: 12px 0; }
+  .stage .hrv-layer { position: absolute; inset: 0; pointer-events: none; }
+  .stage p, .stage h3 { margin: 0 0 12px; }
+  .row { display: flex; gap: 24px; flex-wrap: wrap; }
+  .row > div { flex: 1; min-width: 300px; }
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin: 12px 0; }
+  .swatch { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; font-size: 12px; }
+  .swatch .chip { height: 48px; }
+  .swatch div:last-child { padding: 6px 8px; }
+  .swatch code { font-size: 11px; display: block; }
+</style>
+  </head>
+  <body>
+    <h1>html-revisor: design</h1>
+    <p class="lede">
+      Everything html-revisor adds to a page, drawn with the real stylesheet. This page links <code>client.css</code>; change the stylesheet and both the tool and this page change.
+    </p>
+    <h2>Palette</h2>
+    <p class="note">
+      Custom properties on <code>:root</code>. Dark mode redefines the neutrals and keeps the accent. Values are read from the stylesheet when the page loads.
+    </p>
+    <div class="swatches">
+      <div class="swatch" data-var="--hrv-accent">
+        <div class="chip"></div>
+        <div>accent: hover outline, stripe, marker, Save, focus</div>
+      </div>
+      <div class="swatch" data-var="--hrv-accent-strong">
+        <div class="chip"></div>
+        <div>accent-strong: hover on marker and Save</div>
+      </div>
+      <div class="swatch" data-var="--hrv-error">
+        <div class="chip"></div>
+        <div>error: failed or stale save</div>
+      </div>
+      <div class="swatch" data-var="--hrv-surface">
+        <div class="chip"></div>
+        <div>surface: the directive box</div>
+      </div>
+      <div class="swatch" data-var="--hrv-field">
+        <div class="chip"></div>
+        <div>field: textareas</div>
+      </div>
+      <div class="swatch" data-var="--hrv-button">
+        <div class="chip"></div>
+        <div>button: Delete</div>
+      </div>
+      <div class="swatch" data-var="--hrv-line">
+        <div class="chip"></div>
+        <div>line: borders</div>
+      </div>
+      <div class="swatch" data-var="--hrv-text">
+        <div class="chip"></div>
+        <div>text</div>
+      </div>
+      <div class="swatch" data-var="--hrv-muted">
+        <div class="chip"></div>
+        <div>muted: labels, hint</div>
+      </div>
+      <div class="swatch" data-var="--hrv-toast">
+        <div class="chip"></div>
+        <div>toast</div>
+      </div>
+    </div>
+    <h2>On the page</h2>
+    <p class="note">
+      The tool puts two classes on page elements. Everything else lives in its own layer above the page.
+    </p>
+    <div class="row">
+      <div>
+        <div class="stage">
+          <p class="hrv-hover">
+            Hovering an element outlines it, and the cursor becomes a copy cursor: click to leave a directive.
+          </p>
+        </div>
+        <p class="note"><code>.hrv-hover</code>: 2px dashed accent outline.</p>
+      </div>
+      <div>
+        <div class="stage">
+          <p class="hrv-has-directive">
+            This paragraph has a directive. It gets a stripe on its left edge, and a marker at its top-left corner.
+          </p>
+          <div class="hrv-layer">
+            <div class="hrv-marker" style="left: 15px; top: 15px;" title="Say this in fewer words">
+              ✎
+            </div>
+          </div>
+        </div>
+        <p class="note">
+          <code>.hrv-has-directive</code>: 3px inset accent stripe. <code>.hrv-marker</code>: 18px, 9px up and left of the element; its tooltip is the directive.
+        </p>
+      </div>
+    </div>
+    <h2>Directive box</h2>
+    <p class="note">
+      Opens 20px below the element's top, 320px wide or the viewport less 16px. Saves 0.4 s after typing stops; Save and ⌘↵ close it.
+    </p>
+    <div class="row">
+      <div>
+        <div class="stage" style="height: 200px;">
+          <div class="hrv-layer">
+            <div class="hrv-box" style="left: 24px; top: 24px;">
+              <textarea class="hrv-directive" placeholder="Directive for this element">Add a diagram of the PUT flow here</textarea>
+              <div class="hrv-row">
+                <div class="hrv-hint">⌘↵ to save · esc to close</div>
+                <div class="hrv-btn" title="Delete the directive">Delete</div>
+                <div class="hrv-btn hrv-save">Save</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="note">Any element.</p>
+      </div>
+      <div>
+        <div class="stage" style="height: 260px;">
+          <div class="hrv-layer">
+            <div class="hrv-box" style="left: 24px; top: 24px;">
+              <div class="hrv-label">Text</div>
+              <textarea class="hrv-text">Where it's headed</textarea>
+              <div class="hrv-label">Directive</div>
+              <textarea class="hrv-directive" placeholder="Directive for this element"></textarea>
+              <div class="hrv-row">
+                <div class="hrv-hint">⌘↵ to save · esc to close</div>
+                <div class="hrv-btn" title="Delete the directive">Delete</div>
+                <div class="hrv-btn hrv-save">Save</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="note">
+          A text element, one whose content is only text: its text is editable too.
+        </p>
+      </div>
+    </div>
+    <h2>Toast</h2>
+    <p class="note">
+      Bottom right of the window. Fades in; leaves after 1.5 s, or 4 s for an error. The stale-file toast stays.
+    </p>
+    <div class="stage" style="height: 150px;">
+      <div class="hrv-layer">
+        <div class="hrv-toast hrv-show" style="position: absolute; right: auto; left: 24px; bottom: auto; top: 24px;">
+          saved · 3 directives
+        </div>
+        <div class="hrv-toast hrv-show hrv-error" style="position: absolute; right: auto; left: 24px; bottom: auto; top: 64px;">
+          save failed: Failed to fetch
+        </div>
+        <div class="hrv-toast hrv-show hrv-error" style="position: absolute; right: auto; left: 24px; bottom: auto; top: 104px;">
+          file changed on disk — reload to see it (your unsaved text is in the box)
+        </div>
+      </div>
+    </div>
+    <h2>Type</h2>
+    <p class="note">
+      Everything in the layer: <code>--hrv-font</code>, 13px system-ui at line height 1.4. Labels and the hint: <code>--hrv-small</code>, 11px, muted.
+    </p>
+    <script>
+  for (const s of document.querySelectorAll('.swatch')) {
+    const name = s.dataset.var;
+    s.querySelector('.chip').style.background = 'var(' + name + ')';
+    const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    const code = document.createElement('code');
+    code.textContent = name + ': ' + value;
+    s.lastElementChild.appendChild(code);
+  }
+</script>
+  </body>
+</html>
