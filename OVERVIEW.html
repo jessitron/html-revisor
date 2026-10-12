@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html data-hrv-next="373" lang="en">
+<html data-hrv-next="379" lang="en">
   <head>
     <meta charset="utf-8">
     <title>html-revisor — overview</title>
+    <link rel="stylesheet" href="client.css">
     <style>
   :root { --ink: #1f2328; --muted: #656d76; --line: #d0d7de; --bg: #ffffff; --card: #f6f8fa;
     --now: #1a7f37; --dir: #8250df; --warn: #bc4c00; --accent: #0969da; --pink: #d6336c; }
@@ -57,10 +58,6 @@
   .marker summary { list-style: none; width: 18px; height: 18px; border-radius: 50%; background: var(--pink); color: #fff; text-align: center; font-size: 11px; line-height: 18px; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.35); }
   .marker summary::-webkit-details-marker { display: none; }
   .marker .pop { position: absolute; left: 24px; top: -4px; white-space: nowrap; background: var(--card); border: 1px solid var(--pink); border-radius: 6px; padding: .2rem .5rem; font-size: .8rem; }
-  .mock { border: 1px solid var(--line); border-radius: 8px; padding: .6rem; background: var(--bg); box-shadow: 0 4px 12px rgba(0,0,0,.12); font-size: .85rem; margin-top: .5rem; }
-  .mock .field { border: 1px solid var(--line); border-radius: 4px; padding: .4rem; margin: .2rem 0 .5rem; font-family: ui-monospace, monospace; min-height: 1.5rem; }
-  .mock .field.big { min-height: 3.5rem; border-color: var(--dir); }
-  .mock .btns { text-align: right; color: var(--muted); }
   dl { display: grid; grid-template-columns: max-content 1fr; gap: .4rem 1rem; }
   dt { font-weight: 600; }
   dd { margin: 0; }
@@ -364,109 +361,128 @@ OVERVIEW.html: &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing content
             <p data-hrv="310" class="off">
               A paragraph with <b class="hl">bold</b> and <a data-hrv="311" href="#prose" class="hl">a link</a>.
             </p>
-            <div data-hrv="312" class="mock">
-              <div data-hrv="313">Directive</div>
-              <div data-hrv="314" class="field off">Directive for this element</div>
-              <div data-hrv="315" class="btns">⌘↵ or esc to close · Delete · Done</div>
+            <div data-hrv="312" class="hrv-layer">
+              <div data-hrv="313" class="hrv-box" style="position: relative; width: 100%; max-width: 320px; margin-top: .5rem;">
+                <div data-hrv="314" class="hrv-head">
+                  <span class="hrv-icon"></span> <span class="hrv-what">p · A paragraph with bold and a link.</span>
+                </div>
+                <textarea class="hrv-directive" placeholder="Directive for this element"></textarea>
+                <div data-hrv="315" class="hrv-row">
+                  <div data-hrv="316" class="hrv-hint">⌘↵ or esc to close</div>
+                  <div data-hrv="317" class="hrv-btn hrv-quiet" title="Delete the directive (⌥⌘⌫)">
+                    Delete
+                  </div>
+                  <div data-hrv="318" class="hrv-btn hrv-done">Done</div>
+                </div>
+              </div>
             </div>
-            <p data-hrv="316" class="sub">
+            <p data-hrv="319" class="sub">
               Click the paragraph: directive only. Only the green bits get a Text field.
             </p>
           </div>
         </div>
-        <div data-hrv="317" class="card dir">
+        <div data-hrv="320" class="card dir">
           <strong>Headed</strong> <span class="directional">directional</span>
-          <div data-hrv="318" class="demo">
-            <p data-hrv="319">
-              A paragraph with <b>bold</b> and <a data-hrv="320" href="#prose">a link</a>.
+          <div data-hrv="321" class="demo">
+            <p data-hrv="322">
+              A paragraph with <b>bold</b> and <a data-hrv="323" href="#prose">a link</a>.
             </p>
-            <div data-hrv="321" class="mock">
-              <div data-hrv="322">Text <span class="off">(markdown)</span></div>
-              <div data-hrv="323" class="field big">
-                A paragraph with **bold** and [a link](#prose).
+            <div data-hrv="324" class="hrv-layer">
+              <div data-hrv="325" class="hrv-box" style="position: relative; width: 100%; max-width: 320px; margin-top: .5rem;">
+                <div data-hrv="326" class="hrv-head">
+                  <span class="hrv-icon"></span> <span class="hrv-what">p · A paragraph with bold and a link.</span>
+                </div>
+                <div data-hrv="327" class="hrv-label">Text (markdown)</div>
+                <textarea class="hrv-text" style="font: var(--hrv-mono); height: 60px;">A paragraph with **bold** and [a link](#prose).</textarea>
+                <div data-hrv="328" class="hrv-label">Directive</div>
+                <textarea class="hrv-directive" placeholder="Directive for this element"></textarea>
+                <div data-hrv="329" class="hrv-row">
+                  <div data-hrv="330" class="hrv-hint">⌘↵ or esc to close</div>
+                  <div data-hrv="331" class="hrv-btn hrv-quiet" title="Delete the directive (⌥⌘⌫)">
+                    Delete
+                  </div>
+                  <div data-hrv="332" class="hrv-btn hrv-done">Done</div>
+                </div>
               </div>
-              <div data-hrv="324">Directive</div>
-              <div data-hrv="325" class="field off">Directive for this element</div>
-              <div data-hrv="326" class="btns">⌘↵ or esc to close · Delete · Done</div>
             </div>
-            <p data-hrv="327" class="sub">
+            <p data-hrv="333" class="sub">
               Pick the paragraph, the list, one item, or the section around them: each is a scope and edits as markdown. The text field grows with the text.
             </p>
           </div>
         </div>
       </div>
     </section>
-    <section data-hrv="328" id="invariants">
-      <h2 data-hrv="329">Invariants</h2>
-      <ul data-hrv="330" class="inv">
-        <li data-hrv="331">
+    <section data-hrv="334" id="invariants">
+      <h2 data-hrv="335">Invariants</h2>
+      <ul data-hrv="336" class="inv">
+        <li data-hrv="337">
           The HTML file is the only record: no database, no file beside it, nothing kept in the browser.
         </li>
-        <li data-hrv="332">
+        <li data-hrv="338">
           A directive is <code>&lt;!-- @AI: … --&gt;</code>, attached to exactly one element.
         </li>
-        <li data-hrv="333">Formatting is idempotent: a normalized file loads unchanged.</li>
-        <li data-hrv="334">
+        <li data-hrv="339">Formatting is idempotent: a normalized file loads unchanged.</li>
+        <li data-hrv="340">
           A save can't overwrite an element its tab didn't see (conflict check).
         </li>
-        <li data-hrv="335">An element ID never changes and is never reused.</li>
-        <li data-hrv="336">Dependencies point down: orchestration → domain → interface.</li>
+        <li data-hrv="341">An element ID never changes and is never reused.</li>
+        <li data-hrv="342">Dependencies point down: orchestration → domain → interface.</li>
       </ul>
     </section>
-    <section data-hrv="337" id="terms">
-      <h2 data-hrv="338">Terms</h2>
-      <dl data-hrv="339">
-        <dt data-hrv="340">directive</dt>
-        <dd data-hrv="341">
+    <section data-hrv="343" id="terms">
+      <h2 data-hrv="344">Terms</h2>
+      <dl data-hrv="345">
+        <dt data-hrv="346">directive</dt>
+        <dd data-hrv="347">
           A request from the human to the agent, stored as an HTML comment starting <code>@AI:</code>. Avoid: note, comment, annotation.
         </dd>
-        <dt data-hrv="342">normalize</dt>
-        <dd data-hrv="343">
-          Rewrite the file into canonical shape. See <a data-hrv="344" href="#d-normalize">parse, normalize</a>.
+        <dt data-hrv="348">normalize</dt>
+        <dd data-hrv="349">
+          Rewrite the file into canonical shape. See <a data-hrv="350" href="#d-normalize">parse, normalize</a>.
         </dd>
-        <dt data-hrv="345">element ID</dt>
-        <dd data-hrv="346">
-          How the browser and server name an element: <code>data-hrv</code>, written into the file by <a data-hrv="347" href="#d-ids">assign IDs</a>.
+        <dt data-hrv="351">element ID</dt>
+        <dd data-hrv="352">
+          How the browser and server name an element: <code>data-hrv</code>, written into the file by <a data-hrv="353" href="#d-ids">assign IDs</a>.
         </dd>
-        <dt data-hrv="348">text element <span class="current">current</span></dt>
-        <dd data-hrv="349">Today's unit of editing: an element whose children are only text.</dd>
-        <dt data-hrv="350">scope <span class="directional">directional</span></dt>
-        <dd data-hrv="351">
+        <dt data-hrv="354">text element <span class="current">current</span></dt>
+        <dd data-hrv="355">Today's unit of editing: an element whose children are only text.</dd>
+        <dt data-hrv="356">scope <span class="directional">directional</span></dt>
+        <dd data-hrv="357">
           Tomorrow's unit of editing and directives: any block you pick, edited as markdown as a whole. Scopes nest.
         </dd>
-        <dt data-hrv="352">Contract</dt>
-        <dd data-hrv="353">
-          What iterate-on-docs relies on, words included: the table in README. See <a data-hrv="354" href="#how-it-reaches-you">how it reaches you</a>.
+        <dt data-hrv="358">Contract</dt>
+        <dd data-hrv="359">
+          What iterate-on-docs relies on, words included: the table in README. See <a data-hrv="360" href="#how-it-reaches-you">how it reaches you</a>.
         </dd>
-        <dt data-hrv="355">deploy, release</dt>
-        <dd data-hrv="356">
+        <dt data-hrv="361">deploy, release</dt>
+        <dd data-hrv="362">
           Deploy copies main into iterate-on-docs. Release, run there, versions and publishes it. A deploy is not a release.
         </dd>
-        <dt data-hrv="357">phrasing content</dt>
-        <dd data-hrv="358">
-          HTML-spec term: text plus inline markup (<code>b</code>, <code>a</code>, <code>code</code>…). See <a data-hrv="359" href="https://developer.mozilla.org/en-US/docs/Web/HTML/Guides/Content_categories">MDN: content categories</a>.
+        <dt data-hrv="363">phrasing content</dt>
+        <dd data-hrv="364">
+          HTML-spec term: text plus inline markup (<code>b</code>, <code>a</code>, <code>code</code>…). See <a data-hrv="365" href="https://developer.mozilla.org/en-US/docs/Web/HTML/Guides/Content_categories">MDN: content categories</a>.
         </dd>
       </dl>
     </section>
-    <section data-hrv="360" id="current-work">
-      <h2 data-hrv="361">Current work</h2>
-      <div data-hrv="362" class="grid">
-        <div data-hrv="363" class="card">
+    <section data-hrv="366" id="current-work">
+      <h2 data-hrv="367">Current work</h2>
+      <div data-hrv="368" class="grid">
+        <div data-hrv="369" class="card">
           <strong>Open questions</strong>
-          <ul data-hrv="364">
-            <li data-hrv="365">
+          <ul data-hrv="370">
+            <li data-hrv="371">
               What do we call the two kinds of element? The spec's "flow content" includes <code>&lt;p&gt;</code>.
             </li>
-            <li data-hrv="366">Directives inside a scope you edit as markdown: where do they go?</li>
+            <li data-hrv="372">Directives inside a scope you edit as markdown: where do they go?</li>
           </ul>
         </div>
-        <div data-hrv="367" class="card">
+        <div data-hrv="373" class="card">
           <strong>Tracker</strong>
-          <p data-hrv="368">Work lives in <code>yx</code>. Run <code>yx list</code>.</p>
-          <ul data-hrv="369">
-            <li data-hrv="370">Spec: <code>html-revisor-spec.md</code></li>
-            <li data-hrv="371">Usage: <code>README.md</code></li>
-            <li data-hrv="372">Research notes: commit <code>8683442</code></li>
+          <p data-hrv="374">Work lives in <code>yx</code>. Run <code>yx list</code>.</p>
+          <ul data-hrv="375">
+            <li data-hrv="376">Spec: <code>html-revisor-spec.md</code></li>
+            <li data-hrv="377">Usage: <code>README.md</code></li>
+            <li data-hrv="378">Research notes: commit <code>8683442</code></li>
           </ul>
         </div>
       </div>
