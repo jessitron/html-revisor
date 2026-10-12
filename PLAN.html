@@ -52,40 +52,23 @@
       </svg>
     </section>
     <section id="stages">
-      <h2>Now</h2>
+      <h2>Done</h2>
       <div class="stage">
         <div class="num">1</div>
         <div class="card">
           <h3>The formatter stands alone</h3>
           <p class="why">
-            Today it is a section of <code>server.mjs</code>. On its own, it runs without the server and can take validation steps, which the round-trip in stage 4 will need.
+            <code>formatter.mjs</code> holds parse, skeleton, layout, serialize, and an empty rule list; <code>server.mjs</code> imports it. <code>node formatter.mjs &lt;file&gt;...</code> rewrites in place, silent on success; exit 1 for a problem, 2 for no files. It's in the contract: iterate-on-a-document and make-a-project-overview run it. Deployed at <code>3634b9c</code>.
           </p>
-          <p class="why">
-            <strong>Done.</strong> <code>formatter.mjs</code> holds parse, skeleton, layout, serialize, and an empty rule list; <code>server.mjs</code> imports it. <code>node formatter.mjs &lt;file&gt;...</code> rewrites in place, silent on success; exit 1 for a file it can't read or a rule it can't fix, exit 2 for no files. The iterate-on-docs skill edits travel with the deploy.
-          </p>
-          <ul class="yaks">
-            <li>
-              Move parse, skeleton, serialize, and layout into <code>formatter.mjs</code>, Tier II. The server imports it. <span class="yak">stez</span>
-            </li>
-            <li>
-              A CLI: <code>node formatter.mjs &lt;file&gt;</code> rewrites the file in place, or reports what it can't fix and exits nonzero <span class="yak">yp92</span>, merges into stez
-            </li>
-            <li>Validation rules: none until a stage asks for one.</li>
-            <li>
-              The CLI joins the contract: agents in iterate-on-docs that generate pages run it before Jess sees them. Same deploy, matching edits to the skills there.
-            </li>
-          </ul>
-          <div class="ships">
-            a second file in the deploy; a new contract row; skills in iterate-on-docs run the formatter
-          </div>
         </div>
       </div>
+      <h2>Now</h2>
       <div class="stage">
         <div class="num">2</div>
         <div class="card">
           <h3>Decide what makes a chunk</h3>
           <p class="why">
-            Which elements belong to a prose chunk, and which start a new one. Phrasing content (text, <code>strong</code>, <code>a</code>, <code>code</code>…) belongs. Lists, code blocks, and other containers get decided here too, not later.
+            Which elements belong to a prose chunk, and which start a new one. Phrasing content (text, <code>strong</code>, <code>a</code>, <code>code</code>…) belongs. Lists, code blocks, and other containers get decided here too, not later. <span class="yak">p5pm</span>
           </p>
           <ul class="yaks">
             <li>
