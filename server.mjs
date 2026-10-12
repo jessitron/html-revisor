@@ -63,7 +63,7 @@ async function getPage(res, file, urlPath, { author }) {
   stamp(document);
   const directives = collectDirectives(document, author);
   removeDirectives(document, author);
-  injectClient(document, directives, versionOf(formatted));
+  injectClient(document, directives, versionOf(formatted), await readClientCss());
   console.log(`${urlPath} — ${Object.keys(directives).length} pending directives`);
   sendHtml(res, document.toString());
 }
@@ -499,7 +499,10 @@ function directoryListing(urlPath, entries) {
 }
 
 // Client assets. Appended to the served copy after stamping, so none of it gets a data-n.
-const CLIENT_CSS = await fs.readFile(new URL('client.css', import.meta.url), 'utf8');
+// Read on each GET, so a change to client.css shows on reload without a restart.
+export function readClientCss() {
+  return fs.readFile(new URL('client.css', import.meta.url), 'utf8');
+}
 const CLIENT_JS = `// html-revisor client. Directives live in the file on disk; this script edits them through PUT.
 (function () {
   'use strict';
@@ -880,12 +883,12 @@ const CLIENT_JS = `// html-revisor client. Directives live in the file on disk; 
 })();
 `;
 
-export function injectClient(document, directives, version) {
+export function injectClient(document, directives, version, css) {
   const head = document.querySelector('head') ?? document.documentElement;
   const body = document.querySelector('body') ?? document.documentElement;
 
   const style = document.createElement('style');
-  style.textContent = CLIENT_CSS;
+  style.textContent = css;
   head.appendChild(style);
 
   const data = document.createElement('script');
