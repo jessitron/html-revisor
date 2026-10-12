@@ -151,3 +151,16 @@ test('a destination with a space or parenthesis goes in angle brackets; a title 
   assert.equal(markdown, '[x](<a b(1).html> "say \\"hi\\"")');
   assert.ok(same);
 });
+
+test('a save keeps IDs: an edited item keeps its own, a new one beside it gets none', () => {
+  const { el } = scopeIn('<ul><li>ship the formatter</li><li>then deploy</li></ul>');
+  const [ul, first, second] = [el, ...el.children].map((e) => e.getAttribute('data-hrv'));
+  const [back] = scopeFromMarkdown(el, '- a new one\n- ship the formatter first\n- then deploy');
+  assert.deepEqual([back, ...back.children].map((e) => e.getAttribute('data-hrv')), [ul, null, first, second]);
+});
+
+test('two images of one picture that swap places keep their own sizes', () => {
+  const { document, el } = scopeIn('<p><img src="a.png" alt="big" width="90"> <img src="a.png" alt="small" width="9"></p>');
+  const back = canonicalHTML(document, scopeFromMarkdown(el, '![small](a.png) ![big](a.png)'));
+  assert.match(back, /alt="small" width="9">.*alt="big" width="90"/);
+});

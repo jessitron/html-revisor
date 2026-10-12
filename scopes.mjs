@@ -8,8 +8,8 @@
 // edit its whole content as markdown: a section, a list, one list item, a table, one cell (Jess,
 // 2026-10-12, F2 in try-me.html#scopes). Other inline elements, like strong, belong to their
 // block. scopeMarkdown writes a scope as markdown and scopeFromMarkdown reads it back; saving
-// it unchanged gives back the same HTML, element IDs and directives aside (PLAN.html stage 5,
-// test/roundtrip.test.mjs).
+// it unchanged gives back the same HTML, element IDs included, directives aside (PLAN.html
+// stage 5). Saving it edited, each element keeps its ID (stage 6). test/roundtrip.test.mjs.
 //
 // Tiers, dependencies point downward only:
 //   Tier I   orchestration: the CLI
@@ -378,8 +378,10 @@ const escapeEntities = (text) => text.replace(/&(?=[a-zA-Z#][a-zA-Z0-9]*;)/g, '&
 // The nodes that replace a scope's element when its markdown is saved. The prior element says
 // what shape the markdown has, the same way it did for scopeMarkdown: an item's content, a
 // list's lines, a paragraph's phrasing. Opening a scope and saving it unchanged gives back
-// the same HTML, IDs and directives aside (PLAN.html stage 5).
-export function scopeFromMarkdown(el, markdown) {
+// the same HTML, element IDs included, directives aside (PLAN.html stage 5).
+export const scopeFromMarkdown = (el, markdown) => reconcile([el], rebuild(el, markdown));
+
+function rebuild(el, markdown) {
   const nodes = restore([el], fromMarkdown(el, markdown));
   if (holdsParagraphs(el) && nodes.length === 1) keepBareText(el, nodes[0]);
   return nodes;
@@ -412,7 +414,7 @@ function keepBareText(prior, el) {
 
 // Whether saving this markdown unchanged gives back the scope as it is.
 export const roundTrips = (el, markdown) =>
-  canonicalHTML(el.ownerDocument, [el]) === canonicalHTML(el.ownerDocument, scopeFromMarkdown(el, markdown));
+  canonicalHTML(el.ownerDocument, [el]) === canonicalHTML(el.ownerDocument, rebuild(el, markdown));
 
 function fromMarkdown(el, markdown) {
   const name = el.localName;
@@ -481,8 +483,14 @@ function restore(prior, nodes) {
     if (standsAlone(original)) alone.add(copy);
     mark.replaceWith(copy);
   }
+  // The closest first, so two images of one picture that swap places keep their own sizes: the
+  // same attributes (an image written as HTML says them all), then the same src and alt.
+  const same = (img, names) => (o) => names.every((a) => o.getAttribute(a) === img.getAttribute(a));
   for (const img of holder.querySelectorAll('img')) {
-    const i = images.findIndex((o) => o.getAttribute('src') === img.getAttribute('src'));
+    const all = [...new Set([...attrNames(img), ...images.flatMap(attrNames)])];
+    let i = images.findIndex(same(img, all));
+    if (i < 0) i = images.findIndex(same(img, ['src', 'alt']));
+    if (i < 0) i = images.findIndex(same(img, ['src']));
     if (i < 0) continue;
     const [original] = images.splice(i, 1);
     carryOver(original, img);
@@ -523,6 +531,95 @@ function carryOver(original, img) {
   for (const [name, value] of attrs.reverse()) img.setAttribute(name, value); // linkedom puts a new attribute first
 }
 
+// ---- Reconcile ----------------------------------------------------------
+
+// Element IDs come back from the prior HTML. Directives, the open box, and the 412 check find
+// elements by them. Siblings pair up the way a diff does: first the ones that came back the
+// same, then, between those, ones with the same tag. Those are the elements you edited; they
+// keep their IDs so their directives stay with them (Jess, 2026-10-12). A pair's children pair
+// up the same way. An element with no pair is new, and the formatter gives it an ID.
+const HRV = 'data-hrv';
+
+function reconcile(prior, nodes) {
+  for (const n of nodes) if (n.nodeType === 1) [n, ...n.querySelectorAll(`[${HRV}]`)].forEach((e) => e.removeAttribute(HRV));
+  pairUp(prior[0].ownerDocument, prior, nodes);
+  return nodes;
+}
+
+function pairUp(document, prior, nodes) {
+  const before = prior.filter((n) => n.nodeType === 1);
+  const after = nodes.filter((n) => n.nodeType === 1);
+  const keys = (els) => els.map((e) => canonicalHTML(document, [e]));
+  const [beforeKeys, afterKeys] = [keys(before), keys(after)];
+  const pairs = new Map(); // after index → before index
+  const same = commonSubsequence(beforeKeys, afterKeys);
+  let [i, j] = [0, 0];
+  for (const [si, sj] of [...same, [before.length, after.length]]) {
+    pairGap(before, after, i, si, j, sj, pairs, beforeKeys, afterKeys);
+    if (si < before.length) pairs.set(sj, si);
+    [i, j] = [si + 1, sj + 1];
+  }
+  // An element that moved, unchanged, past others.
+  const taken = new Set(pairs.values());
+  for (const [b, key] of beforeKeys.entries()) {
+    if (taken.has(b)) continue;
+    const a = afterKeys.findIndex((k, x) => k === key && !pairs.has(x));
+    if (a >= 0) pairs.set(a, b);
+  }
+  for (const [a, b] of pairs) {
+    if (before[b].hasAttribute(HRV)) after[a].setAttribute(HRV, before[b].getAttribute(HRV));
+    pairUp(document, [...before[b].childNodes], [...after[a].childNodes]);
+  }
+}
+
+// Between two unchanged siblings: as many before as after, the same tags in order, is an edit
+// of each. Otherwise the most alike pairs first, same tag, in order, so a new item typed beside
+// an edited one doesn't take its ID.
+function pairGap(before, after, b0, b1, a0, a1, pairs, beforeKeys, afterKeys) {
+  if (b1 - b0 === a1 - a0 && after.slice(a0, a1).every((el, k) => el.localName === before[b0 + k].localName)) {
+    for (let k = 0; k < a1 - a0; k++) pairs.set(a0 + k, b0 + k);
+    return;
+  }
+  const candidates = [];
+  for (let b = b0; b < b1; b++)
+    for (let a = a0; a < a1; a++)
+      if (before[b].localName === after[a].localName) candidates.push([likeness(beforeKeys[b], afterKeys[a]), b, a]);
+  const taken = [];
+  for (const [, b, a] of candidates.sort((x, y) => y[0] - x[0])) {
+    if (taken.some(([tb, ta]) => tb === b || ta === a || tb < b !== ta < a)) continue;
+    taken.push([b, a]);
+    pairs.set(a, b);
+  }
+}
+
+// How alike two pieces of HTML are, 0 to 1: the Dice coefficient of their character pairs.
+function likeness(x, y) {
+  const pairsOf = (s) => {
+    const counts = new Map();
+    for (let i = 0; i < s.length - 1; i++) counts.set(s.slice(i, i + 2), (counts.get(s.slice(i, i + 2)) ?? 0) + 1);
+    return counts;
+  };
+  const [px, py] = [pairsOf(x), pairsOf(y)];
+  let shared = 0;
+  for (const [p, n] of px) shared += Math.min(n, py.get(p) ?? 0);
+  return (2 * shared) / Math.max(x.length + y.length - 2, 1);
+}
+
+// Index pairs of a longest common subsequence, in order.
+function commonSubsequence(xs, ys) {
+  const len = Array.from({ length: xs.length + 1 }, () => new Array(ys.length + 1).fill(0));
+  for (let i = xs.length - 1; i >= 0; i--)
+    for (let j = ys.length - 1; j >= 0; j--)
+      len[i][j] = xs[i] === ys[j] ? len[i + 1][j + 1] + 1 : Math.max(len[i + 1][j], len[i][j + 1]);
+  const out = [];
+  for (let i = 0, j = 0; i < xs.length && j < ys.length; ) {
+    if (xs[i] === ys[j]) out.push([i++, j++]);
+    else if (len[i + 1][j] >= len[i][j + 1]) i++;
+    else j++;
+  }
+  return out;
+}
+
 const shell = (el, nodes) => {
   const copy = el.cloneNode(false);
   copy.append(...nodes);
@@ -542,16 +639,17 @@ function sameNodes(prior, html) {
   return canonicalHTML(document, prior) === canonicalHTML(document, restore(prior, nodesOf(prior[0], html)));
 }
 
-export function canonicalHTML(document, nodes) {
+// ids: keep element IDs, to check that they survive a save.
+export function canonicalHTML(document, nodes, { ids = false } = {}) {
   const holder = document.createElement('div');
-  for (const n of nodes) holder.appendChild(bare(n));
+  for (const n of nodes) holder.appendChild(bare(n, ids ? new Set(['data-chunk']) : IGNORED_ATTRS));
   return formatElement(holder);
 }
 
 // A copy without directives or the attributes the tool adds.
-function bare(node) {
+function bare(node, attrs) {
   const copy = node.cloneNode(true);
-  if (copy.nodeType === 1) stripForDisplay(copy);
+  if (copy.nodeType === 1) stripForDisplay(copy, attrs);
   return copy;
 }
 
@@ -562,12 +660,12 @@ export function rawHTML(el) {
   return dedent(copy.outerHTML);
 }
 
-function stripForDisplay(el) {
+function stripForDisplay(el, attrs = IGNORED_ATTRS) {
   for (const n of [...el.childNodes]) {
     if (n.nodeType === 8) n.remove();
-    else if (n.nodeType === 1) stripForDisplay(n);
+    else if (n.nodeType === 1) stripForDisplay(n, attrs);
   }
-  if (el.removeAttribute) for (const a of IGNORED_ATTRS) el.removeAttribute(a);
+  if (el.removeAttribute) for (const a of attrs) el.removeAttribute(a);
 }
 
 // Every line after the first carries the file's indentation; the last line (the closing tag)

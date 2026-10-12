@@ -1,6 +1,10 @@
 // The round-trip property (PLAN.html stage 5): for every scope, scope → markdown → scope is the
-// same HTML, element IDs and directives aside. Opening a scope and saving it unchanged must
-// leave the file unchanged.
+// same HTML, element IDs included, directives aside. Opening a scope and saving it unchanged
+// must leave the file unchanged.
+//
+// The reconcile property (stage 6): edit a scope, write the edited scope's markdown, and save
+// it over the prior scope. That gives back the edited scope, IDs included: an element you
+// edited, moved, or left alone keeps its ID, and one you added has none.
 //
 // Two sources of scopes: every page in this repo, and pages generated from a seed in the shapes
 // agents write, with text full of characters markdown reads as syntax. No property-testing
@@ -18,8 +22,8 @@ const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 // Why a scope doesn't round-trip, or null if it does.
 function roundTripFailure(document, el) {
   const markdown = scopeMarkdown(el);
-  const before = canonicalHTML(document, [el]);
-  const after = canonicalHTML(document, scopeFromMarkdown(el, markdown));
+  const before = canonicalHTML(document, [el], { ids: true });
+  const after = canonicalHTML(document, scopeFromMarkdown(el, markdown), { ids: true });
   if (before === after) return null;
   return `<${el.localName}> doesn't round-trip.\n--- HTML\n${before}\n--- markdown\n${markdown}\n--- back\n${after}`;
 }
@@ -175,6 +179,150 @@ for (const tidy of [false, true]) {
         const failure = roundTripFailure(document, el);
         assert.equal(failure, null, `seed ${seed}${tidy ? ' (tidy)' : ''}: ${failure}`);
       }
+    }
+  });
+}
+
+// ---- Edits --------------------------------------------------------------
+
+// One edit to a scope, made on a second copy of the page so the prior scope stays as it was.
+// Each returns a description, or null when the scope has nothing it applies to.
+// An svg, a button, or a script is a stand-in in markdown: it comes back from the prior HTML,
+// text and all. Markdown can't make a new one.
+const STAND_INS =
+  'svg img picture video audio canvas iframe embed object math input button select textarea meter progress hr script style template noscript'
+    .split(' ')
+    .join(', ');
+// Elements that can sit twice in a row without markdown running them together.
+const REPEATS = new Set(['p', 'li', 'h2', 'h3', 'h4', 'tr', 'blockquote', 'pre', 'section', 'div']);
+
+const textsIn = (el) => {
+  const out = [];
+  const walk = (n) => {
+    if (n.nodeType === 3 && /\S/.test(n.data)) out.push(n);
+    else if (n.nodeType === 1 && !n.matches(STAND_INS)) [...n.childNodes].forEach(walk);
+  };
+  walk(el);
+  return out;
+};
+const repeatable = (el) =>
+  [...el.querySelectorAll('*')].filter((e) => REPEATS.has(e.localName) && !e.closest(STAND_INS) && textsIn(e).length > 0);
+const replaceWord = (r, t, word) => {
+  const words = [...t.data.matchAll(/\S+/g)];
+  const m = r.pick(words);
+  t.data = t.data.slice(0, m.index) + word + t.data.slice(m.index + m[0].length);
+};
+// A copy with new words, so it shares none with the element it came from, and no stand-ins.
+function fresh(el) {
+  const copy = el.cloneNode(true);
+  copy.querySelectorAll(STAND_INS).forEach((e) => e.remove());
+  [copy, ...copy.querySelectorAll('[data-hrv]')].forEach((e) => e.removeAttribute('data-hrv'));
+  for (const t of textsIn(copy)) t.data = t.data.replace(/\S+/g, 'fresh');
+  return copy;
+}
+
+const EDITS = {
+  word(r, el) {
+    const texts = textsIn(el);
+    if (texts.length === 0) return null;
+    const t = r.pick(texts);
+    replaceWord(r, t, 'yak');
+    return `a word in <${t.parentNode.localName}> is now "yak"`;
+  },
+  insert(r, el) {
+    const candidates = repeatable(el);
+    if (candidates.length === 0) return null;
+    const at = r.pick(candidates);
+    at.after(fresh(at));
+    return `a new <${at.localName}> after <${at.localName} data-hrv="${at.getAttribute('data-hrv')}">`;
+  },
+  remove(r, el) {
+    const candidates = repeatable(el).filter((e) => [...e.parentNode.children].filter((s) => s.localName === e.localName).length > 1);
+    if (candidates.length === 0) return null;
+    const at = r.pick(candidates);
+    at.remove();
+    return `<${at.localName} data-hrv="${at.getAttribute('data-hrv')}"> removed`;
+  },
+  swap(r, el) {
+    const candidates = repeatable(el).filter(
+      (e) => e.nextElementSibling?.localName === e.localName && e.outerHTML.replace(/ data-hrv="\d+"/g, '') !== e.nextElementSibling.outerHTML.replace(/ data-hrv="\d+"/g, ''),
+    );
+    if (candidates.length === 0) return null;
+    const at = r.pick(candidates);
+    at.before(at.nextElementSibling);
+    return `<${at.localName} data-hrv="${at.getAttribute('data-hrv')}"> moved down one`;
+  },
+  // Typed in one save: an edit, and a new element beside it. The edited one keeps a word of
+  // what it was; replace its only word and nothing says which of the two it is.
+  'word and insert'(r, el) {
+    const candidates = repeatable(el).filter((e) => e.textContent.trim().split(/\s+/).length > 1);
+    if (candidates.length === 0) return null;
+    const at = r.pick(candidates);
+    replaceWord(r, r.pick(textsIn(at)), 'yak');
+    const copy = fresh(at);
+    if (r.chance(0.5)) at.after(copy);
+    else at.before(copy);
+    return `a word in <${at.localName} data-hrv="${at.getAttribute('data-hrv')}"> is now "yak", and a new one beside it`;
+  },
+};
+
+// Each ID in the nodes, and the tag and text of the element that carries it. Whitespace aside:
+// an edit made in the DOM has none between elements.
+function idsIn(nodes) {
+  const lines = [];
+  for (const n of nodes.filter((n) => n.nodeType === 1))
+    for (const e of [n, ...n.querySelectorAll('[data-hrv]')])
+      if (e.hasAttribute('data-hrv')) lines.push(`${e.getAttribute('data-hrv')} <${e.localName}> ${e.textContent.replace(/\s+/g, '')}`);
+  return lines.sort().join('\n');
+}
+
+// Why saving the edited scope's markdown over the prior scope doesn't put each ID in the
+// edited scope on an element with the same tag and text, or null if it does. Its HTML is the
+// round-trip's business: edited bare text comes back as a paragraph (C10).
+function reconcileFailure(prior, edited, el, r, kind) {
+  const id = el.getAttribute('data-hrv');
+  const live = edited.querySelector(`[data-hrv="${id}"]`);
+  const copy = live.cloneNode(true);
+  live.replaceWith(copy);
+  try {
+    const what = EDITS[kind](r, copy);
+    if (what === null) return null;
+    const markdown = scopeMarkdown(copy);
+    const saved = scopeFromMarkdown(el, markdown);
+    const [want, got] = [idsIn([copy]), idsIn(saved)];
+    if (want === got) return null;
+    const [html, back] = [canonicalHTML(edited, [copy]), canonicalHTML(prior, saved)];
+    const shape = html === back ? '' : `\n--- edited HTML\n${html}\n--- saved HTML\n${back}`;
+    return `<${el.localName} data-hrv="${id}">, ${kind}: ${what}.\n--- markdown\n${markdown}\n--- wanted\n${want}\n--- got\n${got}${shape}`;
+  } finally {
+    copy.replaceWith(live);
+  }
+}
+
+// Every scope in the page, each edited once, the edit picked by seed(n) for the nth scope.
+function pageFailure(html, seed, kind) {
+  const [prior, edited] = [parse(html), parse(html)];
+  for (const [n, el] of scopeElements(prior).entries()) {
+    const failure = reconcileFailure(prior, edited, el, random(seed(n)), kind);
+    if (failure) return `seed ${seed(n)}: ${failure}`;
+  }
+  return null;
+}
+
+for (const kind of Object.keys(EDITS)) {
+  test(`edited, every scope in this repo's pages keeps its IDs: ${kind}`, () => {
+    for (const file of pages) {
+      const failure = pageFailure(normalize(fs.readFileSync(file, 'utf8')), (n) => n + 1, kind);
+      assert.equal(failure, null, `${path.relative(root, file)}, ${failure}`);
+    }
+  });
+
+  test(`edited, every scope in generated pages keeps its IDs: ${kind} (${SEEDS} seeds)`, () => {
+    for (let seed = 1; seed <= SEEDS; seed++) {
+      const tidy = seed % 2 === 0;
+      const html = normalize(`<html><body>${generator(random(seed), tidy)()}</body></html>`);
+      const failure = pageFailure(html, (n) => seed * 1000 + n, kind);
+      assert.equal(failure, null, `page seed ${seed}${tidy ? ' (tidy)' : ''}, ${failure}`);
     }
   });
 }
