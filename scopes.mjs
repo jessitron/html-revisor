@@ -7,7 +7,7 @@
 // A scope is any block element, plus links and images. You pick it to leave a directive or to
 // edit its whole content as markdown: a section, a list, one list item, a table, one cell (Jess,
 // 2026-10-12, F2 in try-me.html#scopes). Other inline elements, like strong, belong to their
-// block. The markdown here is a first pass for looking at cases; PLAN.html stage 4 owns the
+// block. The markdown here is a first pass for looking at cases; PLAN.html stage 5 owns the
 // real round-trip.
 //
 // Tiers, dependencies point downward only:
