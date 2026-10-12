@@ -19,7 +19,8 @@
   --hrv-on-toast: #fff;
   --hrv-font: 13px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
   --hrv-small: 11px;
-  --hrv-shadow-marker: 0 1px 4px rgba(0, 0, 0, 0.35);
+  --hrv-halo: #fff;
+  --hrv-shadow-marker: 0 1px 4px 2px rgba(0, 0, 0, 0.5);
   --hrv-shadow-box: 0 6px 24px rgba(0, 0, 0, 0.28);
   --hrv-pencil: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M11.2 2.3l2.5 2.5-8.2 8.2-3.3.8.8-3.3z' fill='white'/></svg>");
 }
@@ -38,8 +39,13 @@
   }
 }
 
-.hrv-hover { outline: 2px dashed var(--hrv-accent) !important; outline-offset: 1px !important; cursor: copy !important; }
+/* The halo: every mark over the page gets a light edge and a dark edge, so it shows on any page. */
+.hrv-hover {
+  outline: 2px dashed var(--hrv-accent) !important; outline-offset: 1px !important; cursor: copy !important;
+  box-shadow: 0 0 0 3px var(--hrv-halo) !important;
+}
 .hrv-has-directive { box-shadow: inset 3px 0 0 var(--hrv-accent) !important; }
+.hrv-hover.hrv-has-directive { box-shadow: inset 3px 0 0 var(--hrv-accent), 0 0 0 3px var(--hrv-halo) !important; }
 
 /* Reset everything inside the layer so the page's CSS cannot leak in. */
 #hrv-layer { all: initial; display: block; position: absolute; top: 0; left: 0; width: 0; height: 0; z-index: 2147483647; }
@@ -52,7 +58,7 @@
 :is(#hrv-layer, .hrv-layer) .hrv-marker {
   position: absolute; width: 18px; height: 18px; border-radius: 50%;
   background: var(--hrv-accent); color: var(--hrv-on-accent); font-size: var(--hrv-small); line-height: 18px; text-align: center;
-  cursor: pointer; box-shadow: var(--hrv-shadow-marker);
+  cursor: pointer; box-shadow: 0 0 0 2px var(--hrv-halo), var(--hrv-shadow-marker);
 }
 :is(#hrv-layer, .hrv-layer) .hrv-marker:hover { background: var(--hrv-accent-strong); }
 
@@ -60,6 +66,7 @@
 :is(#hrv-layer, .hrv-layer) .hrv-icon {
   display: inline-block; flex: none; width: 16px; height: 16px; border-radius: 50%; vertical-align: -3px;
   background: var(--hrv-accent) var(--hrv-pencil) center / 10px no-repeat;
+  box-shadow: 0 0 0 1.5px var(--hrv-halo);
 }
 :is(#hrv-layer, .hrv-layer) .hrv-toast .hrv-icon { margin-right: 6px; }
 

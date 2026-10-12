@@ -31,6 +31,7 @@
   .tile { position: relative; padding: 12px; border-radius: 6px; font-size: 14px; }
   .tile p { margin: 0 0 10px; }
   .tile p:last-of-type { margin: 0; }
+  .tile img { display: block; }
   .swatch code { font-size: 11px; display: block; }
 </style>
   </head>
@@ -51,9 +52,8 @@
     </ol>
     <h2>Stress test: any page</h2>
     <p class="note">
-      Imperative 1. Color alone can't be distinct from every page: some page uses our pink. Today's design, then a halo: a white ring and a dark shadow, so each mark has a light edge and a dark edge whatever the page.
+      Imperative 1. Color alone can't be distinct from every page: some page uses our pink. So every mark gets a halo, a white ring and a dark shadow: a light edge and a dark edge whatever the page.
     </p>
-    <p class="note"><strong>Today</strong></p>
     <div class="grounds">
       <div>
         <div class="tile" style="background: #fff; color: #222;">
@@ -115,96 +115,28 @@
         </div>
         <p class="note">pink border</p>
       </div>
-    </div>
-    <p class="note"><strong>Halo</strong></p>
-    <div class="grounds">
       <div>
-        <div class="tile" style="background: #fff; color: #222;">
-          <p class="hrv-has-directive" style="box-shadow: inset 3px 0 0 #d6336c, inset 5px 0 0 #fff !important;">
-            Has a directive
-          </p>
-          <p class="hrv-hover" style="box-shadow: 0 0 0 3px #fff !important;">Hovered</p>
+        <div class="tile" style="background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNjAgOTAiIHByZXNlcnZlQXNwZWN0UmF0aW89InhNaWRZTWlkIHNsaWNlIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9InMiIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmZmUzZWMiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNkNjMzNmMiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTYwIiBoZWlnaHQ9IjkwIiBmaWxsPSJ1cmwoI3MpIi8+PGNpcmNsZSBjeD0iMTE4IiBjeT0iMjYiIHI9IjE1IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTAgNjIgUTQwIDM4IDgwIDU4IFQxNjAgNDggVjkwIEgwWiIgZmlsbD0iIzJiMmQ0MiIvPjxwYXRoIGQ9Ik0wIDc4IFE1MCA2MiAxMDAgNzggVDE2MCA3MiBWOTAgSDBaIiBmaWxsPSIjMTJiODg2Ii8+PC9zdmc+) center / cover; color: #fff; text-shadow: 0 1px 2px #000;">
+          <p class="hrv-has-directive">Has a directive</p>
+          <p class="hrv-hover">Hovered</p>
           <div class="hrv-layer">
-            <div class="hrv-marker" style="left: 3px; top: 3px; box-shadow: 0 0 0 2px #fff, 0 1px 4px 2px rgba(0, 0, 0, 0.5);">
-              ✎
-            </div>
+            <div class="hrv-marker" style="left: 3px; top: 3px;">✎</div>
           </div>
         </div>
-        <p class="note">white</p>
+        <p class="note">photo behind text</p>
       </div>
       <div>
-        <div class="tile" style="background: #18191c; color: #eee;">
-          <p class="hrv-has-directive" style="box-shadow: inset 3px 0 0 #d6336c, inset 5px 0 0 #fff !important;">
-            Has a directive
-          </p>
-          <p class="hrv-hover" style="box-shadow: 0 0 0 3px #fff !important;">Hovered</p>
+        <div class="tile" style="padding: 12px 0 0 12px;">
+          <img class="hrv-hover hrv-has-directive" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNjAgOTAiIHByZXNlcnZlQXNwZWN0UmF0aW89InhNaWRZTWlkIHNsaWNlIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9InMiIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmZmUzZWMiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNkNjMzNmMiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTYwIiBoZWlnaHQ9IjkwIiBmaWxsPSJ1cmwoI3MpIi8+PGNpcmNsZSBjeD0iMTE4IiBjeT0iMjYiIHI9IjE1IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTAgNjIgUTQwIDM4IDgwIDU4IFQxNjAgNDggVjkwIEgwWiIgZmlsbD0iIzJiMmQ0MiIvPjxwYXRoIGQ9Ik0wIDc4IFE1MCA2MiAxMDAgNzggVDE2MCA3MiBWOTAgSDBaIiBmaWxsPSIjMTJiODg2Ii8+PC9zdmc+" alt="hills under a pink sky" width="112" height="63">
           <div class="hrv-layer">
-            <div class="hrv-marker" style="left: 3px; top: 3px; box-shadow: 0 0 0 2px #fff, 0 1px 4px 2px rgba(0, 0, 0, 0.5);">
-              ✎
-            </div>
+            <div class="hrv-marker" style="left: 3px; top: 3px;">✎</div>
           </div>
         </div>
-        <p class="note">near-black</p>
-      </div>
-      <div>
-        <div class="tile" style="background: #d6336c; color: #fff;">
-          <p class="hrv-has-directive" style="box-shadow: inset 3px 0 0 #d6336c, inset 5px 0 0 #fff !important;">
-            Has a directive
-          </p>
-          <p class="hrv-hover" style="box-shadow: 0 0 0 3px #fff !important;">Hovered</p>
-          <div class="hrv-layer">
-            <div class="hrv-marker" style="left: 3px; top: 3px; box-shadow: 0 0 0 2px #fff, 0 1px 4px 2px rgba(0, 0, 0, 0.5);">
-              ✎
-            </div>
-          </div>
-        </div>
-        <p class="note">our pink</p>
-      </div>
-      <div>
-        <div class="tile" style="background: #c92a2a; color: #fff;">
-          <p class="hrv-has-directive" style="box-shadow: inset 3px 0 0 #d6336c, inset 5px 0 0 #fff !important;">
-            Has a directive
-          </p>
-          <p class="hrv-hover" style="box-shadow: 0 0 0 3px #fff !important;">Hovered</p>
-          <div class="hrv-layer">
-            <div class="hrv-marker" style="left: 3px; top: 3px; box-shadow: 0 0 0 2px #fff, 0 1px 4px 2px rgba(0, 0, 0, 0.5);">
-              ✎
-            </div>
-          </div>
-        </div>
-        <p class="note">red</p>
-      </div>
-      <div>
-        <div class="tile" style="background: repeating-linear-gradient(45deg, #d6336c 0 8px, #12b886 8px 16px); color: #fff;">
-          <p class="hrv-has-directive" style="box-shadow: inset 3px 0 0 #d6336c, inset 5px 0 0 #fff !important;">
-            Has a directive
-          </p>
-          <p class="hrv-hover" style="box-shadow: 0 0 0 3px #fff !important;">Hovered</p>
-          <div class="hrv-layer">
-            <div class="hrv-marker" style="left: 3px; top: 3px; box-shadow: 0 0 0 2px #fff, 0 1px 4px 2px rgba(0, 0, 0, 0.5);">
-              ✎
-            </div>
-          </div>
-        </div>
-        <p class="note">stripes</p>
-      </div>
-      <div>
-        <div class="tile" style="background: #fff; color: #222; border-left: 3px solid #d6336c;">
-          <p class="hrv-has-directive" style="box-shadow: inset 3px 0 0 #d6336c, inset 5px 0 0 #fff !important;">
-            Has a directive
-          </p>
-          <p class="hrv-hover" style="box-shadow: 0 0 0 3px #fff !important;">Hovered</p>
-          <div class="hrv-layer">
-            <div class="hrv-marker" style="left: 3px; top: 3px; box-shadow: 0 0 0 2px #fff, 0 1px 4px 2px rgba(0, 0, 0, 0.5);">
-              ✎
-            </div>
-          </div>
-        </div>
-        <p class="note">pink border</p>
+        <p class="note">img: hovered, has a directive. The stripe can't show on an image.</p>
       </div>
     </div>
     <p class="note">
-      <strong>What it shows.</strong> Today, everything vanishes on our pink, and the hover outline fades on red and stripes. The halo keeps the marker and the hover outline visible on every ground. The stripe fails either way: it draws over the first letter, disappears on pink, and next to a page's own pink border it reads as part of the page. Recommendation: halo the marker and the hover outline; rethink or drop the stripe, since the marker already says "this element has a directive".
+      <strong>What it shows.</strong> The halo keeps the marker and the hover outline visible on every ground. The stripe fails: it draws over the first letter, disappears on pink, can't show on an image, and next to a page's own pink border it reads as part of the page. Recommendation: rethink or drop the stripe, since the marker already says "this element has a directive".
     </p>
     <h2>Palette</h2>
     <p class="note">
@@ -235,6 +167,10 @@
         <div class="chip"></div>
         <div>button: Delete</div>
       </div>
+      <div class="swatch" data-var="--hrv-halo">
+        <div class="chip"></div>
+        <div>halo: ring around every mark over the page</div>
+      </div>
       <div class="swatch" data-var="--hrv-line">
         <div class="chip"></div>
         <div>line: borders</div>
@@ -263,7 +199,7 @@
             Hovering an element outlines it, and the cursor becomes a copy cursor: click to leave a directive or to edit the text.
           </p>
         </div>
-        <p class="note"><code>.hrv-hover</code>: 2px dashed accent outline.</p>
+        <p class="note"><code>.hrv-hover</code>: 2px dashed accent outline over a 3px halo.</p>
       </div>
       <div>
         <div class="stage">
@@ -277,7 +213,7 @@
           </div>
         </div>
         <p class="note">
-          <code>.hrv-has-directive</code>: 3px inset accent stripe. <code>.hrv-marker</code>: 18px, 9px up and left of the element; its tooltip is the directive.
+          <code>.hrv-has-directive</code>: 3px inset accent stripe. <code>.hrv-marker</code>: 18px with a 2px halo and a shadow, 9px up and left of the element; its tooltip is the directive.
         </p>
       </div>
     </div>
