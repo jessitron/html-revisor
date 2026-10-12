@@ -532,21 +532,77 @@ const CLIENT_JS = `// html-revisor client. Directives live in the file on disk; 
     marker.style.top = Math.max(2, rect.top + window.scrollY - 9) - o.y + 'px';
   }
 
+  // ---- directive box placement ----
+  // The box opens beside its element, never over it: below, above, right, or left, the first
+  // with room in the viewport. The side it gets stays while it still fits, so the box doesn't
+  // flip as the element grows under typing. When no side fits (a tall element, a narrow screen),
+  // the box pins to the viewport edge farthest from the visible part of the element.
+  // Along the other axis it starts at the element's edge, shifts to stay in view, and keeps
+  // overlapping the element's span so the notch can point at it.
+
+  var BOX_MARGIN = 8;   // between the box and the viewport edge
+  var BOX_GAP = 16;     // between the element and the box: the crop gap, the notch, air
+  var NOTCH_END = 12;   // the notch stays this far from the box's corners
+
+  function clamp(n, lo, hi) {
+    return Math.max(lo, Math.min(n, hi));
+  }
+
+  // The middle of the overlap of [a0,a1] and [b0,b1], or of [a0,a1] if they don't meet.
+  function overlapMiddle(a0, a1, b0, b1) {
+    var lo = Math.max(a0, b0), hi = Math.min(a1, b1);
+    return lo <= hi ? (lo + hi) / 2 : (a0 + a1) / 2;
+  }
+
   function positionBox() {
     if (!box) return;
     var el = elementFor(boxId);
     if (!el) return;
-    var rect = el.getBoundingClientRect();
-    var o = layerOrigin();
-    var viewW = document.documentElement.clientWidth;
-    var width = Math.min(320, viewW - 16);
-    box.style.width = width + 'px';
-    var left = rect.left + window.scrollX;
-    left = Math.min(left, window.scrollX + viewW - width - 8);
-    left = Math.max(left, window.scrollX + 8);
-    var top = rect.top < 0 ? window.scrollY + 8 : rect.top + window.scrollY + 20;
-    box.style.left = left - o.x + 'px';
-    box.style.top = top - o.y + 'px';
+    var r = el.getBoundingClientRect();
+    if (isHidden(r)) return;
+    var vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
+    var m = BOX_MARGIN, g = BOX_GAP;
+    var w = Math.min(320, vw - 2 * m);
+    box.style.width = w + 'px';
+    var h = box.offsetHeight;
+
+    var fits = {
+      below: r.bottom + g + h <= vh - m,
+      above: r.top - g - h >= m,
+      right: r.right + g + w <= vw - m,
+      left: r.left - g - w >= m
+    };
+    var side = fits[box.hrvSide] ? box.hrvSide : null;
+    ['below', 'above', 'right', 'left'].forEach(function (s) {
+      if (!side && fits[s]) side = s;
+    });
+    var pointing = side;   // which side of the element the box is on, for the notch
+    if (side) box.hrvSide = side;
+    else {
+      var visTop = clamp(r.top, 0, vh), visBottom = clamp(r.bottom, 0, vh);
+      pointing = (visTop + visBottom) / 2 > vh / 2 ? 'above' : 'below';
+    }
+
+    var left, top;
+    if (pointing === 'below' || pointing === 'above') {
+      left = clamp(r.left, m, vw - m - w);
+      left = clamp(left, r.left - w + 2 * NOTCH_END, r.right - 2 * NOTCH_END);
+      if (!side) top = pointing === 'above' ? m : vh - m - h;
+      else top = side === 'below' ? r.bottom + g : r.top - g - h;
+      box.style.setProperty('--hrv-notch',
+        clamp(overlapMiddle(r.left, r.right, Math.max(0, left), Math.min(vw, left + w)) - left, NOTCH_END, w - NOTCH_END) + 'px');
+    } else {
+      left = side === 'right' ? r.right + g : r.left - g - w;
+      top = clamp(r.top, m, vh - m - h);
+      top = clamp(top, r.top - h + 2 * NOTCH_END, r.bottom - 2 * NOTCH_END);
+      box.style.setProperty('--hrv-notch',
+        clamp(overlapMiddle(r.top, r.bottom, Math.max(0, top), Math.min(vh, top + h)) - top, NOTCH_END, h - NOTCH_END) + 'px');
+    }
+    box.setAttribute('data-side', pointing);
+
+    var origin = layer.getBoundingClientRect();
+    box.style.left = left - origin.left + 'px';
+    box.style.top = top - origin.top + 'px';
   }
 
   function positionAll() {
@@ -872,6 +928,8 @@ const CLIENT_JS = `// html-revisor client. Directives live in the file on disk; 
       box.addEventListener(type, function (e) { e.stopPropagation(); });
     });
     layer.appendChild(box);
+    // The box's height changes as its fields grow; placement measures it each time.
+    if (window.ResizeObserver) new ResizeObserver(schedulePosition).observe(box);
     positionBox();
     positionCrop(selectedCrop, el);
     positionHover();

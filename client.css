@@ -88,10 +88,25 @@ html:not([data-hrv-review="off"]) [data-hrv]:not(html, body) { cursor: copy !imp
   border: 1px solid var(--hrv-accent); background-origin: border-box;
 }
 
+/* The directive box opens beside its element; data-side says which side the box is on.
+   The notch, a square of the material turned 45 degrees, sits on the edge facing the element,
+   --hrv-notch along that edge, so it points at the element when the box shifts to stay in view.
+   Its two outer edges carry the ring; the inner half hides in the box. */
 :is(#hrv-layer, .hrv-layer) .hrv-box {
   position: absolute; width: 320px; padding: 8px; background: var(--hrv-surface); color: var(--hrv-text);
   box-shadow: var(--hrv-material);
+  --hrv-notch: 24px; --hrv-notch-size: 12px;
 }
+:is(#hrv-layer, .hrv-layer) .hrv-box[data-side]::before {
+  content: ""; position: absolute; display: block; width: var(--hrv-notch-size); height: var(--hrv-notch-size);
+  background: var(--hrv-surface); border: 0 solid var(--hrv-ring); transform: rotate(45deg);
+}
+:is(#hrv-layer, .hrv-layer) .hrv-box:is([data-side="below"], [data-side="above"])::before { left: calc(var(--hrv-notch) - var(--hrv-notch-size) / 2); }
+:is(#hrv-layer, .hrv-layer) .hrv-box:is([data-side="right"], [data-side="left"])::before { top: calc(var(--hrv-notch) - var(--hrv-notch-size) / 2); }
+:is(#hrv-layer, .hrv-layer) .hrv-box[data-side="below"]::before { top: calc(var(--hrv-notch-size) / -2); border-top-width: 1px; border-left-width: 1px; }
+:is(#hrv-layer, .hrv-layer) .hrv-box[data-side="above"]::before { bottom: calc(var(--hrv-notch-size) / -2); border-bottom-width: 1px; border-right-width: 1px; }
+:is(#hrv-layer, .hrv-layer) .hrv-box[data-side="right"]::before { left: calc(var(--hrv-notch-size) / -2); border-bottom-width: 1px; border-left-width: 1px; }
+:is(#hrv-layer, .hrv-layer) .hrv-box[data-side="left"]::before { right: calc(var(--hrv-notch-size) / -2); border-top-width: 1px; border-right-width: 1px; }
 :is(#hrv-layer, .hrv-layer) .hrv-box textarea {
   display: block; width: 100%; height: 96px; min-height: 56px; padding: 6px;
   border: 1px solid var(--hrv-line); background: var(--hrv-field); color: var(--hrv-text);
