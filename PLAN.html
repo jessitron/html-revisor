@@ -116,7 +116,7 @@
         </tr>
       </table>
       <div class="card">
-        <strong>Suggestion: deploy from here, into the output folder only.</strong>
+        <strong>Decided: deploy from here, into the output folder only.</strong>
         <ul class="yaks">
           <li>
             <code>iterate-on-docs/html-with-comments/</code> is ours: deploy overwrites it and writes the commit hash into VENDORED.md. The PUT body change rides along; nothing in iterate-on-docs notices.
@@ -125,7 +125,7 @@
             A change to the contract is not a deploy. It needs a matching edit to the skill, made on purpose in the same session. The grep fix and the rename are contract changes.
           </li>
           <li>
-            Our README gets a “Contract” section listing the rows above. That replaces a changelog: the only changes iterate-on-docs has to hear about are changes to that list.
+            Our README has a “Contract” section listing the rows above. That replaces a changelog: the only changes iterate-on-docs has to hear about are changes to that list.
           </li>
         </ul>
       </div>
@@ -139,15 +139,15 @@
           <p class="why">
             Nothing we build reaches you until it's copied, and today the copy means re-applying local changes by hand. Remove the local changes, and <code>deploy</code> becomes a plain copy of the same files as today, no npm install.
           </p>
-          <div class="q">
-            Does deploy copy into the local iterate-on-docs checkout, or open a PR there? <span class="yak">decide-whether-deploy…mebf</span>
-          </div>
+          <p class="why">
+            <strong>Done.</strong> <code>./deploy</code> copies into the local iterate-on-docs checkout and commits there; no PR. iterate-on-docs got <code>./release</code>, which bumps the plugin version and tags, and pushes only with <code>--push</code>.
+          </p>
           <ul class="yaks">
             <li>
               Default author to <code>@AI</code> here <span class="yak">default-author-to-ai…5x8n</span>
             </li>
             <li>
-              The copy has no CLAUDE.md, so its README carries two sections from ours: “Files it serves” (we own these pages; rewriting them is fine) and “Gotchas for maintainers” (linkedom, GET rewrites the file). Put them in our README so deploy copies it unchanged <span class="new">new</span>
+              The copy has no CLAUDE.md, so its README carries two sections from ours: “Files it serves” (we own these pages; rewriting them is fine) and “Gotchas for maintainers” (linkedom, GET rewrites the file). Put them in our README so deploy copies it unchanged
             </li>
             <li>
               Grep for <code>'&lt;!-- *@AI:'</code> in the README and in the iterate-on-a-document skill <span class="yak">grep-for-notes…qse3</span>
@@ -240,7 +240,7 @@
         </tr>
         <tr>
           <td>Who copies the output over?</td>
-          <td>A <code>deploy</code> script here. Local copy or PR: open, blocks deploy.</td>
+          <td><code>./deploy</code> here: local copy, commits in iterate-on-docs, no PR. <code>./release</code> there publishes.</td>
         </tr>
         <tr>
           <td>Built output</td>

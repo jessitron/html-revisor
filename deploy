@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# Copy this repo's committed output into iterate-on-docs and commit it there.
+# Usage: ./deploy [iterate-on-docs dir]   (default ~/code/jessitron/iterate-on-docs)
+# Writes only inside <dir>/html-with-comments/. Doesn't push or release;
+# iterate-on-docs has ./release for that.
+set -euo pipefail
+here="$(cd "$(dirname "$0")" && pwd)"
+target="${1:-$HOME/code/jessitron/iterate-on-docs}"
+dest="$target/html-with-comments"
+dev_only=(CLAUDE.md OVERVIEW.html PLAN.html .gitignore deploy)
+
+die() { echo "deploy: $*" >&2; exit 1; }
+
+# The README's Contract section at a commit; empty if it has none.
+contract() { git -C "$here" show "$1:README.md" 2>/dev/null | awk '/^## /{on=/^## Contract/} on'; }
+
+[ -z "$(git -C "$here" status --porcelain --untracked-files=no -- . ':!try-me.html')" ] ||
+  die "uncommitted changes in $here; commit them first"
+git -C "$here" merge-base --is-ancestor HEAD main || die "HEAD is not on main; merge first"
+[ -d "$dest" ] || die "$dest not found"
+[ -z "$(git -C "$target" status --porcelain -- html-with-comments)" ] ||
+  die "uncommitted changes in $dest; commit or discard them first"
+
+hash="$(git -C "$here" rev-parse --short HEAD)"
+last="$(sed -n 's/^Source: .* at `\([0-9a-f]*\)`.*/\1/p' "$dest/VENDORED.md" 2>/dev/null || true)"
+
+find "$dest" -mindepth 1 -delete
+excludes=()
+for f in "${dev_only[@]}"; do excludes+=(":!$f"); done
+git -C "$here" archive HEAD -- . "${excludes[@]}" | tar -x -C "$dest"
+cat > "$dest/VENDORED.md" <<EOF
+# Vendored
+
+This directory is a copy of html-with-comments, kept here because its purpose is this plugin.
+Don't edit it here. Change the source, then run \`./deploy\` there; it replaces this directory.
+
+Source: \`~/code/jessitron/html-with-comments\` at \`$hash\`.
+EOF
+
+log="$(mktemp)"
+if ! (cd "$dest" && npm test --silent) > "$log" 2>&1; then
+  cat "$log" >&2
+  git -C "$target" checkout -- html-with-comments
+  git -C "$target" clean -fdq -- html-with-comments
+  die "tests failed in $dest; restored it, nothing committed"
+fi
+
+git -C "$target" add -A -- html-with-comments
+if git -C "$target" diff --cached --quiet -- html-with-comments; then
+  echo "deploy: $dest already matches $hash; nothing to commit"
+  exit 0
+fi
+git -C "$target" commit -q -m "Deploy html-with-comments at $hash" -- html-with-comments
+echo "deploy: committed html-with-comments at $hash in $target (not pushed, not released)"
+
+if [ "$(contract "${last:-none}")" != "$(contract HEAD)" ]; then
+  echo "deploy: the README's Contract section changed since ${last:-the last deploy}."
+  echo "        Make the matching edit to the iterate-on-a-document skill."
+fi

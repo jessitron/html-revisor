@@ -4,7 +4,7 @@ Read `README.md` for usage. Build history is in git log; open work is in `yx`. `
 
 ## Where the code lives
 
-The code lives here. A built output is vendored into the iterate-on-docs plugin at `~/code/jessitron/iterate-on-docs/html-with-comments/`, and that copy is the one Jess runs day to day. Don't edit the copy; change it here, then copy it over. `iterate-on-docs/html-with-comments/VENDORED.md` records which commit it came from and its local changes. A `deploy` script here will do the copying (yak; see `PLAN.html` for the contract with iterate-on-docs). The tool's name is changing to html-revisor (yak); until then it's called html-notes in the code and html-with-comments in directory names.
+The code lives here. A built output is vendored into the iterate-on-docs plugin at `~/code/jessitron/iterate-on-docs/html-with-comments/`, and that copy is the one Jess runs day to day. Don't edit the copy; change it here, merge to main, then run `./deploy` (see README, "Deploy"). `iterate-on-docs/html-with-comments/VENDORED.md` records which commit it came from. A change to the README's "Contract with iterate-on-docs" table needs a matching edit to the iterate-on-a-document skill. The tool's name is changing to html-revisor (yak); until then it's called html-notes in the code and html-with-comments in directory names.
 
 The domain word for an `<!-- @AI: ... -->` request is **directive**. Avoid note, comment, annotation ("HTML comment" still means the syntax).
 

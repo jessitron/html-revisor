@@ -27,6 +27,19 @@ Tests: `npm test`.
 
 Your directives and text edits write into the file, so it shows as changed in git. `git checkout try-me.html` resets it. It is committed in normalized form, so loading it does not change it.
 
+## Deploy
+
+```
+./deploy [iterate-on-docs dir]
+```
+
+Copies the committed files at HEAD into `<dir>/html-with-comments/` (default `~/code/jessitron/iterate-on-docs`), runs the tests there, and commits there. It writes nothing else in iterate-on-docs, and it doesn't push. Users get the change when iterate-on-docs runs `./release`.
+
+- It refuses when this repo has uncommitted changes (except `try-me.html`), when HEAD is not on main, or when the copy has uncommitted changes.
+- It replaces the whole directory, leaving out dev-only files: `CLAUDE.md`, `OVERVIEW.html`, `PLAN.html`, `.gitignore`, `deploy`. It writes `VENDORED.md` with the commit hash.
+- If the tests fail in the copy, it restores the directory and commits nothing.
+- If the Contract section below changed since the last deploy, it says so.
+
 ## Contract with iterate-on-docs
 
 The iterate-on-a-document skill in iterate-on-docs runs this tool. It relies on:
