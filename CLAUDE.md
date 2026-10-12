@@ -19,6 +19,7 @@ The files this tool serves are project-overview documents that Jess's agents gen
 - The tool may require things of these files, limit what they can contain, and reformat or rewrite them. Rewriting on disk is expected.
 - When a file shape causes trouble, normalize it into a shape the tool handles. Don't try to support every HTML a browser would accept. Example: a page without `<html>`/`<head>`/`<body>` gets them added by the formatter.
 - If a requirement can't be met by normalizing, add it to the agent instructions in `README.md`.
+- No backwards compatibility with pages written under older rules (Jess, 2026-10-12). Don't plan for them, and don't make yaks for them.
 
 ## Gotchas
 
