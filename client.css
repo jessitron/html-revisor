@@ -21,6 +21,7 @@
   --hrv-small: 11px;
   --hrv-shadow-marker: 0 1px 4px rgba(0, 0, 0, 0.35);
   --hrv-shadow-box: 0 6px 24px rgba(0, 0, 0, 0.28);
+  --hrv-pencil: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M11.2 2.3l2.5 2.5-8.2 8.2-3.3.8.8-3.3z' fill='white'/></svg>");
 }
 
 @media (prefers-color-scheme: dark) {
@@ -54,6 +55,13 @@
   cursor: pointer; box-shadow: var(--hrv-shadow-marker);
 }
 :is(#hrv-layer, .hrv-layer) .hrv-marker:hover { background: var(--hrv-accent-strong); }
+
+/* The html-revisor icon: marks everything the tool adds to a page. */
+:is(#hrv-layer, .hrv-layer) .hrv-icon {
+  display: inline-block; flex: none; width: 16px; height: 16px; border-radius: 50%; vertical-align: -3px;
+  background: var(--hrv-accent) var(--hrv-pencil) center / 10px no-repeat;
+}
+:is(#hrv-layer, .hrv-layer) .hrv-toast .hrv-icon { margin-right: 6px; }
 
 :is(#hrv-layer, .hrv-layer) .hrv-box {
   position: absolute; width: 320px; padding: 8px; background: var(--hrv-surface); color: var(--hrv-text);

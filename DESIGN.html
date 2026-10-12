@@ -22,6 +22,9 @@
   .swatch { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; font-size: 12px; }
   .swatch .chip { height: 48px; }
   .swatch div:last-child { padding: 6px 8px; }
+  .icons { display: flex; gap: 24px; flex-wrap: wrap; margin: 12px 0; }
+  .icons > div { flex: 1; min-width: 200px; }
+  .icons svg { vertical-align: middle; margin-right: 8px; }
   .swatch code { font-size: 11px; display: block; }
 </style>
   </head>
@@ -116,6 +119,7 @@
             <div class="hrv-box" style="left: 24px; top: 24px;">
               <textarea class="hrv-directive" placeholder="Directive for this element">Add a diagram of the PUT flow here</textarea>
               <div class="hrv-row">
+                <span class="hrv-icon"></span>
                 <div class="hrv-hint">⌘↵ to save · esc to close</div>
                 <div class="hrv-btn" title="Delete the directive">Delete</div>
                 <div class="hrv-btn hrv-save">Save</div>
@@ -146,21 +150,57 @@
         </p>
       </div>
     </div>
+    <h2>Icon</h2>
+    <p class="note">
+      Marks everything html-revisor adds to a page. Recommendation: B, and make the marker the same icon, so a pink circle with a pencil always means html-revisor. Pick one; the placements below use B, the <code>.hrv-icon</code> in <code>client.css</code>.
+    </p>
+    <div class="icons">
+      <div>
+        <svg width="36" height="36" viewBox="0 0 16 16">
+          <circle cx="8" cy="8" r="8" style="fill: var(--hrv-accent)"></circle><text x="8" y="11.5" text-anchor="middle" font-size="10" fill="white">✎</text>
+        </svg>
+        <svg width="18" height="18" viewBox="0 0 16 16">
+          <circle cx="8" cy="8" r="8" style="fill: var(--hrv-accent)"></circle><text x="8" y="11.5" text-anchor="middle" font-size="10" fill="white">✎</text>
+        </svg>
+        <p class="note">
+          <strong>A</strong>, today's marker: the ✎ glyph. Its shape depends on the font on each machine.
+        </p>
+      </div>
+      <div>
+        <svg width="36" height="36" viewBox="0 0 16 16">
+          <circle cx="8" cy="8" r="8" style="fill: var(--hrv-accent)"></circle><g transform="translate(3 3) scale(0.625)"><path d="M11.2 2.3l2.5 2.5-8.2 8.2-3.3.8.8-3.3z" fill="white"></path></g>
+        </svg>
+        <svg width="18" height="18" viewBox="0 0 16 16">
+          <circle cx="8" cy="8" r="8" style="fill: var(--hrv-accent)"></circle><g transform="translate(3 3) scale(0.625)"><path d="M11.2 2.3l2.5 2.5-8.2 8.2-3.3.8.8-3.3z" fill="white"></path></g>
+        </svg>
+        <p class="note"><strong>B</strong>, an SVG pencil. Same everywhere; reads as "edit".</p>
+      </div>
+      <div>
+        <svg width="36" height="36" viewBox="0 0 16 16">
+          <circle cx="8" cy="8" r="8" style="fill: var(--hrv-accent)"></circle><path d="M4.5 10.5 8 5.5l3.5 5" stroke="white" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+        <svg width="18" height="18" viewBox="0 0 16 16">
+          <circle cx="8" cy="8" r="8" style="fill: var(--hrv-accent)"></circle><path d="M4.5 10.5 8 5.5l3.5 5" stroke="white" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+        <p class="note">
+          <strong>C</strong>, the proofreader's caret, ‸ "insert here": a revisor's mark. Risk: in a circle it looks like a scroll-to-top button.
+        </p>
+      </div>
+    </div>
     <h2>Toast</h2>
     <p class="note">
       Bottom right of the window. Fades in; leaves after 1.5 s, or 4 s for an error. The stale-file toast stays.
     </p>
     <div class="stage" style="height: 150px;">
-      <!-- @AI: I like these. Now I want some sort of logo, an icon really: everything added to the page by html-revisor should be identifiable as such. We can add the icon to these toasts, to our popup, and it should resemble (or be identical to?) the directive marker. -->
       <div class="hrv-layer">
         <div class="hrv-toast hrv-show" style="position: absolute; right: auto; left: 24px; bottom: auto; top: 24px;">
-          saved · 3 directives
+          <span class="hrv-icon"></span>saved · 3 directives
         </div>
         <div class="hrv-toast hrv-show hrv-error" style="position: absolute; right: auto; left: 24px; bottom: auto; top: 64px;">
-          save failed: Failed to fetch
+          <span class="hrv-icon"></span>save failed: Failed to fetch
         </div>
         <div class="hrv-toast hrv-show hrv-error" style="position: absolute; right: auto; left: 24px; bottom: auto; top: 104px;">
-          file changed on disk — reload to see it (your unsaved text is in the box)
+          <span class="hrv-icon"></span>file changed on disk — reload to see it (your unsaved text is in the box)
         </div>
       </div>
     </div>
