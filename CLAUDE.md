@@ -42,6 +42,7 @@ This project tracks work with `yx`, a git-backed TODO CLI (`yx help` for full co
 
 - yx makes each yak directory in `.yaks` read-only, so `git worktree remove` and `rm -rf` fail with "Permission denied" on a worktree that ran `yx`. Run `chmod -R u+w <worktree>` first. The cache is safe to delete; `yx reset` rebuilds it.
 - A blocker on a parent yak does not block its children. In yx, children are work toward the parent, so `--ready` lists a blocked parent's children. When a whole stage waits, put the blocker on each child that waits.
+- `yx context <id> <<< "..."` replaces the whole context, and other sessions write the same yaks. Read it right before writing, and write it back whole. `yx rename` keeps the old ID; `yx context` then needs the full ID (`<slug>-cqsh`), not the four-character suffix.
 - `yx sync` pushes `refs/notes/yaks` to origin. That's a push: run it only when Jess asks.
 - `.yaks` is gitignored (required for `yx` to run at all — it'll error and tell you to fix this if it isn't).
 - The yak history itself lives in git notes (`refs/notes/yaks`), not in `.yaks`, so it travels with the repo via `yx sync`.
