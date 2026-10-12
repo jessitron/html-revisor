@@ -70,6 +70,7 @@
             <li>Validation rules: none until a stage asks for one.</li>
           </ul>
           <div class="q">
+            <!-- @AI: Yes, it's part of the contract. This will be a change in iterate-with-docs -->
             Is the CLI part of the contract? If the skill runs it before handing a page to Jess, yes, and the skill changes with it. If only we run it, no.
           </div>
           <div class="ships">a second file in the deploy; nothing visible</div>
@@ -91,6 +92,7 @@
             </li>
           </ul>
           <div class="q">
+            <!-- @AI: ok, here's the thing. there's a step before this that is: decide what HTML elements are part of a prose chunk, and which start a new prose chunk. We'll probably make a tool for deciding, with examples -->
             A list: one chunk, as the overview mock shows, or one chunk per <code>&lt;li&gt;</code>? Per item fits the phrasing rule; the whole list waits for “Later”.
           </div>
         </div>
@@ -100,6 +102,7 @@
         <div class="card">
           <h3>HTML ⇄ markdown round-trip</h3>
           <p class="why">
+            <!-- @AI: oh yeah here's a beautiful thing: prose chunks can contain nonprose chunks! but we have to figure out how they appear in the text. Break this out as a separate task: handle nonprose inside prose. Do we do this before or after the markdown ones? open question -->
             CommonMark passes raw inline HTML through, so any chunk can be markdown. Opening a chunk and saving it unchanged must leave the file unchanged.
           </p>
           <ul class="yaks">
@@ -114,6 +117,7 @@
             </li>
           </ul>
           <div class="q">
+            <!-- @AI: whoa this is a great question! What's the keying complication if it's in the client? -->
             Where does conversion run: server or client? Server keeps the client small and the PUT keyed by <code>data-n</code>; client gives a live preview.
           </div>
         </div>
@@ -128,10 +132,12 @@
           <ul class="yaks">
             <li>The field grows with the text</li>
             <li>
+              <!-- @AI: what do you mean by this? -->
               A directive on an element inside the chunk, a <code>&lt;b&gt;</code> say, is lost on re-render
             </li>
           </ul>
           <div class="q">
+            <!-- @AI: wtf? that shit gets translated to markdown and back -->
             Inner directives: lift them to the chunk on save, or refuse the edit until they're gone?
           </div>
           <div class="ships">editable prose; the PUT body changes, the contract doesn't</div>
@@ -140,7 +146,10 @@
       <div class="stage">
         <div class="num">5</div>
         <div class="card">
-          <h3>Undo for text edits</h3>
+          <h3>
+            <!-- @AI: yeah. This can actually be "reset" - as in, put the text back to what it was when we this doc first loaded. Which itself needs an undo -->
+            Undo for text edits
+          </h3>
           <p class="why">
             Once prose edits rewrite markup, a mistake costs more. <span class="yak">x8yp</span>
           </p>
@@ -151,13 +160,19 @@
       <h2>Later, sketched</h2>
       <div class="later-grid">
         <div class="card later">
-          <h3>Containers as markdown</h3>
+          <h3>
+            <!-- @AI: no, this is part of it, when we decide what makes a chunk -->
+            Containers as markdown
+          </h3>
           <p class="why">
             Lists and code blocks are flow content, not phrasing. Editing a whole list as markdown is a second pass, after chunks work.
           </p>
         </div>
         <div class="card later">
-          <h3>Formatter for agents</h3>
+          <h3>
+            <!-- @AI: this is part of the deploy of the formatter-breakout, we update this in iterate-on-docs -->
+            Formatter for agents
+          </h3>
           <p class="why">
             If the CLI earns its keep, agents that generate pages run it before Jess sees them.
           </p>
@@ -206,7 +221,10 @@
         </tr>
         <tr>
           <td>GET rewrites the file</td>
-          <td>fetch before each commit</td>
+          <td>
+            <!-- @AI: what on earth does this mean -->
+            fetch before each commit
+          </td>
         </tr>
       </table>
     </section>
