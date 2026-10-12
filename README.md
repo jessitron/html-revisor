@@ -56,7 +56,7 @@ The iterate-on-a-document skill and the README in iterate-on-docs run and descri
 | GET rewrites the file | the skill fetches the page before each commit |
 | Browser behavior | click any element to leave a directive on it or change its wording; both save into the file as you type |
 | README | this README ships in the output and keeps its "Directive format" section; iterate-on-docs links to it |
-| Vocabulary | the words the user sees: **directive** (the popup says "Directive", "Directive for this element", "Delete the directive", and the toast "saved · N directives"). Not note, comment or annotation |
+| Vocabulary | the words the user sees: **directive** (the directive box says "Directive", "Directive for this element", "Delete the directive", and the toast "saved · N directives"). Not note, comment or annotation |
 
 If you find a mismatch, the Contract wins.
 

@@ -56,6 +56,9 @@
         <p><strong>Decided</strong></p>
         <ul>
           <li>An icon appears in every UI element html-revisor adds.</li>
+          <li>
+            The popup is the <strong>directive box</strong>. On a text element, it is a <strong>directive box with editor</strong>: the editor is the field for the element's text.
+          </li>
         </ul>
       </div>
       <div>
@@ -67,26 +70,11 @@
           <li>What the icon looks like.</li>
           <li>Colors. All of them are arbitrary choices so far.</li>
           <li>How a hovered element looks. The halo helped in the stress test.</li>
-          <li>How the popup looks, and its name.</li>
+          <li>How the directive box looks.</li>
           <li>Fonts, borders, sizes: everything else.</li>
         </ul>
       </div>
     </div>
-    <p>
-      <!-- @AI: directive box works for me. I like it. It -->
-      <strong>A name for the popup.</strong> The code says "directive box", but it edits text too, so "directive" undersells it.
-    </p>
-    <ul>
-      <li>
-        <strong>slip</strong>: an editor's slip pinned to a manuscript page. Short, and no page has one. Recommended.
-      </li>
-      <li>
-        <strong>card</strong>: plain, but the pages we revise have cards of their own, so "the card" is ambiguous.
-      </li>
-      <li>
-        <strong>editor</strong>: says what it does; collides with the text editor you'd open the file in.
-      </li>
-    </ul>
     <h2>Stress test: any page</h2>
     <p class="note">
       Imperative 1. Color alone can't be distinct from every page: some page uses our pink. So every mark gets a halo, a white ring and a dark shadow: a light edge and a dark edge whatever the page.
@@ -292,7 +280,7 @@
           </div>
         </div>
         <p class="note">
-          A text element, one whose content is only text: its text is editable too.
+          A directive box with editor, for a text element: one whose content is only text.
         </p>
       </div>
     </div>
