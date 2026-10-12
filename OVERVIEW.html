@@ -210,10 +210,12 @@ OVERVIEW.html:42  &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing cont
               </div>
             </div>
             <p class="sub">
-              A <code>type="application/json"</code> script never runs. The client reads it with <code>JSON.parse(el.textContent)</code>.
+              A <code><!-- @AI: this is a comment -->type="application/json"</code> script never runs. The client reads it with <code>JSON.parse(el.textContent)</code>.
             </p>
             <div class="label">in the browser</div>
             <div class="page">
+              <!-- @AI: ok, you're close, but the marker shows up on the left.
+Make one that if I click it pops up with "yep, this is the marker that shows a directive is here" (to distinguish it from these actual ones haha) -->
               <span class="marker">✎</span>
               <p class="noted">Ship the <b>formatter</b> first.</p>
             </div>
@@ -239,6 +241,7 @@ OVERVIEW.html:42  &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing cont
   &lt;/body&gt;
 &lt;/html&gt;</pre>
             <p class="sub">
+              <!-- @AI: ok I don't know what this means -->
               Added after stamping, so none of it gets an ID. <code>data-version</code>: hash of the file bytes.
             </p>
           </div>
@@ -335,6 +338,7 @@ texts {"4": "…"}       &lt;p&gt;Ship the &lt;b&gt;…&lt;/p&gt;  →  refused<
               A paragraph with <b class="hl">bold</b> and <a href="#prose" class="hl">a link</a>.
             </p>
             <div class="mock">
+              <!-- @AI: this is pointing out to me that we need a style guide, because don't look like the real ones. That's OK for now. Add a yak to do design and make a style guide. -->
               <div>Directive</div>
               <div class="field off">Directive for this element</div>
               <div class="btns">⌘↵ to save · esc to close · Delete · Save</div>
@@ -345,6 +349,7 @@ texts {"4": "…"}       &lt;p&gt;Ship the &lt;b&gt;…&lt;/p&gt;  →  refused<
           </div>
         </div>
         <div class="card dir">
+          <!-- @AI: i love this so much -->
           <strong>Headed</strong> <span class="directional">directional</span>
           <div class="demo">
             <p>A paragraph with <b>bold</b> and <a href="#prose">a link</a>.</p>
