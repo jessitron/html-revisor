@@ -4,10 +4,11 @@
 //   node scopes.mjs --annotate <file>   writes, under each .ex example, its HTML and a table
 //                                       of its scopes and their markdown (in place)
 //
-// A scope is any block element. You pick it to leave a directive or to edit its whole content
-// as markdown: a section, a list, one list item, a table, one cell (Jess, 2026-10-12, F2 in
-// try-me.html#chunks). The markdown here is a first pass for looking at cases; PLAN.html
-// stage 4 owns the real round-trip.
+// A scope is any block element, plus links and images. You pick it to leave a directive or to
+// edit its whole content as markdown: a section, a list, one list item, a table, one cell (Jess,
+// 2026-10-12, F2 in try-me.html#scopes). Other inline elements, like strong, belong to their
+// block. The markdown here is a first pass for looking at cases; PLAN.html stage 4 owns the
+// real round-trip.
 //
 // Tiers, dependencies point downward only:
 //   Tier I   orchestration: the CLI
@@ -72,18 +73,21 @@ const hasAttrs = (el) => attrNames(el).length > 0;
 
 // ---- Scopes -------------------------------------------------------------
 
-// A scope: { el, markdown, children }. Every block element is one; so is an svg <text>
-// label (D6). The children are the scopes nested inside it.
+// A scope: { el, markdown, children }. Every block element is one; so are links, images, and
+// svg <text> labels (D6). The children are the scopes nested inside it.
 export function scopeOf(el) {
   return { el, markdown: scopeMarkdown(el), children: scopesWithin(el) };
 }
 
 const TABLE_ROWS = new Set(['thead', 'tbody', 'tfoot', 'tr']);
+// Inline elements you can pick, decided per element (Jess, 2026-10-12). strong: no.
+const INLINE_SCOPES = new Set(['a', 'img']);
 
 export function scopesWithin(el) {
   return [...el.children].flatMap((c) => {
     if (HIDDEN.has(c.localName)) return [];
     if (c.localName === 'text' && c.closest('svg')) return [scopeOf(c)];
+    if (INLINE_SCOPES.has(c.localName) && !isBlock(c)) return [scopeOf(c)];
     if (c.localName === 'hr') return [];
     if (TABLE_ROWS.has(c.localName)) return scopesWithin(c); // pick a cell or the table, not a row
     if (isBlock(c)) return [scopeOf(c)];
@@ -93,10 +97,14 @@ export function scopesWithin(el) {
 
 // ---- Markdown -----------------------------------------------------------
 
+// Unlikely shapes (empty paragraphs, dl, stat tiles) may come out ugly here. Spend the effort
+// on the shapes agents write (Jess, 2026-10-12). They still have to round-trip.
+
 // The markdown for a scope's content. The scope's own tag is the element's business, so a
 // heading picked alone shows no #; inside a bigger scope it does (A3).
 export function scopeMarkdown(el) {
   if (el.localName === 'pre') return fence(el);
+  if (INLINE_SCOPES.has(el.localName) && !isBlock(el)) return inline([el]); // the whole link: [text](href)
   if (MARKDOWN_ITSELF.has(el.localName)) return block(el);
   if (el.localName === 'li') return itemBody(el, isLoose(el));
   if (!holdsBlocks(el)) return inline(el.childNodes);
@@ -315,7 +323,7 @@ export function annotate(document) {
   const legend = document.createElement('p');
   legend.setAttribute('class', 'scope-report');
   legend.innerHTML = LEGEND;
-  document.querySelector('#chunks > p')?.after(legend);
+  document.querySelector('#scopes > p')?.after(legend);
   const style = document.createElement('style');
   style.setAttribute('id', 'scope-view');
   style.textContent = SCOPE_VIEW_CSS;

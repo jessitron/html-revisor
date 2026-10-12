@@ -50,6 +50,11 @@ test('a table with a header row is a GFM table; its cells are scopes, its rows a
   assert.deepEqual(table.children.map((s) => s.el.localName), ['th', 'th', 'td', 'td']);
 });
 
+test('links and images are scopes; strong is not', () => {
+  const [p] = scopesWithin(body('<p><strong>Go</strong> <a href="#x">there</a> <img src="y.png" alt="Y"></p>'));
+  assert.deepEqual(p.children.map((s) => s.markdown), ['[there](#x)', '![Y](y.png)']);
+});
+
 test('svg text is a scope of its own', () => {
   const scopes = scopesWithin(body('<svg><text>Hi <tspan font-weight="700">there</tspan></text></svg>'));
   assert.deepEqual(scopes.map((s) => s.markdown), ['Hi <tspan font-weight="700">there</tspan>']);

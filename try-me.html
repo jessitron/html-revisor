@@ -75,10 +75,10 @@
         Cards are wrappers: clicking the margin inside the card opens the directive box for the card itself.
       </p>
     </div>
-    <section id="chunks">
-      <h2>What is a prose chunk?</h2>
+    <section id="scopes">
+      <h2>What is a scope?</h2>
       <p>
-        Cases for PLAN.html stage 2. A chunk is the unit of editing and directives: you click it, leave a directive on it, and edit its text as markdown. Each case has the same four parts: its name, the question it asks in grey, the example HTML in a dashed box, and a table of the chunks the example would make. Disagree with a row? Leave a directive on it.
+        Cases for PLAN.html stage 2. A scope is any block you can pick: you leave a directive on it, or edit its whole content as markdown. Each case has the same four parts: its name, the question it asks in grey, the example HTML in a dashed box, and a table of the scopes the example would make. Disagree with a row? Leave a directive on it.
       </p>
       <p class="scope-report">
         Under each example: its HTML (click to open), then a row for each element you could pick, nested inside the element that holds it. The last column is the markdown you would edit if you picked that element. ⟦svg⟧ marks something that isn't text riding inside the markdown.
@@ -86,7 +86,7 @@
       <h3>A. Clear prose</h3>
       <div class="case">
         <h4>A1. Plain paragraph</h4>
-        <p class="ask">The baseline: one chunk, edits as plain text.</p>
+        <p class="ask">The baseline: one scope, edits as plain text.</p>
         <div class="ex">
           <p>The formatter moves out of the server and runs on its own.</p>
         </div>
@@ -112,17 +112,17 @@
       <div class="case">
         <h4>A2. Paragraph with markdown-able markup</h4>
         <p class="ask">
-          One chunk. Markdown: <code>**bold**</code>, <code>*em*</code>, <code>`code`</code>, <code>[link](…)</code>.
+          One scope. Markdown: <code>**bold**</code>, <code>*em*</code>, <code>`code`</code>, <code>[link](…)</code>.
         </p>
         <div class="ex">
           <p>
-            Run <code>npm test</code>, then read <strong>every</strong> failure, <em>especially</em> the <a href="#chunks">first one</a>.
+            Run <code>npm test</code>, then read <strong>every</strong> failure, <em>especially</em> the <a href="#scopes">first one</a>.
           </p>
         </div>
         <details class="scope-report">
           <summary>HTML</summary>
           <pre>&lt;p&gt;
-  Run &lt;code&gt;npm test&lt;/code&gt;, then read &lt;strong&gt;every&lt;/strong&gt; failure, &lt;em&gt;especially&lt;/em&gt; the &lt;a href="#chunks"&gt;first one&lt;/a&gt;.
+  Run &lt;code&gt;npm test&lt;/code&gt;, then read &lt;strong&gt;every&lt;/strong&gt; failure, &lt;em&gt;especially&lt;/em&gt; the &lt;a href="#scopes"&gt;first one&lt;/a&gt;.
 &lt;/p&gt;</pre>
         </details>
         <table class="scope-report">
@@ -135,7 +135,14 @@
             <td>&lt;p&gt;</td>
             <td>all markdown</td>
             <td>
-              <pre>Run `npm test`, then read **every** failure, *especially* the [first one](#chunks).</pre>
+              <pre>Run `npm test`, then read **every** failure, *especially* the [first one](#scopes).</pre>
+            </td>
+          </tr>
+          <tr>
+            <td> &lt;a&gt;</td>
+            <td>all markdown</td>
+            <td>
+              <pre>[first one](#scopes)</pre>
             </td>
           </tr>
         </table>
@@ -143,7 +150,7 @@
       <div class="case">
         <h4>A3. Heading with inline markup</h4>
         <p class="ask">
-          A heading is its own chunk. Does the markdown include the <code>#</code>, or is that the element's business?
+          A heading is its own scope. Does the markdown include the <code>#</code>, or is that the element's business?
         </p>
         <div class="ex">
           <h3>Moving <code>normalize</code> into <em>formatter.mjs</em></h3>
@@ -262,13 +269,13 @@ October 2026</pre>
         </p>
         <div class="ex">
           <p>
-            See <a href="#chunks" title="this section" target="_blank" class="ref">the section</a> and a <span style="color: #bc4c00">warning-colored</span> word.
+            See <a href="#scopes" title="this section" target="_blank" class="ref">the section</a> and a <span style="color: #bc4c00">warning-colored</span> word.
           </p>
         </div>
         <details class="scope-report">
           <summary>HTML</summary>
           <pre>&lt;p&gt;
-  See &lt;a href="#chunks" title="this section" target="_blank" class="ref"&gt;the section&lt;/a&gt; and a &lt;span style="color: #bc4c00"&gt;warning-colored&lt;/span&gt; word.
+  See &lt;a href="#scopes" title="this section" target="_blank" class="ref"&gt;the section&lt;/a&gt; and a &lt;span style="color: #bc4c00"&gt;warning-colored&lt;/span&gt; word.
 &lt;/p&gt;</pre>
         </details>
         <table class="scope-report">
@@ -281,7 +288,14 @@ October 2026</pre>
             <td>&lt;p&gt;</td>
             <td>markdown with HTML</td>
             <td>
-              <pre>See &lt;a href="#chunks" title="this section" target="_blank" class="ref"&gt;the section&lt;/a&gt; and a &lt;span style="color: #bc4c00"&gt;warning-colored&lt;/span&gt; word.</pre>
+              <pre>See &lt;a href="#scopes" title="this section" target="_blank" class="ref"&gt;the section&lt;/a&gt; and a &lt;span style="color: #bc4c00"&gt;warning-colored&lt;/span&gt; word.</pre>
+            </td>
+          </tr>
+          <tr>
+            <td> &lt;a.ref&gt;</td>
+            <td>markdown with HTML</td>
+            <td>
+              <pre>&lt;a href="#scopes" title="this section" target="_blank" class="ref"&gt;the section&lt;/a&gt;</pre>
             </td>
           </tr>
         </table>
@@ -293,13 +307,13 @@ October 2026</pre>
         </p>
         <div class="ex">
           <p>
-            Split out the formatter <span class="pill">stez</span>, then decide chunks <span class="pill">a17m</span>.
+            Split out the formatter <span class="pill">stez</span>, then decide scopes <span class="pill">a17m</span>.
           </p>
         </div>
         <details class="scope-report">
           <summary>HTML</summary>
           <pre>&lt;p&gt;
-  Split out the formatter &lt;span class="pill"&gt;stez&lt;/span&gt;, then decide chunks &lt;span class="pill"&gt;a17m&lt;/span&gt;.
+  Split out the formatter &lt;span class="pill"&gt;stez&lt;/span&gt;, then decide scopes &lt;span class="pill"&gt;a17m&lt;/span&gt;.
 &lt;/p&gt;</pre>
         </details>
         <table class="scope-report">
@@ -312,7 +326,7 @@ October 2026</pre>
             <td>&lt;p&gt;</td>
             <td>markdown with HTML</td>
             <td>
-              <pre>Split out the formatter &lt;span class="pill"&gt;stez&lt;/span&gt;, then decide chunks &lt;span class="pill"&gt;a17m&lt;/span&gt;.</pre>
+              <pre>Split out the formatter &lt;span class="pill"&gt;stez&lt;/span&gt;, then decide scopes &lt;span class="pill"&gt;a17m&lt;/span&gt;.</pre>
             </td>
           </tr>
         </table>
@@ -369,18 +383,25 @@ October 2026</pre>
               <pre>Linkedom skips the skeleton.&lt;sup&gt;[1](#fn1)&lt;/sup&gt;</pre>
             </td>
           </tr>
+          <tr>
+            <td> &lt;a&gt;</td>
+            <td>all markdown</td>
+            <td>
+              <pre>[1](#fn1)</pre>
+            </td>
+          </tr>
         </table>
       </div>
-      <h3>C. Containers: one chunk or many?</h3>
+      <h3>C. Containers: one scope or many?</h3>
       <div class="case">
         <h4>C1. Simple list</h4>
         <p class="ask">
-          One chunk (edit as <code>- item</code> lines, add and remove items) or one per <code>&lt;li&gt;</code>?
+          One scope (edit as <code>- item</code> lines, add and remove items) or one per <code>&lt;li&gt;</code>?
         </p>
         <div class="ex">
           <ul>
             <li>Formatter</li>
-            <li>Chunks with <strong>bold</strong></li>
+            <li>Scopes with <strong>bold</strong></li>
             <li>Round-trip</li>
           </ul>
         </div>
@@ -388,7 +409,7 @@ October 2026</pre>
           <summary>HTML</summary>
           <pre>&lt;ul&gt;
   &lt;li&gt;Formatter&lt;/li&gt;
-  &lt;li&gt;Chunks with &lt;strong&gt;bold&lt;/strong&gt;&lt;/li&gt;
+  &lt;li&gt;Scopes with &lt;strong&gt;bold&lt;/strong&gt;&lt;/li&gt;
   &lt;li&gt;Round-trip&lt;/li&gt;
 &lt;/ul&gt;</pre>
         </details>
@@ -403,7 +424,7 @@ October 2026</pre>
             <td>all markdown</td>
             <td>
               <pre>- Formatter
-- Chunks with **bold**
+- Scopes with **bold**
 - Round-trip</pre>
             </td>
           </tr>
@@ -418,7 +439,7 @@ October 2026</pre>
             <td> &lt;li&gt;</td>
             <td>all markdown</td>
             <td>
-              <pre>Chunks with **bold**</pre>
+              <pre>Scopes with **bold**</pre>
             </td>
           </tr>
           <tr>
@@ -519,7 +540,7 @@ October 2026</pre>
       <div class="case">
         <h4>C3. List item with paragraphs</h4>
         <p class="ask">
-          A loose list: the <code>li</code> holds blocks, not phrasing. Chunks are the <code>p</code>s, then?
+          A loose list: the <code>li</code> holds blocks, not phrasing. Scopes are the <code>p</code>s, then?
         </p>
         <div class="ex">
           <ol start="3">
@@ -603,13 +624,13 @@ Opening and saving must change nothing.</pre>
       <div class="case">
         <h4>C4. Definition list</h4>
         <p class="ask">
-          Markdown has no <code>dl</code>. Each <code>dt</code> and <code>dd</code> its own chunk?
+          Markdown has no <code>dl</code>. Each <code>dt</code> and <code>dd</code> its own scope?
         </p>
         <div class="ex">
           <dl>
             <dt>directive</dt>
             <dd>An <code>@AI</code> request, stored as an HTML comment.</dd>
-            <dt>chunk</dt>
+            <dt>scope</dt>
             <dd>The unit of editing and directives.</dd>
           </dl>
         </div>
@@ -618,7 +639,7 @@ Opening and saving must change nothing.</pre>
           <pre>&lt;dl&gt;
   &lt;dt&gt;directive&lt;/dt&gt;
   &lt;dd&gt;An &lt;code&gt;@AI&lt;/code&gt; request, stored as an HTML comment.&lt;/dd&gt;
-  &lt;dt&gt;chunk&lt;/dt&gt;
+  &lt;dt&gt;scope&lt;/dt&gt;
   &lt;dd&gt;The unit of editing and directives.&lt;/dd&gt;
 &lt;/dl&gt;</pre>
         </details>
@@ -636,7 +657,7 @@ Opening and saving must change nothing.</pre>
 
 &lt;dd&gt;An `@AI` request, stored as an HTML comment.&lt;/dd&gt;
 
-&lt;dt&gt;chunk&lt;/dt&gt;
+&lt;dt&gt;scope&lt;/dt&gt;
 
 &lt;dd&gt;The unit of editing and directives.&lt;/dd&gt;</pre>
             </td>
@@ -659,7 +680,7 @@ Opening and saving must change nothing.</pre>
             <td> &lt;dt&gt;</td>
             <td>all markdown</td>
             <td>
-              <pre>chunk</pre>
+              <pre>scope</pre>
             </td>
           </tr>
           <tr>
@@ -674,7 +695,7 @@ Opening and saving must change nothing.</pre>
       <div class="case">
         <h4>C5. Blockquote</h4>
         <p class="ask">
-          With paragraphs inside, the paragraphs are chunks. With bare text, the blockquote is.
+          With paragraphs inside, the paragraphs are scopes. With bare text, the blockquote is.
         </p>
         <div class="ex">
           <blockquote>
@@ -731,7 +752,7 @@ Opening and saving must change nothing.</pre>
       </div>
       <div class="case">
         <h4>C6. Table cells</h4>
-        <p class="ask">Each cell a chunk? The header row too? A cell holding a list?</p>
+        <p class="ask">Each cell a scope? The header row too? A cell holding a list?</p>
         <div class="ex">
           <table>
             <caption>Stages</caption>
@@ -741,10 +762,10 @@ Opening and saving must change nothing.</pre>
             </tr>
             <tr>
               <td>Formatter</td>
-              <td><strong>in progress</strong>, see <a href="#chunks">PLAN</a></td>
+              <td><strong>in progress</strong>, see <a href="#scopes">PLAN</a></td>
             </tr>
             <tr>
-              <td>Chunks</td>
+              <td>Scopes</td>
               <td>
                 <ul>
                   <li>decide</li>
@@ -764,10 +785,10 @@ Opening and saving must change nothing.</pre>
   &lt;/tr&gt;
   &lt;tr&gt;
     &lt;td&gt;Formatter&lt;/td&gt;
-    &lt;td&gt;&lt;strong&gt;in progress&lt;/strong&gt;, see &lt;a href="#chunks"&gt;PLAN&lt;/a&gt;&lt;/td&gt;
+    &lt;td&gt;&lt;strong&gt;in progress&lt;/strong&gt;, see &lt;a href="#scopes"&gt;PLAN&lt;/a&gt;&lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
-    &lt;td&gt;Chunks&lt;/td&gt;
+    &lt;td&gt;Scopes&lt;/td&gt;
     &lt;td&gt;
       &lt;ul&gt;
         &lt;li&gt;decide&lt;/li&gt;
@@ -795,10 +816,10 @@ Opening and saving must change nothing.</pre>
   &lt;/tr&gt;
   &lt;tr&gt;
     &lt;td&gt;Formatter&lt;/td&gt;
-    &lt;td&gt;&lt;strong&gt;in progress&lt;/strong&gt;, see &lt;a href="#chunks"&gt;PLAN&lt;/a&gt;&lt;/td&gt;
+    &lt;td&gt;&lt;strong&gt;in progress&lt;/strong&gt;, see &lt;a href="#scopes"&gt;PLAN&lt;/a&gt;&lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
-    &lt;td&gt;Chunks&lt;/td&gt;
+    &lt;td&gt;Scopes&lt;/td&gt;
     &lt;td&gt;
       &lt;ul&gt;
         &lt;li&gt;decide&lt;/li&gt;
@@ -841,14 +862,21 @@ Opening and saving must change nothing.</pre>
             <td> &lt;td&gt;</td>
             <td>all markdown</td>
             <td>
-              <pre>**in progress**, see [PLAN](#chunks)</pre>
+              <pre>**in progress**, see [PLAN](#scopes)</pre>
+            </td>
+          </tr>
+          <tr>
+            <td>  &lt;a&gt;</td>
+            <td>all markdown</td>
+            <td>
+              <pre>[PLAN](#scopes)</pre>
             </td>
           </tr>
           <tr>
             <td> &lt;td&gt;</td>
             <td>all markdown</td>
             <td>
-              <pre>Chunks</pre>
+              <pre>Scopes</pre>
             </td>
           </tr>
           <tr>
@@ -938,7 +966,7 @@ Opening and saving must change nothing.</pre>
       </div>
       <div class="case">
         <h4>C8. Details and summary</h4>
-        <p class="ask">Summary is phrasing; the body is flow. Two chunks?</p>
+        <p class="ask">Summary is phrasing; the body is flow. Two scopes?</p>
         <div class="ex">
           <details open>
             <summary>Why <strong>formatter</strong> first?</summary>
@@ -1013,7 +1041,7 @@ It can take validation steps.</pre>
       <div class="case">
         <h4>C10. Text and blocks mixed in one container</h4>
         <p class="ask">
-          Bare text, then a block, then more bare text. Each text run an anonymous chunk? Or does the formatter wrap them in <code>p</code>?
+          Bare text, then a block, then more bare text. Each text run an anonymous scope? Or does the formatter wrap them in <code>p</code>?
         </p>
         <div class="ex">
           <div>
@@ -1070,7 +1098,7 @@ Text after the list.</pre>
       <div class="case">
         <h4>C11. Code block</h4>
         <p class="ask">
-          A chunk edited as a fenced block? Spans from syntax highlighting can't survive markdown.
+          A scope edited as a fenced block? Spans from syntax highlighting can't survive markdown.
         </p>
         <div class="ex">
           <pre><code>node formatter.mjs PLAN.html
@@ -1175,6 +1203,13 @@ const x = 1;
             <td>all markdown</td>
             <td>
               <pre>The armadillo ![armadillo](data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='12'%3E%3Cellipse cx='10' cy='6' rx='9' ry='5' fill='%23998'/%3E%3C/svg%3E) lives in DESIGN.html.</pre>
+            </td>
+          </tr>
+          <tr>
+            <td> &lt;img&gt;</td>
+            <td>all markdown</td>
+            <td>
+              <pre>![armadillo](data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='12'%3E%3Cellipse cx='10' cy='6' rx='9' ry='5' fill='%23998'/%3E%3C/svg%3E)</pre>
             </td>
           </tr>
         </table>
@@ -1367,7 +1402,7 @@ node formatter.mjs try-me.html
       <div class="case">
         <h4>D5. A diagram in a paragraph</h4>
         <p class="ask">
-          A big <code>svg</code> between sentences. Does it split the paragraph into two chunks?
+          A big <code>svg</code> between sentences. Does it split the paragraph into two scopes?
         </p>
         <div class="ex">
           <p>
@@ -1406,7 +1441,7 @@ node formatter.mjs try-me.html
       <div class="case">
         <h4>D6. Text inside an SVG</h4>
         <p class="ask">
-          SVG <code>text</code> takes directives today. Is it a prose chunk too, editable as markdown?
+          SVG <code>text</code> takes directives today. Is it a scope too, editable as markdown?
         </p>
         <div class="ex">
           <svg viewBox="0 0 240 40" width="240">
@@ -1463,7 +1498,7 @@ node formatter.mjs try-me.html
       <div class="case">
         <h4>E1. Stat tiles</h4>
         <p class="ask">
-          All spans, so phrasing by the spec. But it's layout. Chunks per tile, per span, or none?
+          All spans, so phrasing by the spec. But it's layout. Scopes per tile, per span, or none?
         </p>
         <div class="ex">
           <div class="stats">
@@ -1541,17 +1576,17 @@ node formatter.mjs try-me.html
       <div class="case">
         <h4>E3. A link wrapping blocks</h4>
         <p class="ask">
-          A card that's one big link. The link is the container; its heading and paragraph are chunks?
+          A card that's one big link. The link is the container; its heading and paragraph are scopes?
         </p>
         <div class="ex">
-          <a class="tile" href="#chunks">
+          <a class="tile" href="#scopes">
             <h4>DESIGN.html</h4>
             <p>Everything the tool adds to a page.</p>
           </a>
         </div>
         <details class="scope-report">
           <summary>HTML</summary>
-          <pre>&lt;a class="tile" href="#chunks"&gt;
+          <pre>&lt;a class="tile" href="#scopes"&gt;
   &lt;h4&gt;DESIGN.html&lt;/h4&gt;
   &lt;p&gt;Everything the tool adds to a page.&lt;/p&gt;
 &lt;/a&gt;</pre>
@@ -1589,13 +1624,13 @@ Everything the tool adds to a page.</pre>
       </div>
       <div class="case">
         <h4>E4. Paragraph that is all link</h4>
-        <p class="ask">Edit the link text, or the paragraph? Same chunk either way?</p>
+        <p class="ask">Edit the link text, or the paragraph? Same scope either way?</p>
         <div class="ex">
-          <p><a href="#chunks">Back to the top of the cases</a></p>
+          <p><a href="#scopes">Back to the top of the cases</a></p>
         </div>
         <details class="scope-report">
           <summary>HTML</summary>
-          <pre>&lt;p&gt;&lt;a href="#chunks"&gt;Back to the top of the cases&lt;/a&gt;&lt;/p&gt;</pre>
+          <pre>&lt;p&gt;&lt;a href="#scopes"&gt;Back to the top of the cases&lt;/a&gt;&lt;/p&gt;</pre>
         </details>
         <table class="scope-report">
           <tr>
@@ -1607,7 +1642,14 @@ Everything the tool adds to a page.</pre>
             <td>&lt;p&gt;</td>
             <td>all markdown</td>
             <td>
-              <pre>[Back to the top of the cases](#chunks)</pre>
+              <pre>[Back to the top of the cases](#scopes)</pre>
+            </td>
+          </tr>
+          <tr>
+            <td> &lt;a&gt;</td>
+            <td>all markdown</td>
+            <td>
+              <pre>[Back to the top of the cases](#scopes)</pre>
             </td>
           </tr>
         </table>
@@ -1615,7 +1657,7 @@ Everything the tool adds to a page.</pre>
       <h3>F. Odd shapes</h3>
       <div class="case">
         <h4>F1. Empty and blank paragraphs</h4>
-        <p class="ask">Chunks with nothing to edit. Skip them, or let you type into them?</p>
+        <p class="ask">Scopes with nothing to edit. Skip them, or let you type into them?</p>
         <div class="ex">
           <p></p>
           <p>&nbsp;</p>
@@ -1653,9 +1695,9 @@ Everything the tool adds to a page.</pre>
         </table>
       </div>
       <div class="case">
-        <h4>F2. Sibling chunks with no wrapper</h4>
+        <h4>F2. Sibling scopes with no wrapper</h4>
         <p class="ask">
-          A heading and paragraphs straight in a section. Each its own chunk, or the section as one markdown doc?
+          A heading and paragraphs straight in a section. Each its own scope, or the section as one markdown doc?
         </p>
         <div class="ex">
           <section>

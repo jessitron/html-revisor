@@ -10,6 +10,8 @@ The README's "Contract with iterate-on-docs" table lists everything iterate-on-d
 
 The domain word for an `<!-- @AI: ... -->` request is **directive**. Avoid note, comment, annotation ("HTML comment" still means the syntax).
 
+A **scope** is what you pick to direct or edit: any block element, plus links and images. Its whole content edits as markdown, and scopes nest. It replaced "prose chunk" (2026-10-12). `scopes.mjs` holds the rules; PLAN.html's Decided table holds the reasons.
+
 ## What the HTML files are
 
 The files this tool serves are project-overview documents that Jess's agents generate. She controls them and the instructions for generating them. So:
@@ -29,7 +31,7 @@ The files this tool serves are project-overview documents that Jess's agents gen
 - Iterating on a page here (iterate-on-docs) in a background session: edits in the shared checkout get refused, so the loop has to run in a worktree. Enter the worktree before the first turn and start the server on the worktree directory, so Jess's browser saves land where you edit. If you start in the main checkout and move later, commit her turn on main first (the worktree branches from it), then restart the server on the worktree and give her the new URL. When the loop ends, fast-forward main. Other sessions commit to main while a loop runs. Each loop commit rewrites the page, so `git rebase main` conflicts on every commit; `git rebase -X theirs main` keeps the loop's version, then re-apply main's change to that file by hand (check `git diff HEAD...main -- <file>` first).
 - In the Chrome extension, a click right after `navigate` can land before the client script runs. Wait a second first. Navigating to the same URL with a new `#hash` only scrolls, it doesn't reload; add `?r=N` to force a fresh load.
 - The browser saves a directive while Jess types it, so a directive can be half-written when you find it ("I like it. It"). Before editing the file, wait until its mtime has been still for about 20 seconds; an edit mid-typing makes her next save fail as stale.
-- try-me.html#chunks carries generated HTML and a scope table under each `.ex` example. After changing a case or the rules in `scopes.mjs`, run `node scopes.mjs --annotate try-me.html`.
+- try-me.html#scopes carries generated HTML and a scope table under each `.ex` example. After changing a case or the rules in `scopes.mjs`, run `node scopes.mjs --annotate try-me.html`.
 - `client.css` holds every style the tool adds to a page. DESIGN.html links it and draws each component from the real classes inside a `.hrv-layer` wrapper; try style changes there, against its stress test of hostile backgrounds.
 - To find directives in a page, grep `'<!-- *@AI:'`, not `'@AI:'`. A page that talks about directives (OVERVIEW.html does) holds the bare prefix in examples. The formatter decodes entities, so escaping can't hide it.
 - The formatter puts all of an `<svg>` on one line, and every element inside it can take a directive. Commenting on SVG text works and Jess likes it; see the SVG yak before changing either.
