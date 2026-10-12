@@ -1,6 +1,8 @@
 # html-notes: notes for agents
 
-Read `README.md` for usage. Build history is in git log; open work is in `yx`. `html-notes-spec.md` is the original spec.
+Read `README.md` for usage. Build history is in git log; open work is in `yx`. `html-notes-spec.md` is the original spec. `OVERVIEW.html` is the picture of the project for humans: architecture now and planned. When a change alters the architecture or lands something marked directional there, update it in the same commit and tell Jess.
+
+The domain word for an `<!-- @AI: ... -->` request is **directive**. Avoid note, comment, annotation ("HTML comment" still means the syntax).
 
 ## What the HTML files are
 
@@ -17,6 +19,8 @@ The files this tool serves are project-overview documents that Jess's agents gen
 - GET normalizes the file in place. To try the server by hand, serve a temp copy of `test/fixtures`, not the directory itself. `try-me.html` at the root is Jess's page for hand-testing; she may have uncommitted edits in it, so don't commit or reset it.
 - When a worktree session blocks a Bash command as "too complex to verify", split it into plain commands, and put helper scripts in `$CLAUDE_JOB_DIR/tmp` and run them with `node <file>`.
 - In the Chrome extension, a click right after `navigate` can land before the client script runs. Wait a second first.
+- To find directives in a page, grep `'<!-- *@AI:'`, not `'@AI:'`. A page that talks about directives (OVERVIEW.html does) holds the bare prefix in examples. The formatter decodes entities, so escaping can't hide it.
+- The formatter puts all of an `<svg>` on one line, and every element inside it can take a directive. Commenting on SVG text works and Jess likes it; see the SVG yak before changing either.
 
 ## Task tracking: use `yx`
 
