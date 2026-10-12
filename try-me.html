@@ -179,8 +179,10 @@
             <td>&lt;p&gt;</td>
             <td>prose: edit as markdown</td>
             <td>
-              <pre>Jess Kerr\
-html-revisor\
+              <!-- @AI: absolutely not, \ means "the same line" in bash and this looks terrible.
+There's nothing wrong with a newline here. We'll customize the markdown conversion if we need to. -->
+              <pre>Jess Kerr
+html-revisor
 October 2026</pre>
             </td>
           </tr>
@@ -206,6 +208,10 @@ October 2026</pre>
             <td>&lt;p&gt;</td>
             <td>prose: edit as markdown</td>
             <td>
+              <!-- @AI: blech.
+Can the formatter get rid of unnecessary &nbsp;? Can the agents not put them in? are the agents likely to put them in? 
+
+It's ok if unlikely scenarios are ugly -->
               <pre>Fish &amp; chips cost&amp;nbsp;$5 &amp;lt;each&gt; — “quoted” and 5&amp;nbsp;×&amp;nbsp;3.</pre>
             </td>
           </tr>
@@ -224,7 +230,10 @@ October 2026</pre>
         </div>
         <table class="chunk-report">
           <tr>
-            <th>chunk</th>
+            <th>
+              <!-- @AI: this isn't "chunk" this is an HTML tag right? not our technical term -->
+              chunk
+            </th>
             <th>what it is</th>
             <th>what you would edit</th>
           </tr>
@@ -232,6 +241,7 @@ October 2026</pre>
             <td>&lt;p&gt;</td>
             <td>prose: edit as markdown</td>
             <td>
+              <!-- @AI: yeah, I'm good with this one. -->
               <pre>Press &lt;kbd&gt;⌘&lt;/kbd&gt;+&lt;kbd&gt;↵&lt;/kbd&gt; to save. H&lt;sub&gt;2&lt;/sub&gt;O, x&lt;sup&gt;2&lt;/sup&gt;, &lt;mark&gt;highlighted&lt;/mark&gt;, &lt;del&gt;removed&lt;/del&gt; &lt;ins&gt;added&lt;/ins&gt;, &lt;s&gt;struck&lt;/s&gt;, &lt;abbr title="Domain-Driven Design"&gt;DDD&lt;/abbr&gt;, &lt;q&gt;a quote&lt;/q&gt;, &lt;time datetime="2026-10-12"&gt;today&lt;/time&gt;, &lt;small&gt;fine print&lt;/small&gt;, &lt;u&gt;underlined&lt;/u&gt;.</pre>
             </td>
           </tr>
@@ -257,6 +267,7 @@ October 2026</pre>
             <td>&lt;p&gt;</td>
             <td>prose: edit as markdown</td>
             <td>
+              <!-- @AI: this is fine in html -->
               <pre>See &lt;a href="#chunks" title="this section" target="_blank" class="ref"&gt;the section&lt;/a&gt; and a &lt;span style="color: #bc4c00"&gt;warning-colored&lt;/span&gt; word.</pre>
             </td>
           </tr>
@@ -282,6 +293,7 @@ October 2026</pre>
             <td>&lt;p&gt;</td>
             <td>prose: edit as markdown</td>
             <td>
+              <!-- @AI: yep, also fine -->
               <pre>Split out the formatter &lt;span class="pill"&gt;stez&lt;/span&gt;, then decide chunks &lt;span class="pill"&gt;a17m&lt;/span&gt;.</pre>
             </td>
           </tr>
@@ -337,6 +349,7 @@ October 2026</pre>
       <div class="case">
         <h4>C1. Simple list</h4>
         <p class="ask">
+          <!-- @AI: nope, the whole list. Markdown has lists. Give me a list. That way I can delete items and add items. So much better. -->
           One chunk (edit as <code>- item</code> lines, add and remove items) or one per <code>&lt;li&gt;</code>?
         </p>
         <div class="ex">
@@ -383,6 +396,12 @@ October 2026</pre>
       <div class="case">
         <h4>C2. Nested list</h4>
         <p class="ask">
+          <!-- @AI: Doesn't markdown work just fine with this? I want the whole list in one chunk.
+
+Now, a question arises if I want to add directives to an inner list item. hmm.
+
+That would get us back to the ID redesign question. Let's stick with no for now.
+A list (including a nested list) is one chunk. The principle here is: it converts nicely to markdown. -->
           The inner list sits inside the first item's text. Where's the boundary?
         </p>
         <div class="ex">
@@ -457,7 +476,10 @@ October 2026</pre>
           <ol data-chunk="container" start="3">
             <li data-chunk="container">
               <p data-chunk="prose">Round-trip.</p>
-              <p data-chunk="prose">Opening and saving must change nothing.</p>
+              <p data-chunk="prose">
+                <!-- @AI: ok, a list with blocks inside of it, I'm OK with separating those. -->
+                Opening and saving must change nothing.
+              </p>
             </li>
             <li data-chunk="container">
               <p data-chunk="prose">Markdown in the box.</p>
@@ -511,11 +533,15 @@ October 2026</pre>
       <div class="case">
         <h4>C4. Definition list</h4>
         <p class="ask">
+          <!-- @AI: those are weird and it's ok if this is weird. So it's fine. -->
           Markdown has no <code>dl</code>. Each <code>dt</code> and <code>dd</code> its own chunk?
         </p>
         <div class="ex">
           <dl data-chunk="container">
-            <dt data-chunk="prose">directive</dt>
+            <dt data-chunk="prose">
+              <!-- @AI: those are -->
+              directive
+            </dt>
             <dd data-chunk="prose">An <code>@AI</code> request, stored as an HTML comment.</dd>
             <dt data-chunk="prose">chunk</dt>
             <dd data-chunk="prose">The unit of editing and directives.</dd>
@@ -565,6 +591,7 @@ October 2026</pre>
       <div class="case">
         <h4>C5. Blockquote</h4>
         <p class="ask">
+          <!-- @AI: fine -->
           With paragraphs inside, the paragraphs are chunks. With bare text, the blockquote is.
         </p>
         <div class="ex">
@@ -610,7 +637,10 @@ October 2026</pre>
       </div>
       <div class="case">
         <h4>C6. Table cells</h4>
-        <p class="ask">Each cell a chunk? The header row too? A cell holding a list?</p>
+        <p class="ask">
+          <!-- @AI: editing tables in markdown is a pain, so I don't mind if these are separate chunks -->
+          Each cell a chunk? The header row too? A cell holding a list?
+        </p>
         <div class="ex">
           <table data-chunk="container">
             <caption data-chunk="prose">Stages</caption>
@@ -626,6 +656,7 @@ October 2026</pre>
               <td data-chunk="prose">Chunks</td>
               <td data-chunk="container">
                 <ul data-chunk="container">
+                  <!-- @AI: but not the list, that's one chunk -->
                   <li data-chunk="prose">decide</li>
                   <li data-chunk="prose">build</li>
                 </ul>
@@ -737,7 +768,10 @@ October 2026</pre>
             <svg data-chunk="nonprose" viewBox="0 0 120 40" width="120">
               <rect x="1" y="1" width="118" height="38" rx="6" fill="none" stroke="#8250df"></rect><text x="60" y="25" text-anchor="middle" font-size="12">diagram</text>
             </svg>
-            <figcaption data-chunk="prose">The <em>path</em>, as of today.</figcaption>
+            <figcaption data-chunk="prose">
+              <!-- @AI: fine -->
+              The <em>path</em>, as of today.
+            </figcaption>
           </figure>
         </div>
         <table class="chunk-report">
@@ -767,7 +801,10 @@ October 2026</pre>
       </div>
       <div class="case">
         <h4>C8. Details and summary</h4>
-        <p class="ask">Summary is phrasing; the body is flow. Two chunks?</p>
+        <p class="ask">
+          <!-- @AI: yes two chunks -->
+          Summary is phrasing; the body is flow. Two chunks?
+        </p>
         <div class="ex">
           <details data-chunk="container" open>
             <summary data-chunk="prose">Why <strong>formatter</strong> first?</summary>
@@ -807,7 +844,10 @@ October 2026</pre>
           No <code>p</code>, but it reads as a paragraph. Same as a <code>p</code>?
         </p>
         <div class="ex">
-          <div data-chunk="prose">A div with <em>text</em> and no paragraph element.</div>
+          <div data-chunk="prose">
+            <!-- @AI: yes -->
+            A div with <em>text</em> and no paragraph element.
+          </div>
         </div>
         <table class="chunk-report">
           <tr>
@@ -831,6 +871,7 @@ October 2026</pre>
         </p>
         <div class="ex">
           <div data-chunk="container">
+            <!-- @AI: now, I would love for this example to all be one markdown chunk. This kind of thing looks nice in markdown. -->
             Text before the list, <strong>with bold</strong>.
             <ul data-chunk="container">
               <li data-chunk="prose">an item</li>
@@ -883,6 +924,7 @@ October 2026</pre>
           A chunk edited as a fenced block? Spans from syntax highlighting can't survive markdown.
         </p>
         <div class="ex">
+          <!-- @AI: yeah this is good -->
           <pre data-chunk="code"><code>node formatter.mjs PLAN.html
 echo $?</code></pre>
           <pre data-chunk="code"><code><span class="kw">const</span> x = <span class="num">1</span>;</code></pre>
@@ -924,7 +966,7 @@ const x = 1;
           <p data-chunk="prose">
             Click the
             <svg viewBox="0 0 16 16" width="14" height="14">
-              <circle cx="8" cy="8" r="6" fill="#d6336c"></circle>
+              <circle cx="8" cy="8" r="6" fill="#d6336c"><!-- @AI: circle is here, yes I can comment on it --></circle>
             </svg>
             marker to open the directive box.
           </p>
@@ -939,6 +981,7 @@ const x = 1;
             <td>&lt;p&gt;</td>
             <td>prose: edit as markdown</td>
             <td>
+              <!-- @AI: I like what this looks like. Now, what happens if I delete the SVG? I think that gets us back to the naive element ID problem -->
               <pre>Click the ⟦svg⟧ marker to open the directive box.</pre>
             </td>
           </tr>
@@ -962,6 +1005,8 @@ const x = 1;
             <td>&lt;p&gt;</td>
             <td>prose: edit as markdown</td>
             <td>
+              <!-- @AI: in this case it'd be legit to include the HTML if the markdown doesn't carry enough. 
+Or better: translate the image to markdown, but the save reads the other properties from the original -->
               <pre>The armadillo ⟦img⟧ lives in DESIGN.html.</pre>
             </td>
           </tr>
@@ -974,6 +1019,13 @@ const x = 1;
           <ul data-chunk="container">
             <li data-chunk="container">
               Run the formatter:
+              <!-- @AI: you say this is nonprose but can markdown express this? This is another case like 
+
+text
+* list
+text
+
+... where there's a sensible hunk of markdown that makes sense to edit together. -->
               <pre data-chunk="code"><code>node formatter.mjs try-me.html</code></pre>
               then reload the page.
             </li>
@@ -1022,7 +1074,10 @@ node formatter.mjs try-me.html
       </div>
       <div class="case">
         <h4>D4. Table in a list item</h4>
-        <p class="ask">Same shape as D3, with a bigger nonprose piece.</p>
+        <p class="ask">
+          <!-- @AI: this one is fine because tables aren't fun to edit in markdown IMO -->
+          Same shape as D3, with a bigger nonprose piece.
+        </p>
         <div class="ex">
           <ul data-chunk="container">
             <li data-chunk="container">
@@ -1132,6 +1187,7 @@ node formatter.mjs try-me.html
             <td>&lt;p&gt;</td>
             <td>prose: edit as markdown</td>
             <td>
+              <!-- @AI: this looks good -->
               <pre>Here is the path. ⟦svg⟧ It has six stages.</pre>
             </td>
           </tr>
@@ -1144,7 +1200,12 @@ node formatter.mjs try-me.html
         </p>
         <div class="ex">
           <svg data-chunk="nonprose" viewBox="0 0 240 40" width="240">
-            <text x="10" y="25" font-size="14">Formatter <tspan font-weight="700">alone</tspan></text>
+            <text x="10" y="25" font-size="14">Formatter <tspan font-weight="700"><!-- @AI: this is good right now. It is editable and I like it.
+
+oh but it's formatted, huh, i would like the whole label to be a prose chunk, ideally.
+I can't tell what the html looks like though.
+
+Add the html to the examples, or a way for me to see the html? -->alone</tspan></text>
           </svg>
         </div>
         <table class="chunk-report">
@@ -1178,6 +1239,7 @@ node formatter.mjs try-me.html
             <td>&lt;p&gt;</td>
             <td>prose: edit as markdown</td>
             <td>
+              <!-- @AI: love it -->
               <pre>Show ⟦input⟧ done stages, or ⟦button⟧.</pre>
             </td>
           </tr>
@@ -1187,6 +1249,7 @@ node formatter.mjs try-me.html
       <div class="case">
         <h4>E1. Stat tiles</h4>
         <p class="ask">
+          <!-- @AI: doesn't matter. Per span is find here -->
           All spans, so phrasing by the spec. But it's layout. Chunks per tile, per span, or none?
         </p>
         <div class="ex">
@@ -1226,10 +1289,13 @@ node formatter.mjs try-me.html
       </div>
       <div class="case">
         <h4>E2. A label row</h4>
-        <p class="ask">Spans side by side in a flex row. One sentence, or three labels?</p>
+        <p class="ask">
+          <!-- @AI: weird. This is fine. -->
+          Spans side by side in a flex row. One sentence, or three labels?
+        </p>
         <div class="ex">
           <div data-chunk="prose" class="row">
-            <span class="pill">stage 1</span><span>Formatter</span><span>→ done</span>
+            <span class="pill">stage 1</span><span>Formatter</span><span><!-- @AI: there's a reason the -->→ done</span>
           </div>
         </div>
         <table class="chunk-report">
@@ -1254,6 +1320,7 @@ node formatter.mjs try-me.html
         </p>
         <div class="ex">
           <a data-chunk="container" class="tile" href="#chunks">
+            <!-- @AI: yep looks fine -->
             <h4 data-chunk="prose">DESIGN.html</h4>
             <p data-chunk="prose">Everything the tool adds to a page.</p>
           </a>
@@ -1301,6 +1368,7 @@ node formatter.mjs try-me.html
             <td>&lt;p&gt;</td>
             <td>prose: edit as markdown</td>
             <td>
+              <!-- @AI: yes! -->
               <pre>[Back to the top of the cases](#chunks)</pre>
             </td>
           </tr>
@@ -1313,7 +1381,10 @@ node formatter.mjs try-me.html
         <div class="ex">
           <p data-chunk="blank"></p>
           <p data-chunk="blank">&nbsp;</p>
-          <p data-chunk="prose">Between two empties.</p>
+          <p data-chunk="prose">
+            <!-- @AI: this is not between two empties, it's below two empties. This is weird and I don't care what happens in this case. -->
+            Between two empties.
+          </p>
         </div>
         <table class="chunk-report">
           <tr>
@@ -1347,7 +1418,18 @@ node formatter.mjs try-me.html
         </p>
         <div class="ex">
           <section data-chunk="container">
-            <h4 data-chunk="prose">A section</h4>
+            <h4 data-chunk="prose">
+              <!-- @AI: this is a heading and I'm good with it being its own chunk, although it wouldn't hurt my feelings if a section that contained entirely markdown could be edited at that level.
+
+Um, Why not both?
+
+Why not: you pick the section, and the whole section text is available to edit?
+You pick a paragraph or a list item, and that scope is available to edit?
+
+I'm going to solve the element-ID problem separately. That's getting out of the way.
+Meanwhile, why shouldn't a person get to edit and direct at the scope of their choosing? Even including tables. -->
+              A section
+            </h4>
             <p data-chunk="prose">First paragraph.</p>
             <p data-chunk="prose">Second paragraph.</p>
             <hr data-chunk="nonprose">
