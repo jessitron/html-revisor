@@ -1,1 +1,1 @@
-Cleanup script: roughly reverse the formatter before publishing
+Cleanup script: strip directives and element IDs before publishing
