@@ -9,20 +9,18 @@
    Color means one thing: the accent marks the icon, the crop marks, and the main action. */
 :root {
   --hrv-accent: #d6336c;
-  --hrv-accent-strong: #e64980;
   --hrv-on-accent: #fff;
   --hrv-error: #ff6b6b;
   --hrv-surface: #18191c;
-  --hrv-ring: #e9e9ec;
-  --hrv-text: #eee;
+  --hrv-ring: #fff;
+  --hrv-text: #fff;
   --hrv-muted: #a0a3a8;
   --hrv-line: #44474d;
   --hrv-field: #0e0f11;
   --hrv-button: #2c2e33;
   --hrv-button-hover: #3a3d43;
   --hrv-font: 13px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
-  --hrv-mono: 12px/1.4 ui-monospace, Menlo, Consolas, monospace;
-  --hrv-small: 11px;
+  --hrv-mono: 13px/1.4 ui-monospace, Menlo, Consolas, monospace;
   --hrv-material: 0 0 0 1px var(--hrv-ring), 0 4px 16px rgba(0, 0, 0, 0.45);
   --hrv-halo: #fff;
   --hrv-crop-gap: 4px;
@@ -68,8 +66,7 @@ html:not([data-hrv-review="off"]) [data-hrv]:not(html, body) { cursor: copy !imp
   content: ""; display: block; width: 14px; height: 14px; background: var(--hrv-accent);
   -webkit-mask: var(--hrv-pencil) center / contain no-repeat; mask: var(--hrv-pencil) center / contain no-repeat;
 }
-:is(#hrv-layer, .hrv-layer) .hrv-marker:hover { box-shadow: 0 0 0 1px var(--hrv-accent-strong), 0 4px 16px rgba(0, 0, 0, 0.45); }
-:is(#hrv-layer, .hrv-layer) .hrv-marker:hover::before { background: var(--hrv-accent-strong); }
+:is(#hrv-layer, .hrv-layer) .hrv-marker:hover { box-shadow: 0 0 0 1px var(--hrv-accent), 0 4px 16px rgba(0, 0, 0, 0.45); }
 
 /* The marker's tooltip: the directive text, in the material, monospace like the directive field. */
 :is(#hrv-layer, .hrv-layer) .hrv-tip {
@@ -130,11 +127,11 @@ html:not([data-hrv-review="off"]) [data-hrv]:not(html, body) { cursor: copy !imp
 /* The Text field takes the element's font from the client; this is the fallback. */
 :is(#hrv-layer, .hrv-layer) .hrv-box textarea.hrv-text { height: 32px; min-height: 32px; }
 :is(#hrv-layer, .hrv-layer) .hrv-box textarea::placeholder { color: var(--hrv-muted); }
-:is(#hrv-layer, .hrv-layer) .hrv-label { display: block; margin: 6px 0 2px; font-size: var(--hrv-small); color: var(--hrv-muted); }
+:is(#hrv-layer, .hrv-layer) .hrv-label { display: block; margin: 6px 0 2px; color: var(--hrv-muted); }
 :is(#hrv-layer, .hrv-layer) .hrv-label:first-child { margin-top: 0; }
 :is(#hrv-layer, .hrv-layer) .hrv-box textarea:focus { outline: 1px solid var(--hrv-accent); outline-offset: -1px; border-color: var(--hrv-accent); }
 :is(#hrv-layer, .hrv-layer) .hrv-row { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
-:is(#hrv-layer, .hrv-layer) .hrv-hint { flex: 1; font-size: var(--hrv-small); color: var(--hrv-muted); }
+:is(#hrv-layer, .hrv-layer) .hrv-hint { flex: 1; color: var(--hrv-muted); }
 /* The save status takes the hint's place: "saving…", "saved", "not saved". */
 :is(#hrv-layer, .hrv-layer) .hrv-hint.hrv-status { color: var(--hrv-text); }
 :is(#hrv-layer, .hrv-layer) .hrv-btn {
@@ -143,7 +140,7 @@ html:not([data-hrv-review="off"]) [data-hrv]:not(html, body) { cursor: copy !imp
 }
 :is(#hrv-layer, .hrv-layer) .hrv-btn:hover { background: var(--hrv-button-hover); }
 :is(#hrv-layer, .hrv-layer) .hrv-done { background: var(--hrv-accent); border-color: var(--hrv-accent); color: var(--hrv-on-accent); }
-:is(#hrv-layer, .hrv-layer) .hrv-done:hover { background: var(--hrv-accent-strong); border-color: var(--hrv-accent-strong); }
+:is(#hrv-layer, .hrv-layer) .hrv-done:hover { border-color: var(--hrv-ring); }
 /* Delete is a text button: it destroys, so it doesn't draw the eye. */
 :is(#hrv-layer, .hrv-layer) .hrv-btn.hrv-quiet { padding: 4px 6px; border-color: transparent; background: none; color: var(--hrv-muted); }
 :is(#hrv-layer, .hrv-layer) .hrv-btn.hrv-quiet:hover { color: var(--hrv-text); text-decoration: underline; }

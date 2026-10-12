@@ -66,7 +66,7 @@
             <strong>One material for every component:</strong> near-black surface, 1px light ring, shadow, square corners, the same in light and dark mode. Agent-made pages round their corners; square ones read as not from this page.
           </li>
           <li data-hrv="18">
-            <strong>The accent is magenta,</strong> the revisor's red pencil. It colors the icon, the marks, and the main action.
+            <strong>The accent is magenta,</strong> the revisor's red pencil. It colors the icon, the marks, and the main action. There is one magenta: hover changes form, not shade. A hovered marker takes a magenta ring; a hovered Done takes a white edge.
           </li>
           <li data-hrv="19">
             <strong>The icon is a magenta pencil</strong> whose tip faces right: it sits on the left and points at what it addresses. It appears in every UI element html-revisor adds. The marker is the icon on a tile of the material.
@@ -125,7 +125,7 @@
         <p data-hrv="44" class="note">white</p>
       </div>
       <div data-hrv="45">
-        <div data-hrv="46" class="tile" style="background: #18191c; color: #eee;">
+        <div data-hrv="46" class="tile" style="background: #18191c; color: #fff;">
           <p data-hrv="47">Has a directive</p>
           <p data-hrv="48" data-mark="hover">Hovered</p>
           <p data-hrv="49" data-mark="selected">Box open</p>
@@ -241,16 +241,8 @@
         <div data-hrv="124" class="chip"></div>
         <div data-hrv="125">accent: icon, crop marks, main action, focus</div>
       </div>
-      <div data-hrv="126" class="swatch" data-var="--hrv-accent-strong">
-        <div data-hrv="127" class="chip">
-          <!-- @AI: this is identical to 'accent', do not like -->
-        </div>
-        <div data-hrv="128">accent-strong: hover on the marker and the main action</div>
-      </div>
       <div data-hrv="129" class="swatch" data-var="--hrv-error">
-        <div data-hrv="130" class="chip">
-          <!-- @AI: peach does not say error. Nothing but red says error. But red clashes with magenta. I don't know. -->
-        </div>
+        <div data-hrv="130" class="chip"></div>
         <div data-hrv="131">error: failed or stale save</div>
       </div>
       <div data-hrv="132" class="swatch" data-var="--hrv-surface">
@@ -268,20 +260,18 @@
         <div data-hrv="140">field: textareas</div>
       </div>
       <div data-hrv="141" class="swatch" data-var="--hrv-button">
-        <div data-hrv="142" class="chip">
-          <!-- @AI: is this supposed to contrast with the surface? -->
+        <div data-hrv="142" class="chip"></div>
+        <div data-hrv="143">
+          button: secondary actions, one step lighter than the surface so they read as buttons
         </div>
-        <div data-hrv="143">button: secondary actions</div>
       </div>
       <div data-hrv="144" class="swatch" data-var="--hrv-line">
         <div data-hrv="145" class="chip"></div>
         <div data-hrv="146">line: borders inside a component</div>
       </div>
       <div data-hrv="147" class="swatch" data-var="--hrv-text">
-        <div data-hrv="148" class="chip">
-          <!-- @AI: what's wrong with white? -->
-        </div>
-        <div data-hrv="149">text</div>
+        <div data-hrv="148" class="chip"></div>
+        <div data-hrv="149">text: white, the same as the ring</div>
       </div>
       <div data-hrv="150" class="swatch" data-var="--hrv-muted">
         <div data-hrv="151" class="chip"></div>
@@ -463,7 +453,6 @@
           <div data-hrv="246" class="hrv-layer">
             <div data-hrv="247" class="hrv-docket hrv-error" style="position: absolute; right: auto; left: 24px; bottom: auto; top: 24px;">
               <div data-hrv="248" class="hrv-docket-msg">
-                <!-- @AI: ok I changed my mind about the error color. This looks fine here -->
                 file changed on disk — reload to see it (your unsaved text is in the box)
               </div>
               <div data-hrv="249" class="hrv-docket-main">
@@ -479,8 +468,7 @@
     </div>
     <h2 data-hrv="253">Type</h2>
     <p data-hrv="254" class="note">
-      <!-- @AI: why several font sizes that are off by 1px? -->
-      Everything in the layer: <code>--hrv-font</code>, 13px system-ui at line height 1.4. The directive field: <code>--hrv-mono</code>, 12px monospace, since a directive is an instruction headed into an HTML comment. Labels and the hint: <code>--hrv-small</code>, 11px, muted; the save status that replaces the hint takes the text color. The Text field: the element's own font.
+      One size, 13px at line height 1.4, everywhere in the layer. <code>--hrv-font</code> is system-ui. The directive field is <code>--hrv-mono</code>, monospace, since a directive is an instruction headed into an HTML comment. Labels and the hint differ by color alone: muted; the save status that replaces the hint takes the text color. The Text field: the element's own font.
     </p>
     <script>
   for (const s of document.querySelectorAll('.swatch')) {
