@@ -8,8 +8,8 @@
 // edit its whole content as markdown: a section, a list, one list item, a table, one cell (Jess,
 // 2026-10-12, F2 in try-me.html#scopes). Other inline elements, like strong, belong to their
 // block. scopeMarkdown writes a scope as markdown and scopeFromMarkdown reads it back; saving
-// it unchanged gives back the same HTML, element IDs included, directives aside (PLAN.html
-// stage 5). Saving it edited, each element keeps its ID (stage 6). test/roundtrip.test.mjs.
+// it unchanged gives back the same HTML, element IDs included (PLAN.html stage 5). Saving it
+// edited, each element keeps its ID (stage 6) and its directives (stage 7). test/roundtrip.test.mjs.
 //
 // Tiers, dependencies point downward only:
 //   Tier I   orchestration: the CLI
@@ -19,6 +19,7 @@
 import fs from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { parse, serialize, trimAscii, formatElement, VOID } from './formatter.mjs';
+import { allComments, directiveOwner, attachComments } from './directives.mjs';
 import { MarkdownIt } from './vendor/markdown-it.mjs';
 
 // ======================================================================
@@ -378,8 +379,11 @@ const escapeEntities = (text) => text.replace(/&(?=[a-zA-Z#][a-zA-Z0-9]*;)/g, '&
 // The nodes that replace a scope's element when its markdown is saved. The prior element says
 // what shape the markdown has, the same way it did for scopeMarkdown: an item's content, a
 // list's lines, a paragraph's phrasing. Opening a scope and saving it unchanged gives back
-// the same HTML, element IDs included, directives aside (PLAN.html stage 5).
-export const scopeFromMarkdown = (el, markdown) => reconcile([el], rebuild(el, markdown));
+// the same HTML, element IDs and directives included (PLAN.html stages 5 to 7).
+export function scopeFromMarkdown(el, markdown) {
+  const nodes = rebuild(el, markdown);
+  return carryDirectives(el, nodes, reconcile([el], nodes));
+}
 
 function rebuild(el, markdown) {
   const nodes = restore([el], fromMarkdown(el, markdown));
@@ -484,6 +488,7 @@ function restore(prior, nodes) {
       continue;
     }
     const copy = original.cloneNode(true);
+    allComments(copy).forEach((c) => c.remove()); // its directives come back with the rest
     if (standsAlone(original)) alone.add(copy);
     mark.replaceWith(copy);
   }
@@ -549,15 +554,35 @@ function carryOver(original, img) {
 // same, then, between those, ones with the same tag. Those are the elements you edited; they
 // keep their IDs so their directives stay with them (Jess, 2026-10-12). A pair's children pair
 // up the same way. An element with no pair is new, and the formatter gives it an ID.
+// Returns the pairs: prior element → its partner.
 const HRV = 'data-hrv';
 
 function reconcile(prior, nodes) {
   for (const n of nodes) if (n.nodeType === 1) [n, ...n.querySelectorAll(`[${HRV}]`)].forEach((e) => e.removeAttribute(HRV));
-  pairUp(prior[0].ownerDocument, prior, nodes);
-  return nodes;
+  const partners = new Map();
+  pairUp(prior[0].ownerDocument, prior, nodes, partners);
+  return partners;
 }
 
-function pairUp(document, prior, nodes) {
+// Directives ride with their element: markdown doesn't show them, so each comment in the prior
+// scope goes onto its element's partner. One whose element the edit deleted goes to the nearest
+// enclosing element that came back, up to the scope; with nothing left, it goes where the scope was.
+function carryDirectives(el, nodes, partners) {
+  const holder = el.ownerDocument.createElement('div');
+  holder.append(...nodes);
+  const moving = new Map(); // partner → comments, in order
+  for (const comment of allComments(el)) {
+    let owner = directiveOwner(comment);
+    while (owner !== el && !partners.has(owner)) owner = owner.parentNode;
+    const target = partners.get(owner) ?? holder.firstElementChild ?? holder;
+    if (!moving.has(target)) moving.set(target, []);
+    moving.get(target).push(comment.cloneNode());
+  }
+  for (const [target, comments] of moving) attachComments(target, comments);
+  return [...holder.childNodes];
+}
+
+function pairUp(document, prior, nodes, partners) {
   const before = prior.filter((n) => n.nodeType === 1);
   const after = nodes.filter((n) => n.nodeType === 1);
   const keys = (els) => els.map((e) => canonicalHTML(document, [e]));
@@ -579,7 +604,8 @@ function pairUp(document, prior, nodes) {
   }
   for (const [a, b] of pairs) {
     if (before[b].hasAttribute(HRV)) after[a].setAttribute(HRV, before[b].getAttribute(HRV));
-    pairUp(document, [...before[b].childNodes], [...after[a].childNodes]);
+    partners.set(before[b], after[a]);
+    pairUp(document, [...before[b].childNodes], [...after[a].childNodes], partners);
   }
 }
 

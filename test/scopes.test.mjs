@@ -184,3 +184,47 @@ test('deleting an inline icon leaves a diagram between blocks, not in a paragrap
   const back = canonicalHTML(document, scopeFromMarkdown(el, 'a b\n\n⟦svg⟧'));
   assert.match(back, /<\/p>\s*<svg viewBox="0 0 9 9">/);
 });
+
+// Directives ride along (PLAN stage 7). Markdown doesn't show them; the save puts each back on
+// its element's partner, or, when the edit deleted its element, on the nearest one that came back.
+const htmlAfter = (html, markdown) => {
+  const { document, el } = scopeIn(html);
+  const holder = document.createElement('div');
+  holder.append(...scopeFromMarkdown(el, markdown));
+  return holder.innerHTML.replace(/ data-hrv="\d+"/g, '').replace(/\s+/g, ' ');
+};
+
+test("the scope's own directive stays when its text is edited", () => {
+  assert.equal(htmlAfter('<p><!-- @AI: shorter -->a <strong>b</strong></p>', 'a **b** c'), '<p><!-- @AI: shorter -->a <strong>b</strong> c</p>');
+});
+
+test('a directive on an item rides with the item past an edit and a new item', () => {
+  const back = htmlAfter('<ul><li>x</li><li><!-- @AI: why? -->y</li></ul>', '- new\n- x!\n- y');
+  assert.match(back, /<li>new<\/li> ?<li>x!<\/li> ?<li><!-- @AI: why\? -->y<\/li>/);
+});
+
+test('a directive on an edited item stays on it', () => {
+  assert.match(htmlAfter('<ul><li><!-- @AI: why? -->x</li><li>y</li></ul>', '- x, edited\n- y'), /<li><!-- @AI: why\? -->x, edited<\/li>/);
+});
+
+test('a directive before an image in a sentence rides with the image', () => {
+  const back = htmlAfter('<p>see <!-- @AI: bigger --><img src="a.png" alt="a"> here</p>', 'see ![a](a.png) there');
+  assert.equal(back, '<p>see <!-- @AI: bigger --><img src="a.png" alt="a"> there</p>');
+});
+
+test('a directive whose element the edit deleted moves to the nearest element that came back', () => {
+  assert.match(htmlAfter('<ul><li>x</li><li><!-- @AI: gone? -->y</li></ul>', '- x'), /^<ul><!-- @AI: gone\? --> ?<li>x<\/li> ?<\/ul>/);
+  const nested = '<section><ul><li>x</li><li><!-- @AI: gone? -->y</li></ul></section>';
+  assert.match(htmlAfter(nested, '- x'), /<ul><!-- @AI: gone\? --> ?<li>x<\/li> ?<\/ul>/);
+});
+
+test('directives inside a stand-in come back once, on their elements', () => {
+  const svg = '<svg viewBox="0 0 9 9"><text><!-- @AI: label -->diagram</text></svg>';
+  const back = htmlAfter(`<section><p>a</p>${svg}</section>`, 'a!\n\n⟦svg⟧');
+  assert.equal(back.match(/@AI: label/g).length, 1);
+  assert.match(back, /<text><!-- @AI: label -->diagram<\/text>/);
+});
+
+test('two directives on one element keep their order', () => {
+  assert.match(htmlAfter('<ul><li><!-- @AI: one --><!-- @AI: two -->x</li></ul>', '- x!'), /<li><!-- @AI: one --> ?<!-- @AI: two -->x!<\/li>/);
+});

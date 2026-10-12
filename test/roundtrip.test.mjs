@@ -1,10 +1,13 @@
 // The round-trip property (PLAN.html stage 5): for every scope, scope → markdown → scope is the
-// same HTML, element IDs included, directives aside. Opening a scope and saving it unchanged
+// same HTML, element IDs and directives included. Opening a scope and saving it unchanged
 // must leave the file unchanged.
 //
 // The reconcile property (stage 6): edit a scope, write the edited scope's markdown, and save
 // it over the prior scope. That gives back the edited scope, IDs included: an element you
 // edited, moved, or left alone keeps its ID, and one you added has none.
+//
+// Directives ride along (stage 7): every element gets one, and after a save each is on the
+// element it was on, or, if the edit removed that element, on the one that held it.
 //
 // Two sources of scopes: every page in this repo, and pages generated from a seed in the shapes
 // agents write, with text full of characters markdown reads as syntax. No property-testing
@@ -16,14 +19,16 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { normalize, parse } from '../formatter.mjs';
 import { scopeElements, scopeMarkdown, scopeFromMarkdown, canonicalHTML } from '../scopes.mjs';
+import { allComments, attachComments, directiveOwner, placeDirective } from '../directives.mjs';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 // Why a scope doesn't round-trip, or null if it does.
 function roundTripFailure(document, el) {
   const markdown = scopeMarkdown(el);
-  const before = canonicalHTML(document, [el], { ids: true });
-  const after = canonicalHTML(document, scopeFromMarkdown(el, markdown), { ids: true });
+  const saved = scopeFromMarkdown(el, markdown);
+  const before = `${canonicalHTML(document, [el], { ids: true })}\n${directivesIn([el])}`;
+  const after = `${canonicalHTML(document, saved, { ids: true })}\n${directivesIn(saved)}`;
   if (before === after) return null;
   return `<${el.localName}> doesn't round-trip.\n--- HTML\n${before}\n--- markdown\n${markdown}\n--- back\n${after}`;
 }
@@ -38,7 +43,7 @@ const pages = [
 
 for (const file of pages) {
   test(`every scope in ${path.relative(root, file)} round-trips`, () => {
-    const document = parse(normalize(fs.readFileSync(file, 'utf8')));
+    const document = directEverything(parse(normalize(fs.readFileSync(file, 'utf8'))));
     for (const el of scopeElements(document)) {
       const failure = roundTripFailure(document, el);
       assert.equal(failure, null, failure);
@@ -174,7 +179,7 @@ for (const tidy of [false, true]) {
   test(`generated ${tidy ? 'tidy ' : ''}pages: every scope round-trips (${SEEDS} seeds)`, () => {
     for (let seed = 1; seed <= SEEDS; seed++) {
       const body = generator(random(seed), tidy)();
-      const document = parse(normalize(`<html><body>${body}</body></html>`));
+      const document = directEverything(parse(normalize(`<html><body>${body}</body></html>`)));
       for (const el of scopeElements(document)) {
         const failure = roundTripFailure(document, el);
         assert.equal(failure, null, `seed ${seed}${tidy ? ' (tidy)' : ''}: ${failure}`);
@@ -212,11 +217,18 @@ const replaceWord = (r, t, word) => {
   const m = r.pick(words);
   t.data = t.data.slice(0, m.index) + word + t.data.slice(m.index + m[0].length);
 };
+// The element, and the directive just before it when it can't hold one inside (a pre): they move together.
+const withDirective = (el) => {
+  let p = el.previousSibling;
+  while (p?.nodeType === 3 && !/\S/.test(p.data)) p = p.previousSibling;
+  return p?.nodeType === 8 && directiveOwner(p) === el ? [p, el] : [el];
+};
 const bareHTML = (el) => el.outerHTML.replace(/ data-hrv="\d+"/g, '');
 // A copy with new words, so it shares none with the element it came from, and no stand-ins.
 function fresh(el) {
   const copy = el.cloneNode(true);
   copy.querySelectorAll(STAND_INS).forEach((e) => e.remove());
+  allComments(copy).forEach((c) => c.remove());
   [copy, ...copy.querySelectorAll('[data-hrv]')].forEach((e) => e.removeAttribute('data-hrv'));
   for (const t of textsIn(copy)) t.data = t.data.replace(/\S+/g, 'fresh');
   return copy;
@@ -245,6 +257,10 @@ const EDITS = {
     });
     if (candidates.length === 0) return null;
     const at = r.pick(candidates);
+    // Its directives, and those of everything in it, go to the element that held it.
+    const owned = allComments(at.parentNode).filter((c) => within(directiveOwner(c), at));
+    owned.forEach((c) => c.remove());
+    attachComments(at.parentNode, owned);
     at.remove();
     return `<${at.localName} data-hrv="${at.getAttribute('data-hrv')}"> removed`;
   },
@@ -254,7 +270,7 @@ const EDITS = {
     );
     if (candidates.length === 0) return null;
     const at = r.pick(candidates);
-    at.before(at.nextElementSibling);
+    withDirective(at)[0].before(...withDirective(at.nextElementSibling));
     return `<${at.localName} data-hrv="${at.getAttribute('data-hrv')}"> moved down one`;
   },
   // Typed in one save: an edit, and a new element beside it. The edited one keeps a word of
@@ -266,7 +282,7 @@ const EDITS = {
     replaceWord(r, r.pick(textsIn(at)), 'yak');
     const copy = fresh(at);
     if (r.chance(0.5)) at.after(copy);
-    else at.before(copy);
+    else withDirective(at)[0].before(copy);
     return `a word in <${at.localName} data-hrv="${at.getAttribute('data-hrv')}"> is now "yak", and a new one beside it`;
   },
 };
@@ -279,6 +295,28 @@ function idsIn(nodes) {
     for (const e of [n, ...n.querySelectorAll('[data-hrv]')])
       if (e.hasAttribute('data-hrv')) lines.push(`${e.getAttribute('data-hrv')} <${e.localName}> ${e.textContent.replace(/\s+/g, '')}`);
   return lines.sort().join('\n');
+}
+
+const within = (node, el) => {
+  for (let n = node; n; n = n.parentNode) if (n === el) return true;
+  return false;
+};
+
+// Each directive in the nodes, and the ID of the element it is about (the nearest one with an ID).
+function directivesIn(nodes) {
+  const lines = [];
+  for (const n of nodes.filter((n) => n.nodeType === 1))
+    for (const c of allComments(n)) {
+      const owner = directiveOwner(c).closest?.('[data-hrv]');
+      lines.push(`${c.data.trim()} on ${owner && within(owner, n) ? owner.getAttribute('data-hrv') : 'none'}`);
+    }
+  return lines.sort().join('\n');
+}
+
+// A directive on every element with an ID, naming it.
+function directEverything(document) {
+  for (const el of document.querySelectorAll('[data-hrv]')) placeDirective(el, `d${el.getAttribute('data-hrv')}`, '@AI');
+  return document;
 }
 
 // Why saving the edited scope's markdown over the prior scope doesn't put each ID in the
@@ -294,11 +332,13 @@ function reconcileFailure(prior, edited, el, r, kind) {
     if (what === null) return null;
     const markdown = scopeMarkdown(copy);
     const saved = scopeFromMarkdown(el, markdown);
-    const [want, got] = [idsIn([copy]), idsIn(saved)];
+    const [want, got] = [`${idsIn([copy])}\n${directivesIn([copy])}`, `${idsIn(saved)}\n${directivesIn(saved)}`];
     if (want === got) return null;
     const [html, back] = [canonicalHTML(edited, [copy]), canonicalHTML(prior, saved)];
     const shape = html === back ? '' : `\n--- edited HTML\n${html}\n--- saved HTML\n${back}`;
-    return `<${el.localName} data-hrv="${id}">, ${kind}: ${what}.\n--- markdown\n${markdown}\n--- wanted\n${want}\n--- got\n${got}${shape}`;
+    const [wanted, gotten] = [want.split('\n'), got.split('\n')];
+    const only = (xs, ys) => xs.filter((x) => !ys.includes(x)).join('\n');
+    return `<${el.localName} data-hrv="${id}">, ${kind}: ${what}.\n--- markdown\n${markdown}\n--- wanted, not got\n${only(wanted, gotten)}\n--- got, not wanted\n${only(gotten, wanted)}${shape}`;
   } finally {
     copy.replaceWith(live);
   }
@@ -306,7 +346,7 @@ function reconcileFailure(prior, edited, el, r, kind) {
 
 // Every scope in the page, each edited once, the edit picked by seed(n) for the nth scope.
 function pageFailure(html, seed, kind) {
-  const [prior, edited] = [parse(html), parse(html)];
+  const [prior, edited] = [directEverything(parse(html)), directEverything(parse(html))];
   for (const [n, el] of scopeElements(prior).entries()) {
     const failure = reconcileFailure(prior, edited, el, random(seed(n)), kind);
     if (failure) return `seed ${seed(n)}: ${failure}`;
