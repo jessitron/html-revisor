@@ -1,5 +1,5 @@
 // The formatter CLI: node formatter.mjs <file>... rewrites each file in place.
-import { test } from 'node:test';
+import { after, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -11,8 +11,14 @@ import { normalize } from '../formatter.mjs';
 const formatterFile = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'formatter.mjs');
 const run = (...files) => spawnSync(process.execPath, [formatterFile, ...files], { encoding: 'utf8' });
 
+const tempDirs = [];
+after(() => {
+  for (const dir of tempDirs) fs.rmSync(dir, { recursive: true, force: true });
+});
+
 function tempFile(name, text) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'html-revisor-formatter-'));
+  tempDirs.push(dir);
   const file = path.join(dir, name);
   fs.writeFileSync(file, text);
   return file;
