@@ -5,7 +5,7 @@
     <title>html-notes — overview</title>
     <style>
   :root { --ink: #1f2328; --muted: #656d76; --line: #d0d7de; --bg: #ffffff; --card: #f6f8fa;
-    --now: #1a7f37; --dir: #8250df; --warn: #bc4c00; --accent: #0969da; }
+    --now: #1a7f37; --dir: #8250df; --warn: #bc4c00; --accent: #0969da; --pink: #d6336c; }
   @media (prefers-color-scheme: dark) {
     :root { --ink: #e6edf3; --muted: #9198a1; --line: #3d444d; --bg: #0d1117; --card: #151b23;
       --now: #3fb950; --dir: #ab7df8; --warn: #f0883e; --accent: #4493f8; }
@@ -13,7 +13,7 @@
   body { font: 16px/1.5 system-ui, sans-serif; color: var(--ink); background: var(--bg); max-width: 960px; margin: 2rem auto; padding: 0 1rem; }
   h1 { margin-bottom: 0; }
   h2 { border-bottom: 1px solid var(--line); padding-bottom: .25rem; margin-top: 2.5rem; }
-  h3 { margin: 1.5rem 0 .25rem; }
+  h3 { margin: 0 0 .25rem; font-size: 1rem; }
   .sub { color: var(--muted); margin-top: .25rem; }
   .directional { display: inline-block; font-size: .75rem; font-weight: 600; color: var(--dir); border: 1px solid var(--dir); border-radius: 999px; padding: 0 .5rem; vertical-align: middle; }
   .current { display: inline-block; font-size: .75rem; font-weight: 600; color: var(--now); border: 1px solid var(--now); border-radius: 999px; padding: 0 .5rem; vertical-align: middle; }
@@ -24,7 +24,9 @@
   svg .now { stroke: var(--now); }
   svg .dir { stroke: var(--dir); stroke-dasharray: 6 4; stroke-width: 2; }
   svg .dirtext { fill: var(--dir); }
+  svg .warntext { fill: var(--warn); }
   svg .arrow { stroke: var(--muted); fill: none; stroke-width: 1.5; }
+  svg .life { stroke: var(--line); stroke-dasharray: 4 4; }
   svg .mono { font-family: ui-monospace, monospace; }
   svg a:hover .box { fill: var(--line); }
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
@@ -32,14 +34,26 @@
   .card.dir { border: 1px dashed var(--dir); }
   code { font-family: ui-monospace, monospace; font-size: .9em; }
   pre { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: .6rem .8rem; overflow-x: auto; font-size: .85rem; margin: .25rem 0; }
+  pre .add { color: var(--now); font-weight: 600; }
   .ba { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-  .ba .label { font-size: .8rem; font-weight: 600; color: var(--muted); }
-  .detail { border-left: 3px solid var(--now); padding-left: 1rem; margin: 1.25rem 0; }
-  .detail.dir { border-left: 3px dashed var(--dir); }
+  .label { font-size: .8rem; font-weight: 600; color: var(--muted); }
+  .flowhead { font-weight: 600; margin: 1.5rem 0 .5rem; }
+  .step { display: grid; grid-template-columns: 170px 1fr; gap: 1.25rem; }
+  .rail { position: relative; padding-bottom: 1.5rem; }
+  .rail::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; border-left: 2px solid var(--line); }
+  .step:last-child .rail::before { display: none; }
+  .node { position: relative; background: var(--card); border: 1px solid var(--now); border-radius: 8px; padding: .5rem; text-align: center; font-size: .9rem; }
+  .node.end { border-color: var(--line); }
+  .node.dir { border: 2px dashed var(--dir); margin-top: .4rem; color: var(--dir); }
+  .body { padding-bottom: 1.5rem; }
+  .body .dirpart { border-left: 3px dashed var(--dir); padding-left: .75rem; margin-top: .75rem; }
   .demo p { margin: .25rem 0; }
   .hl { outline: 2px solid var(--now); outline-offset: 1px; border-radius: 2px; }
   .off { color: var(--muted); }
-  .mock { border: 1px solid var(--line); border-radius: 8px; padding: .6rem; background: var(--bg); box-shadow: 0 4px 12px rgba(0,0,0,.12); font-size: .85rem; }
+  .page { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: .75rem 1rem; position: relative; }
+  .noted { box-shadow: inset 3px 0 0 var(--pink); padding-left: .6rem; }
+  .marker { position: absolute; right: .6rem; width: 1.4rem; height: 1.4rem; border-radius: 50%; background: var(--pink); color: #fff; text-align: center; font-size: .8rem; line-height: 1.4rem; }
+  .mock { border: 1px solid var(--line); border-radius: 8px; padding: .6rem; background: var(--bg); box-shadow: 0 4px 12px rgba(0,0,0,.12); font-size: .85rem; margin-top: .5rem; }
   .mock .field { border: 1px solid var(--line); border-radius: 4px; padding: .4rem; margin: .2rem 0 .5rem; font-family: ui-monospace, monospace; min-height: 1.5rem; }
   .mock .field.big { min-height: 3.5rem; border-color: var(--dir); }
   .mock .btns { text-align: right; color: var(--muted); }
@@ -52,12 +66,12 @@
   <body>
     <h1>html-notes</h1>
     <p class="sub">
-      A human and an agent trade turns on an HTML page. The human comments and edits in the browser; everything lands in the file.
+      A human and an agent trade turns on an HTML page. The human leaves directives and edits prose in the browser; everything lands in the file.
     </p>
     <section id="loop">
       <h2>What it's for</h2>
       <svg viewBox="0 0 900 260" role="img" aria-label="The turn-taking loop">
-        <defs> <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"> <path d="M0 0 L10 5 L0 10 z" fill="#888"></path> </marker> </defs> <rect class="box" x="20" y="90" width="170" height="80" rx="10"></rect> <text x="105" y="125" text-anchor="middle" font-size="22">🤖 agent</text> <text x="105" y="150" text-anchor="middle" font-size="13" class="muted">writes, then reads the diff</text> <rect class="box" x="365" y="90" width="170" height="80" rx="10"></rect> <text x="450" y="125" text-anchor="middle" font-size="18" class="mono">OVERVIEW.html</text> <text x="450" y="150" text-anchor="middle" font-size="13" class="muted">the only record</text> <rect class="box" x="710" y="90" width="170" height="80" rx="10"></rect> <text x="795" y="125" text-anchor="middle" font-size="22">👩🏽‍🦱 human</text> <text x="795" y="150" text-anchor="middle" font-size="13" class="muted">in the browser</text> <path class="arrow" d="M190 110 Q280 60 365 110" marker-end="url(#ah)"></path> <text x="278" y="62" text-anchor="middle" font-size="13">agent generates</text> <path class="arrow" d="M365 150 Q280 200 190 150" marker-end="url(#ah)"></path> <text x="278" y="215" text-anchor="middle" font-size="13">grep notes · git diff</text> <path class="arrow" d="M535 110 Q620 60 710 110" marker-end="url(#ah)"></path> <text x="622" y="62" text-anchor="middle" font-size="13">html-notes formats, serves</text> <path class="arrow" d="M710 150 Q620 200 535 150" marker-end="url(#ah)"></path> <text x="622" y="215" text-anchor="middle" font-size="13">comments + prose edits</text> <text x="450" y="250" text-anchor="middle" font-size="13" class="muted">The tool owns the file's shape: it may reformat, restrict, and rewrite it in place.</text>
+        <defs> <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"> <path d="M0 0 L10 5 L0 10 z" fill="#888"></path> </marker> </defs> <rect class="box" x="20" y="90" width="170" height="80" rx="10"></rect> <text x="105" y="125" text-anchor="middle" font-size="22">🤖 agent</text> <text x="105" y="150" text-anchor="middle" font-size="13" class="muted">writes, then reads the diff</text> <rect class="box" x="365" y="90" width="170" height="80" rx="10"></rect> <text x="450" y="125" text-anchor="middle" font-size="18" class="mono">OVERVIEW.html</text> <text x="450" y="150" text-anchor="middle" font-size="13" class="muted">the only record</text> <rect class="box" x="710" y="90" width="170" height="80" rx="10"></rect> <text x="795" y="125" text-anchor="middle" font-size="22">👩🏽‍🦱 human</text> <text x="795" y="150" text-anchor="middle" font-size="13" class="muted">in the browser</text> <path class="arrow" d="M190 110 Q280 60 365 110" marker-end="url(#ah)"></path> <text x="278" y="62" text-anchor="middle" font-size="13">agent generates</text> <path class="arrow" d="M365 150 Q280 200 190 150" marker-end="url(#ah)"></path> <text x="278" y="215" text-anchor="middle" font-size="13">grep directives · git diff</text> <path class="arrow" d="M535 110 Q620 60 710 110" marker-end="url(#ah)"></path> <text x="622" y="62" text-anchor="middle" font-size="13">html-notes formats, serves</text> <path class="arrow" d="M710 150 Q620 200 535 150" marker-end="url(#ah)"></path> <text x="622" y="215" text-anchor="middle" font-size="13">directives + prose edits</text> <text x="450" y="250" text-anchor="middle" font-size="13" class="muted">The tool owns the file's shape: it may reformat, restrict, and rewrite it in place.</text>
       </svg>
     </section>
     <section id="direction">
@@ -66,7 +80,7 @@
         Where it's headed
       </h2>
       <svg viewBox="0 0 900 250" role="img" aria-label="Journey from today to the safe harbor">
-        <path d="M40 170 C160 170 160 80 300 80 S460 170 580 150 S720 70 800 110" fill="none" stroke="var(--line)" stroke-width="10" stroke-linecap="round"></path> <a href="#architecture-now"> <circle cx="40" cy="170" r="12" fill="var(--now)"></circle> <text x="40" y="205" text-anchor="start" font-size="14" font-weight="600">Today</text> <text x="20" y="222" font-size="12" class="muted">comment on anything,</text> <text x="20" y="238" font-size="12" class="muted">edit text-only elements</text> </a> <a href="#d-format"> <circle cx="250" cy="86" r="10" fill="var(--bg)" stroke="var(--dir)" stroke-width="3"></circle> <text x="250" y="28" text-anchor="middle" font-size="14" font-weight="600">Format stands alone</text> <text x="250" y="45" text-anchor="middle" font-size="12" class="muted">the agent runs it and fixes</text> <text x="250" y="61" text-anchor="middle" font-size="12" class="muted">errors before you open the page</text> </a> <a href="#d-prose"> <circle cx="440" cy="150" r="10" fill="var(--bg)" stroke="var(--dir)" stroke-width="3"></circle> <text x="440" y="190" text-anchor="middle" font-size="14" font-weight="600">Prose edits as markdown</text> <text x="440" y="207" text-anchor="middle" font-size="12" class="muted">click a paragraph with bold or a link,</text> <text x="440" y="223" text-anchor="middle" font-size="12" class="muted">edit all of it at once</text> </a> <a href="#d-ids"> <circle cx="640" cy="120" r="10" fill="var(--bg)" stroke="var(--dir)" stroke-width="3"></circle> <text x="640" y="63" text-anchor="middle" font-size="14" font-weight="600">New element IDs</text> <text x="640" y="80" text-anchor="middle" font-size="12" class="muted">an ID per chunk, not per tag;</text> <text x="640" y="96" text-anchor="middle" font-size="12" class="muted">maybe written into the file</text> </a> <text x="830" y="100" text-anchor="middle" font-size="40">⚓</text> <text x="830" y="140" text-anchor="middle" font-size="14" font-weight="600">Safe harbor</text> <text x="830" y="157" text-anchor="middle" font-size="12" class="muted">it works, and it's</text> <text x="830" y="172" text-anchor="middle" font-size="12" class="muted">copied into</text> <text x="830" y="187" text-anchor="middle" font-size="12" class="muted mono">iterate-on-docs</text>
+        <path d="M40 170 C160 170 160 80 300 80 S460 170 580 150 S720 70 800 110" fill="none" stroke="var(--line)" stroke-width="10" stroke-linecap="round"></path> <a href="#architecture-now"> <circle cx="40" cy="170" r="12" fill="var(--now)"></circle> <text x="40" y="205" text-anchor="start" font-size="14" font-weight="600">Today</text> <text x="20" y="222" font-size="12" class="muted">a directive on anything,</text> <text x="20" y="238" font-size="12" class="muted">edit text-only elements</text> </a> <a href="#d-normalize"> <circle cx="250" cy="86" r="10" fill="var(--bg)" stroke="var(--dir)" stroke-width="3"></circle> <text x="250" y="28" text-anchor="middle" font-size="14" font-weight="600">Format stands alone</text> <text x="250" y="45" text-anchor="middle" font-size="12" class="muted">the agent runs it and fixes</text> <text x="250" y="61" text-anchor="middle" font-size="12" class="muted">errors before you open the page</text> </a> <a href="#d-texts"> <circle cx="440" cy="150" r="10" fill="var(--bg)" stroke="var(--dir)" stroke-width="3"></circle> <text x="440" y="190" text-anchor="middle" font-size="14" font-weight="600">Prose edits as markdown</text> <text x="440" y="207" text-anchor="middle" font-size="12" class="muted">click a paragraph with bold or a link,</text> <text x="440" y="223" text-anchor="middle" font-size="12" class="muted">edit all of it at once</text> </a> <a href="#d-stamp"> <circle cx="640" cy="120" r="10" fill="var(--bg)" stroke="var(--dir)" stroke-width="3"></circle> <text x="640" y="63" text-anchor="middle" font-size="14" font-weight="600">New element IDs</text> <text x="640" y="80" text-anchor="middle" font-size="12" class="muted">an ID per prose chunk, not per tag;</text> <text x="640" y="96" text-anchor="middle" font-size="12" class="muted">maybe written into the file</text> </a> <text x="830" y="100" text-anchor="middle" font-size="40">⚓</text> <text x="830" y="140" text-anchor="middle" font-size="14" font-weight="600">Safe harbor</text> <text x="830" y="157" text-anchor="middle" font-size="12" class="muted">it works, and it's</text> <text x="830" y="172" text-anchor="middle" font-size="12" class="muted">copied into</text> <text x="830" y="187" text-anchor="middle" font-size="12" class="muted mono">iterate-on-docs</text>
       </svg>
       <p class="sub">
         Hollow stops are <span class="directional">directional</span>. Order is loose; the ID scheme comes with prose editing. ⌘-click a stop for detail.
@@ -75,41 +89,51 @@
     <section id="architecture-now">
       <h2>Architecture now</h2>
       <svg viewBox="0 0 900 370" role="img" aria-label="GET and PUT pipelines through server.mjs">
-        <text x="20" y="28" font-size="15" font-weight="600">GET page.html</text> <rect class="box" x="20" y="45" width="120" height="50" rx="8"></rect> <text x="80" y="75" text-anchor="middle" font-size="13">file on disk</text> <a href="#d-normalize"> <rect class="box now" x="170" y="45" width="130" height="50" rx="8"></rect> <text x="235" y="67" text-anchor="middle" font-size="13">parse, normalize</text> <text x="235" y="84" text-anchor="middle" font-size="11" class="muted">rewrites disk if changed</text> </a> <a href="#d-stamp"> <rect class="box now" x="330" y="45" width="130" height="50" rx="8"></rect> <text x="395" y="67" text-anchor="middle" font-size="13">stamp IDs</text> <text x="395" y="84" text-anchor="middle" font-size="11" class="muted mono">data-n = 0,1,2…</text> </a> <a href="#d-lift"> <rect class="box now" x="490" y="45" width="130" height="50" rx="8"></rect> <text x="555" y="67" text-anchor="middle" font-size="13">lift notes</text> <text x="555" y="84" text-anchor="middle" font-size="11" class="muted">comments → JSON</text> </a> <a href="#d-inject"> <rect class="box now" x="650" y="45" width="110" height="50" rx="8"></rect> <text x="705" y="67" text-anchor="middle" font-size="13">inject client</text> <text x="705" y="84" text-anchor="middle" font-size="11" class="muted">+ version hash</text> </a> <rect class="box" x="790" y="45" width="95" height="50" rx="8"></rect> <text x="837" y="75" text-anchor="middle" font-size="13">browser</text> <path class="arrow" d="M140 70 H168" marker-end="url(#ah)"></path> <path class="arrow" d="M300 70 H328" marker-end="url(#ah)"></path> <path class="arrow" d="M460 70 H488" marker-end="url(#ah)"></path> <path class="arrow" d="M620 70 H648" marker-end="url(#ah)"></path> <path class="arrow" d="M760 70 H788" marker-end="url(#ah)"></path> <text x="20" y="143" font-size="15" font-weight="600">PUT page.html <tspan class="mono muted" font-size="12">{notes, texts, version}</tspan></text> <text x="885" y="143" text-anchor="end" font-size="11" class="muted">sent 0.4 s after you stop typing</text> <rect class="box" x="790" y="160" width="95" height="50" rx="8"></rect> <text x="837" y="190" text-anchor="middle" font-size="13">browser</text> <a href="#d-version"> <rect class="box now" x="650" y="160" width="110" height="50" rx="8"></rect> <text x="705" y="182" text-anchor="middle" font-size="13">version check</text> <text x="705" y="199" text-anchor="middle" font-size="11" class="muted">stale → 409</text> </a> <a href="#d-texts"> <rect class="box now" x="490" y="160" width="130" height="50" rx="8"></rect> <text x="555" y="182" text-anchor="middle" font-size="13">set texts</text> <text x="555" y="199" text-anchor="middle" font-size="11" class="muted">text-only elements</text> </a> <a href="#d-place"> <rect class="box now" x="330" y="160" width="130" height="50" rx="8"></rect> <text x="395" y="182" text-anchor="middle" font-size="13">place notes</text> <text x="395" y="199" text-anchor="middle" font-size="11" class="muted">all of them, by ID</text> </a> <a href="#d-serialize"> <rect class="box now" x="170" y="160" width="130" height="50" rx="8"></rect> <text x="235" y="182" text-anchor="middle" font-size="13">serialize</text> <text x="235" y="199" text-anchor="middle" font-size="11" class="muted">canonical format</text> </a> <rect class="box" x="20" y="160" width="120" height="50" rx="8"></rect> <text x="80" y="190" text-anchor="middle" font-size="13">file on disk</text> <path class="arrow" d="M790 185 H762" marker-end="url(#ah)"></path> <path class="arrow" d="M650 185 H622" marker-end="url(#ah)"></path> <path class="arrow" d="M490 185 H462" marker-end="url(#ah)"></path> <path class="arrow" d="M330 185 H302" marker-end="url(#ah)"></path> <path class="arrow" d="M170 185 H142" marker-end="url(#ah)"></path> <rect x="170" y="250" width="590" height="106" rx="8" fill="none" stroke="var(--line)"></rect> <text x="185" y="274" font-size="13" font-weight="600" class="mono">server.mjs</text> <text x="185" y="298" font-size="12"><tspan font-weight="600">I · orchestration</tspan> CLI, routing, the GET and PUT flows</text> <text x="185" y="318" font-size="12"><tspan font-weight="600">II · domain</tspan> formatter, notes, text edits, element IDs</text> <text x="185" y="338" font-size="12"><tspan font-weight="600">III · interface</tspan> filesystem gateway, client assets</text> <text x="745" y="274" text-anchor="end" font-size="11" class="muted">parser: vendor/linkedom.mjs</text>
+        <text x="20" y="28" font-size="15" font-weight="600">GET page.html</text> <rect class="box" x="20" y="45" width="120" height="50" rx="8"></rect> <text x="80" y="75" text-anchor="middle" font-size="13">file on disk</text> <a href="#d-normalize"> <rect class="box now" x="170" y="45" width="130" height="50" rx="8"></rect> <text x="235" y="67" text-anchor="middle" font-size="13">parse, normalize</text> <text x="235" y="84" text-anchor="middle" font-size="11" class="muted">rewrites disk if changed</text> </a> <a href="#d-stamp"> <rect class="box now" x="330" y="45" width="130" height="50" rx="8"></rect> <text x="395" y="67" text-anchor="middle" font-size="13">stamp IDs</text> <text x="395" y="84" text-anchor="middle" font-size="11" class="muted mono">data-n = 0,1,2…</text> </a> <a href="#d-lift"> <rect class="box now" x="490" y="45" width="130" height="50" rx="8"></rect> <text x="555" y="67" text-anchor="middle" font-size="13">lift directives</text> <text x="555" y="84" text-anchor="middle" font-size="11" class="muted">HTML comments → JSON</text> </a> <a href="#d-inject"> <rect class="box now" x="650" y="45" width="110" height="50" rx="8"></rect> <text x="705" y="67" text-anchor="middle" font-size="13">inject client</text> <text x="705" y="84" text-anchor="middle" font-size="11" class="muted">+ version hash</text> </a> <rect class="box" x="790" y="45" width="95" height="50" rx="8"></rect> <text x="837" y="75" text-anchor="middle" font-size="13">browser</text> <path class="arrow" d="M140 70 H168" marker-end="url(#ah)"></path> <path class="arrow" d="M300 70 H328" marker-end="url(#ah)"></path> <path class="arrow" d="M460 70 H488" marker-end="url(#ah)"></path> <path class="arrow" d="M620 70 H648" marker-end="url(#ah)"></path> <path class="arrow" d="M760 70 H788" marker-end="url(#ah)"></path> <text x="20" y="143" font-size="15" font-weight="600">PUT page.html <tspan class="mono muted" font-size="12">{directives, texts, version}</tspan></text> <text x="885" y="143" text-anchor="end" font-size="11" class="muted">sent 0.4 s after you stop typing</text> <rect class="box" x="790" y="160" width="95" height="50" rx="8"></rect> <text x="837" y="190" text-anchor="middle" font-size="13">browser</text> <a href="#d-version"> <rect class="box now" x="650" y="160" width="110" height="50" rx="8"></rect> <text x="705" y="182" text-anchor="middle" font-size="13">version check</text> <text x="705" y="199" text-anchor="middle" font-size="11" class="muted">stale → 409</text> </a> <a href="#d-texts"> <rect class="box now" x="490" y="160" width="130" height="50" rx="8"></rect> <text x="555" y="182" text-anchor="middle" font-size="13">set texts</text> <text x="555" y="199" text-anchor="middle" font-size="11" class="muted">text-only elements</text> </a> <a href="#d-place"> <rect class="box now" x="330" y="160" width="130" height="50" rx="8"></rect> <text x="395" y="182" text-anchor="middle" font-size="13">place directives</text> <text x="395" y="199" text-anchor="middle" font-size="11" class="muted">all of them, by ID</text> </a> <a href="#d-serialize"> <rect class="box now" x="170" y="160" width="130" height="50" rx="8"></rect> <text x="235" y="182" text-anchor="middle" font-size="13">serialize</text> <text x="235" y="199" text-anchor="middle" font-size="11" class="muted">canonical format</text> </a> <rect class="box" x="20" y="160" width="120" height="50" rx="8"></rect> <text x="80" y="190" text-anchor="middle" font-size="13">file on disk</text> <path class="arrow" d="M790 185 H762" marker-end="url(#ah)"></path> <path class="arrow" d="M650 185 H622" marker-end="url(#ah)"></path> <path class="arrow" d="M490 185 H462" marker-end="url(#ah)"></path> <path class="arrow" d="M330 185 H302" marker-end="url(#ah)"></path> <path class="arrow" d="M170 185 H142" marker-end="url(#ah)"></path> <rect x="170" y="250" width="590" height="106" rx="8" fill="none" stroke="var(--line)"></rect> <text x="185" y="274" font-size="13" font-weight="600" class="mono">server.mjs</text> <text x="185" y="298" font-size="12"><tspan font-weight="600">I · orchestration</tspan> CLI, routing, the GET and PUT flows</text> <text x="185" y="318" font-size="12"><tspan font-weight="600">II · domain</tspan> formatter, directives, text edits, element IDs</text> <text x="185" y="338" font-size="12"><tspan font-weight="600">III · interface</tspan> filesystem gateway, client assets</text> <text x="745" y="274" text-anchor="end" font-size="11" class="muted">parser: vendor/linkedom.mjs</text>
       </svg>
-      <p class="sub">⌘-click a box for detail. (A plain click comments on it.)</p>
+      <p class="sub">
+        ⌘-click a box for its step below. (A plain click opens a directive box.)
+      </p>
     </section>
     <section id="architecture-direction">
       <h2>Architecture direction <span class="directional">directional</span></h2>
       <svg viewBox="0 0 900 290" role="img" aria-label="Planned GET and PUT pipelines, changes dashed">
-        <text x="20" y="28" font-size="15" font-weight="600">GET page.html</text> <rect class="box" x="20" y="45" width="120" height="50" rx="8"></rect> <text x="80" y="75" text-anchor="middle" font-size="13">file on disk</text> <a href="#d-format"> <rect class="box dir" x="170" y="45" width="130" height="50" rx="8"></rect> <text x="235" y="67" text-anchor="middle" font-size="13">format</text> <text x="235" y="84" text-anchor="middle" font-size="11" class="dirtext">normalize + validate</text> </a> <a href="#d-ids"> <rect class="box dir" x="330" y="45" width="130" height="50" rx="8"></rect> <text x="395" y="67" text-anchor="middle" font-size="13">assign IDs</text> <text x="395" y="84" text-anchor="middle" font-size="11" class="dirtext">one per chunk</text> </a> <a href="#d-lift"> <rect class="box now" x="490" y="45" width="130" height="50" rx="8"></rect> <text x="555" y="67" text-anchor="middle" font-size="13">lift notes</text> <text x="555" y="84" text-anchor="middle" font-size="11" class="muted">comments → JSON</text> </a> <a href="#d-prose"> <rect class="box dir" x="650" y="45" width="110" height="50" rx="8"></rect> <text x="705" y="67" text-anchor="middle" font-size="13">inject client</text> <text x="705" y="84" text-anchor="middle" font-size="11" class="dirtext">+ markdown editor</text> </a> <rect class="box" x="790" y="45" width="95" height="50" rx="8"></rect> <text x="837" y="75" text-anchor="middle" font-size="13">browser</text> <path class="arrow" d="M140 70 H168" marker-end="url(#ah)"></path> <path class="arrow" d="M300 70 H328" marker-end="url(#ah)"></path> <path class="arrow" d="M460 70 H488" marker-end="url(#ah)"></path> <path class="arrow" d="M620 70 H648" marker-end="url(#ah)"></path> <path class="arrow" d="M760 70 H788" marker-end="url(#ah)"></path> <text x="235" y="118" text-anchor="middle" font-size="12" class="dirtext">↑ 🤖 agent runs format too</text> <text x="20" y="168" font-size="15" font-weight="600">PUT page.html <tspan class="mono muted" font-size="12">{notes, </tspan><tspan class="mono dirtext" font-size="12">prose</tspan><tspan class="mono muted" font-size="12">, version}</tspan></text> <rect class="box" x="790" y="185" width="95" height="50" rx="8"></rect> <text x="837" y="215" text-anchor="middle" font-size="13">browser</text> <a href="#d-version"> <rect class="box now" x="650" y="185" width="110" height="50" rx="8"></rect> <text x="705" y="207" text-anchor="middle" font-size="13">version check</text> <text x="705" y="224" text-anchor="middle" font-size="11" class="muted">stale → 409</text> </a> <a href="#d-prose"> <rect class="box dir" x="490" y="185" width="130" height="50" rx="8"></rect> <text x="555" y="207" text-anchor="middle" font-size="13">set prose</text> <text x="555" y="224" text-anchor="middle" font-size="11" class="dirtext">markdown → HTML</text> </a> <a href="#d-place"> <rect class="box now" x="330" y="185" width="130" height="50" rx="8"></rect> <text x="395" y="207" text-anchor="middle" font-size="13">place notes</text> <text x="395" y="224" text-anchor="middle" font-size="11" class="muted">all of them, by ID</text> </a> <a href="#d-serialize"> <rect class="box now" x="170" y="185" width="130" height="50" rx="8"></rect> <text x="235" y="207" text-anchor="middle" font-size="13">serialize</text> <text x="235" y="224" text-anchor="middle" font-size="11" class="muted">canonical format</text> </a> <rect class="box" x="20" y="185" width="120" height="50" rx="8"></rect> <text x="80" y="215" text-anchor="middle" font-size="13">file on disk</text> <path class="arrow" d="M790 210 H762" marker-end="url(#ah)"></path> <path class="arrow" d="M650 210 H622" marker-end="url(#ah)"></path> <path class="arrow" d="M490 210 H462" marker-end="url(#ah)"></path> <path class="arrow" d="M330 210 H302" marker-end="url(#ah)"></path> <path class="arrow" d="M170 210 H142" marker-end="url(#ah)"></path> <text x="450" y="275" text-anchor="middle" font-size="12" class="muted">Dashed purple = changes from today. Solid green = stays.</text>
+        <text x="20" y="28" font-size="15" font-weight="600">GET page.html</text> <rect class="box" x="20" y="45" width="120" height="50" rx="8"></rect> <text x="80" y="75" text-anchor="middle" font-size="13">file on disk</text> <a href="#d-normalize"> <rect class="box dir" x="170" y="45" width="130" height="50" rx="8"></rect> <text x="235" y="67" text-anchor="middle" font-size="13">format</text> <text x="235" y="84" text-anchor="middle" font-size="11" class="dirtext">normalize + validate</text> </a> <a href="#d-stamp"> <rect class="box dir" x="330" y="45" width="130" height="50" rx="8"></rect> <text x="395" y="67" text-anchor="middle" font-size="13">assign IDs</text> <text x="395" y="84" text-anchor="middle" font-size="11" class="dirtext">one per prose chunk</text> </a> <a href="#d-lift"> <rect class="box now" x="490" y="45" width="130" height="50" rx="8"></rect> <text x="555" y="67" text-anchor="middle" font-size="13">lift directives</text> <text x="555" y="84" text-anchor="middle" font-size="11" class="muted">HTML comments → JSON</text> </a> <a href="#d-inject"> <rect class="box dir" x="650" y="45" width="110" height="50" rx="8"></rect> <text x="705" y="67" text-anchor="middle" font-size="13">inject client</text> <text x="705" y="84" text-anchor="middle" font-size="11" class="dirtext">+ markdown editor</text> </a> <rect class="box" x="790" y="45" width="95" height="50" rx="8"></rect> <text x="837" y="75" text-anchor="middle" font-size="13">browser</text> <path class="arrow" d="M140 70 H168" marker-end="url(#ah)"></path> <path class="arrow" d="M300 70 H328" marker-end="url(#ah)"></path> <path class="arrow" d="M460 70 H488" marker-end="url(#ah)"></path> <path class="arrow" d="M620 70 H648" marker-end="url(#ah)"></path> <path class="arrow" d="M760 70 H788" marker-end="url(#ah)"></path> <text x="235" y="118" text-anchor="middle" font-size="12" class="dirtext">↑ 🤖 agent runs format too</text> <text x="20" y="168" font-size="15" font-weight="600">PUT page.html <tspan class="mono muted" font-size="12">{directives, </tspan><tspan class="mono dirtext" font-size="12">prose</tspan><tspan class="mono muted" font-size="12">, version}</tspan></text> <rect class="box" x="790" y="185" width="95" height="50" rx="8"></rect> <text x="837" y="215" text-anchor="middle" font-size="13">browser</text> <a href="#d-version"> <rect class="box now" x="650" y="185" width="110" height="50" rx="8"></rect> <text x="705" y="207" text-anchor="middle" font-size="13">version check</text> <text x="705" y="224" text-anchor="middle" font-size="11" class="muted">stale → 409</text> </a> <a href="#d-texts"> <rect class="box dir" x="490" y="185" width="130" height="50" rx="8"></rect> <text x="555" y="207" text-anchor="middle" font-size="13">set prose</text> <text x="555" y="224" text-anchor="middle" font-size="11" class="dirtext">markdown → HTML</text> </a> <a href="#d-place"> <rect class="box now" x="330" y="185" width="130" height="50" rx="8"></rect> <text x="395" y="207" text-anchor="middle" font-size="13">place directives</text> <text x="395" y="224" text-anchor="middle" font-size="11" class="muted">all of them, by ID</text> </a> <a href="#d-serialize"> <rect class="box now" x="170" y="185" width="130" height="50" rx="8"></rect> <text x="235" y="207" text-anchor="middle" font-size="13">serialize</text> <text x="235" y="224" text-anchor="middle" font-size="11" class="muted">canonical format</text> </a> <rect class="box" x="20" y="185" width="120" height="50" rx="8"></rect> <text x="80" y="215" text-anchor="middle" font-size="13">file on disk</text> <path class="arrow" d="M790 210 H762" marker-end="url(#ah)"></path> <path class="arrow" d="M650 210 H622" marker-end="url(#ah)"></path> <path class="arrow" d="M490 210 H462" marker-end="url(#ah)"></path> <path class="arrow" d="M330 210 H302" marker-end="url(#ah)"></path> <path class="arrow" d="M170 210 H142" marker-end="url(#ah)"></path> <text x="450" y="275" text-anchor="middle" font-size="12" class="muted">Dashed purple = changes from today. Solid green = stays.</text>
       </svg>
     </section>
     <section id="details">
-      <h2>
-        <!-- @AI: The sections in here are just a list, let's put them in context. Can there be a column on the left that matches the architecture diagram above, so that I can see where each one fits?
-
-Then the GET steps and the PUT steps will be separated and it'll be clear what goes with what.
-The diagram above becomes a short version of a tall one down here. (If that works) -->
-        Step by step
-      </h2>
-      <div class="detail" id="d-normalize">
-        <!-- @AI: this is so good! -->
-        <h3>parse, normalize</h3>
-        <p>
-          Parse with linkedom, then rewrite into one canonical shape: add <code>html/head/body</code> if missing, one block per line, inline runs on one line, whitespace collapsed, two-space indent. Idempotent. GET writes the result to disk when it differs.
-        </p>
-        <div class="ba">
-          <div>
-            <div class="label">on disk, before</div>
-            <pre>&lt;h1&gt;Plan&lt;/h1&gt;
+      <h2>Step by step</h2>
+      <p class="sub">
+        The diagrams above, stood on end. Green: today. Dashed purple: <span class="directional">directional</span>.
+      </p>
+      <div class="flowhead">GET page.html</div>
+      <div class="flow">
+        <div class="step">
+          <div class="rail">
+            <div class="node end">file on disk</div>
+          </div>
+          <div class="body"></div>
+        </div>
+        <div class="step" id="d-normalize">
+          <div class="rail">
+            <div class="node">parse, normalize</div>
+            <div class="node dir">format</div>
+          </div>
+          <div class="body">
+            <p>
+              Parse with linkedom, rewrite into canonical shape: add <code>html/head/body</code> if missing, one block per line, inline runs on one line, whitespace collapsed, two-space indent. Idempotent. Writes to disk when it differs.
+            </p>
+            <div class="ba">
+              <div>
+                <div class="label">on disk, before</div>
+                <pre>&lt;h1&gt;Plan&lt;/h1&gt;
 &lt;p&gt;Ship   the &lt;b&gt;formatter&lt;/b&gt;
 first.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;one&lt;/li&gt;&lt;li&gt;two&lt;/li&gt;&lt;/ul&gt;
 &lt;img src="map.png"&gt;</pre>
-          </div>
-          <div>
-            <div class="label">on disk, after</div>
-            <pre>&lt;!DOCTYPE html&gt;
+              </div>
+              <div>
+                <div class="label">on disk, after</div>
+                <pre>&lt;!DOCTYPE html&gt;
 &lt;html&gt;
   &lt;head&gt;&lt;/head&gt;
   &lt;body&gt;
@@ -122,132 +146,202 @@ first.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;one&lt;/li&gt;&lt;li&gt;two&lt;/li&gt;&lt;/u
     &lt;img src="map.png"&gt;
   &lt;/body&gt;
 &lt;/html&gt;</pre>
+              </div>
+            </div>
+            <div class="dirpart" id="d-format">
+              <h3>format <span class="directional">directional</span></h3>
+              <p>
+                Normalize becomes its own command. The agent runs it after writing the page and fixes what it reports, before the human opens it. GET runs the same code. Validation rules are still to be chosen; one example:
+              </p>
+              <pre>$ html-notes format OVERVIEW.html
+OVERVIEW.html:42  &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing content only</pre>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="detail" id="d-stamp">
-        <!-- @AI: note that this one is "served" - I like how you distinguish between that and on disl -->
-        <h3>stamp IDs</h3>
-        <p>
-          Every element gets an <strong>element ID</strong>: <code>data-n</code>, its index in document order. Only in the served copy; never written to disk. Comments are not elements, so adding a note shifts no ID.
-        </p>
-        <pre>&lt;h1 data-n="3"&gt;Plan&lt;/h1&gt;
+        <div class="step" id="d-stamp">
+          <div class="rail">
+            <div class="node">stamp IDs</div>
+            <div class="node dir">assign IDs</div>
+          </div>
+          <div class="body">
+            <p>
+              Every element gets an <strong>element ID</strong>, <code>data-n</code>: its index in document order. Served copy only. HTML comments are not elements, so adding a directive shifts no ID.
+            </p>
+            <div class="label">served</div>
+            <pre>&lt;h1 data-n="3"&gt;Plan&lt;/h1&gt;
 &lt;p data-n="4"&gt;Ship the &lt;b data-n="5"&gt;formatter&lt;/b&gt; first.&lt;/p&gt;
 &lt;ul data-n="6"&gt;
   &lt;li data-n="7"&gt;one&lt;/li&gt;
   &lt;li data-n="8"&gt;two&lt;/li&gt;
 &lt;/ul&gt;
 &lt;img data-n="9" src="map.png"&gt;</pre>
-      </div>
-      <div class="detail" id="d-lift">
-        <h3>lift notes</h3>
-        <p>
-          <!-- @AI: show what it looks like in the browser -->
-          Notes come out of the served copy and travel as JSON keyed by element ID. The browser draws them as markers.
-        </p>
-        <div class="ba">
-          <div>
-            <div class="label">on disk</div>
-            <pre>&lt;p&gt;
+            <div class="dirpart" id="d-ids">
+              <h3>assign IDs <span class="directional">directional</span></h3>
+              <p>
+                One ID per prose chunk, not per tag. Open: write IDs into the file? Longer file, but the agent sees the IDs the browser uses.
+              </p>
+              <div class="label">served, headed</div>
+              <pre>&lt;p data-n="4"&gt;Ship the &lt;b&gt;formatter&lt;/b&gt; first.&lt;/p&gt;
+&lt;ul data-n="5"&gt;&lt;li&gt;one&lt;/li&gt;&lt;li&gt;two&lt;/li&gt;&lt;/ul&gt;</pre>
+            </div>
+          </div>
+        </div>
+        <div class="step" id="d-lift">
+          <div class="rail">
+            <div class="node">lift directives</div>
+          </div>
+          <div class="body">
+            <div class="ba">
+              <div>
+                <div class="label">on disk</div>
+                <pre>&lt;p&gt;
   &lt;!-- @AI: say why first --&gt;
   Ship the &lt;b&gt;formatter&lt;/b&gt; first.
 &lt;/p&gt;</pre>
-          </div>
-          <div>
-            <div class="label">served</div>
-            <!-- @AI: I'm a little confused by the loose JSON in script. There's a level of detail in the attributes that makes me expect JS I understand ... or is there a clever way to pull JS objects out of script blocks when they're just like this? I am interested -->
-            <pre>&lt;p data-n="4"&gt;Ship the …&lt;/p&gt;
+              </div>
+              <div>
+                <div class="label">served</div>
+                <pre>&lt;p data-n="4"&gt;Ship the …&lt;/p&gt;
 …
-&lt;script type="application/json" id="hn-notes"
-        data-version="3f9a0c1b2d4e"&gt;
+&lt;script type="application/json"
+        id="hn-directives"&gt;
   {"4":"say why first"}
 &lt;/script&gt;</pre>
+              </div>
+            </div>
+            <p class="sub">
+              A <code>type="application/json"</code> script never runs. The client reads it with <code>JSON.parse(el.textContent)</code>.
+            </p>
+            <div class="label">in the browser</div>
+            <div class="page">
+              <span class="marker">✎</span>
+              <p class="noted">Ship the <b>formatter</b> first.</p>
+            </div>
           </div>
         </div>
+        <div class="step" id="d-inject">
+          <div class="rail">
+            <div class="node">inject client</div>
+            <div class="node dir">+ markdown editor</div>
+          </div>
+          <div class="body">
+            <div class="label">served</div>
+            <pre>&lt;html&gt;
+  &lt;head&gt;
+    … the page's head …
+<span class="add">    &lt;style&gt; hover, markers, box &lt;/style&gt;</span>
+  &lt;/head&gt;
+  &lt;body&gt;
+    … the page, stamped …
+<span class="add">    &lt;script type="application/json" id="hn-directives"
+            data-version="3f9a0c1b2d4e"&gt; {…} &lt;/script&gt;
+    &lt;script&gt; hover · click · box · PUT &lt;/script&gt;</span>
+  &lt;/body&gt;
+&lt;/html&gt;</pre>
+            <p class="sub">
+              Added after stamping, so none of it gets an ID. <code>data-version</code>: hash of the file bytes.
+            </p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="rail">
+            <div class="node end">browser</div>
+          </div>
+          <div class="body"></div>
+        </div>
       </div>
-      <div class="detail" id="d-inject">
-        <h3>inject client</h3>
-        <p>
-          <!-- @AI: fewer words, more diagram! make some pseudohtml maybe -->
-          Appended to the served copy after stamping, so none of it gets an ID: a <code>&lt;style&gt;</code> in head; the notes JSON and the client <code>&lt;script&gt;</code> at the end of body. <code>data-version</code> is a hash of the file bytes.
-        </p>
-      </div>
-      <div class="detail" id="d-version">
-        <h3>version check</h3>
-        <p>
-          <!-- @AI: diagram please. The text is fine as a supplement -->
-          Every PUT carries the version the page loaded with. If the file changed on disk since, the server answers 409 and writes nothing; the tab shows a lasting warning. The client saves 0.4 s after you stop typing, so you hear about it fast.
-        </p>
-      </div>
-      <div class="detail" id="d-texts">
-        <h3>set texts <span class="current">current</span></h3>
-        <p>
-          Only for elements whose children are all text. Anything with markup inside gets a comment box only.
-        </p>
-        <pre>texts: {"3": "Plan B"}     &lt;h1&gt;Plan&lt;/h1&gt;  →  &lt;h1&gt;Plan B&lt;/h1&gt;
-texts: {"4": "…"}          &lt;p&gt;Ship the &lt;b&gt;…  →  refused, unchanged</pre>
-      </div>
-      <div class="detail" id="d-place">
-        <h3>place notes</h3>
-        <p>
-          The PUT carries every note on the page, so the server removes all notes and writes them back. A note is the element's first child; before a void or raw-text element (<code>img</code>, <code>hr</code>, <code>pre</code>…) it sits just ahead as a sibling.
-        </p>
-        <pre>&lt;p&gt;
+      <div class="flowhead">PUT page.html <code>{directives, texts, version}</code></div>
+      <div class="flow">
+        <div class="step">
+          <div class="rail">
+            <div class="node end">browser</div>
+          </div>
+          <div class="body">
+            <p class="sub">Sent 0.4 s after you stop typing. Carries every directive on the page.</p>
+          </div>
+        </div>
+        <div class="step" id="d-version">
+          <div class="rail">
+            <div class="node">version check</div>
+          </div>
+          <div class="body">
+            <svg viewBox="0 0 620 230" role="img" aria-label="Stale tab gets a 409">
+              <text x="80" y="20" text-anchor="middle" font-size="13" font-weight="600">tab</text> <text x="300" y="20" text-anchor="middle" font-size="13" font-weight="600">server</text> <text x="520" y="20" text-anchor="middle" font-size="13" font-weight="600">file</text> <line class="life" x1="80" y1="28" x2="80" y2="225"></line> <line class="life" x1="300" y1="28" x2="300" y2="225"></line> <line class="life" x1="520" y1="28" x2="520" y2="225"></line> <path class="arrow" d="M300 55 H84" marker-end="url(#ah)"></path> <text x="190" y="48" text-anchor="middle" font-size="12">GET → page, version <tspan class="mono">3f9a</tspan></text> <text x="520" y="55" text-anchor="middle" font-size="12" class="mono">3f9a</text> <path class="arrow" d="M610 95 H526" marker-end="url(#ah)"></path> <text x="600" y="88" text-anchor="end" font-size="12">🤖 agent edits</text> <text x="520" y="115" text-anchor="middle" font-size="12" class="mono">77b2</text> <path class="arrow" d="M80 145 H296" marker-end="url(#ah)"></path> <text x="190" y="138" text-anchor="middle" font-size="12">PUT version <tspan class="mono">3f9a</tspan></text> <text x="300" y="168" text-anchor="middle" font-size="12" class="muted">3f9a ≠ 77b2 · writes nothing</text> <path class="arrow" d="M300 195 H84" marker-end="url(#ah)"></path> <text x="190" y="188" text-anchor="middle" font-size="12" class="warntext">409</text> <text x="80" y="218" text-anchor="middle" font-size="12" class="warntext">⚠ file changed; reload</text>
+            </svg>
+            <p class="sub">The tab stops saving and keeps your text in the box.</p>
+          </div>
+        </div>
+        <div class="step" id="d-texts">
+          <div class="rail">
+            <div class="node">set texts</div>
+            <div class="node dir">set prose</div>
+          </div>
+          <div class="body">
+            <p>Only elements whose children are all text. <span class="current">current</span></p>
+            <pre>texts {"3": "Plan B"}  &lt;h1&gt;Plan&lt;/h1&gt;          →  &lt;h1&gt;Plan B&lt;/h1&gt;
+texts {"4": "…"}       &lt;p&gt;Ship the &lt;b&gt;…&lt;/p&gt;  →  refused</pre>
+            <div class="dirpart" id="d-prose">
+              <h3>set prose <span class="directional">directional</span></h3>
+              <pre>prose {"4": "Ship the **formatter** last."}
+  →  &lt;p&gt;Ship the &lt;b&gt;formatter&lt;/b&gt; last.&lt;/p&gt;</pre>
+              <p class="sub">
+                Open, then save unchanged: the HTML stays byte-for-byte the same. See <a href="#prose">Prose editing</a>.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="step" id="d-place">
+          <div class="rail">
+            <div class="node">place directives</div>
+          </div>
+          <div class="body">
+            <p>
+              Remove all, write back all. First child of its element; before a void or raw-text element (<code>img</code>, <code>hr</code>, <code>pre</code>…).
+            </p>
+            <div class="label">on disk</div>
+            <pre>&lt;p&gt;
   &lt;!-- @AI: say why first --&gt;
   Ship the &lt;b&gt;formatter&lt;/b&gt; first.
 &lt;/p&gt;
 &lt;!-- @AI: needs alt text --&gt;
 &lt;img src="map.png"&gt;</pre>
-      </div>
-      <div class="detail" id="d-serialize">
-        <h3>serialize</h3>
-        <p>
-          Strip the IDs, write the canonical format. What the agent diffs is the human's change, not markup churn.
-        </p>
-      </div>
-      <div class="detail dir" id="d-format">
-        <h3>format <span class="directional">directional</span></h3>
-        <p>
-          <!-- @AI: yeah you nailed it -->
-          The normalize step becomes its own command. The agent runs it after writing the page and fixes what it reports, before the human opens it. The server's GET runs the same code. Validation rules are still to be chosen; one example:
-        </p>
-        <pre>$ html-notes format OVERVIEW.html
-OVERVIEW.html:42  &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing content only</pre>
-      </div>
-      <div class="detail dir" id="d-ids">
-        <h3>assign IDs <span class="directional">directional</span></h3>
-        <p>
-          Today every tag gets an ID, so <code>&lt;b&gt;</code> inside a paragraph is its own target. Next, a whole prose chunk gets one ID. Open: write IDs into the file? A longer file, but the agent sees the same IDs the browser uses.
-        </p>
-        <div class="ba">
-          <div>
-            <div class="label">today: per element</div>
-            <pre>&lt;p data-n="4"&gt;Ship the &lt;b data-n="5"&gt;…</pre>
-          </div>
-          <div>
-            <div class="label">headed: per chunk</div>
-            <pre>&lt;p data-n="4"&gt;Ship the &lt;b&gt;formatter&lt;/b&gt; first.&lt;/p&gt;
-&lt;ul data-n="5"&gt;&lt;li&gt;one&lt;/li&gt;&lt;li&gt;two&lt;/li&gt;&lt;/ul&gt;</pre>
           </div>
         </div>
-      </div>
-      <div class="detail dir" id="d-prose">
-        <h3>prose as markdown <span class="directional">directional</span></h3>
-        <p>
-          Click a prose chunk: the box shows it as markdown. On save, the PUT carries <code>prose: {"4": "markdown"}</code> and the server turns it back into HTML. Opening and saving without a change must leave the HTML unchanged.
-        </p>
+        <div class="step" id="d-serialize">
+          <div class="rail">
+            <div class="node">serialize</div>
+          </div>
+          <div class="body">
+            <p>
+              Strip the IDs, write the canonical format. The agent's diff shows the human's change, not markup churn.
+            </p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="rail">
+            <div class="node end">file on disk</div>
+          </div>
+          <div class="body"></div>
+        </div>
       </div>
     </section>
     <section id="prose">
       <h2>Prose editing: today vs headed</h2>
       <div class="grid">
         <div class="card">
-          <strong><!-- @AI: go ahead and put today's edit/comment box in there, for contrast -->Today</strong>
+          <strong>Today</strong>
           <div class="demo">
             <p class="off">
               A paragraph with <b class="hl">bold</b> and <a href="#prose" class="hl">a link</a>.
             </p>
-            <p class="sub">Only the green bits are editable. The paragraph gets a comment box.</p>
+            <div class="mock">
+              <div>Directive</div>
+              <div class="field off">Directive for this element</div>
+              <div class="btns">⌘↵ to save · esc to close · Delete · Save</div>
+            </div>
+            <p class="sub">
+              Click the paragraph: directive only. Only the green bits get a Text field.
+            </p>
           </div>
         </div>
         <div class="card dir">
@@ -257,12 +351,12 @@ OVERVIEW.html:42  &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing cont
             <div class="mock">
               <div>Text <span class="off">(markdown)</span></div>
               <div class="field big">A paragraph with **bold** and [a link](#prose).</div>
-              <div>Comment</div>
-              <div class="field">@AI:</div>
-              <div class="btns">Delete · Save ⌘↵</div>
+              <div>Directive</div>
+              <div class="field off">Directive for this element</div>
+              <div class="btns">⌘↵ to save · esc to close · Delete · Save</div>
             </div>
             <p class="sub">
-              The whole paragraph is one chunk. A heading is its own chunk; a list is one chunk. The text field grows with the text.
+              The whole paragraph is one prose chunk. A heading is its own; a list is one. The text field grows with the text.
             </p>
           </div>
         </div>
@@ -272,14 +366,12 @@ OVERVIEW.html:42  &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing cont
       <h2>Invariants</h2>
       <ul class="inv">
         <li>
-          The HTML file is the only record: no database, no notes file beside it, nothing kept in the browser.
+          The HTML file is the only record: no database, no file beside it, nothing kept in the browser.
         </li>
-        <li>A note is <code>&lt;!-- @AI: … --&gt;</code>, attached to exactly one element.</li>
-        <li>Formatting is idempotent: a normalized file loads unchanged.</li>
         <li>
-          <!-- @AI: what does that even mean? I think this one goes. Markup will technically be lost when I can edit <b&gt;formatted text</b&gt; -->
-          An edit never loses markup.
+          A directive is <code>&lt;!-- @AI: … --&gt;</code>, attached to exactly one element.
         </li>
+        <li>Formatting is idempotent: a normalized file loads unchanged.</li>
         <li>A stale tab cannot write (version check, 409).</li>
         <li>Dependencies point down: orchestration → domain → interface.</li>
       </ul>
@@ -287,14 +379,9 @@ OVERVIEW.html:42  &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing cont
     <section id="terms">
       <h2>Terms</h2>
       <dl>
-        <dt>
-          <!-- @AI: OK, I'm gonna make a call on this one. Leave the yak open pending discussion with Arlo (this was his process to begin with) but rn, let's change to "directive" everywhere. I like this because we'll be able to search-and-replace if we want to change the word to note/comment/annotation later. I like it because it gives the human instruction on what goes in that box.
-Have a subagent change it in the code as well, everywhere in this project. -->
-          directive
-        </dt>
+        <dt>directive</dt>
         <dd>
-          <!-- @AI: Add "Avoid: note/comment/annotation" -->
-          A request from the human, stored as an HTML comment starting <code>@AI:</code>. The code says "note"; iterate-on-docs says "comment" and "annotation". To standardize.
+          A request from the human to the agent, stored as an HTML comment starting <code>@AI:</code>. Avoid: note, comment, annotation.
         </dd>
         <dt>normalize</dt>
         <dd>
@@ -306,15 +393,8 @@ Have a subagent change it in the code as well, everywhere in this project. -->
         </dd>
         <dt>text element <span class="current">current</span></dt>
         <dd>Today's unit of editing: an element whose children are only text.</dd>
-        <dt>
-          <!-- @AI: weird, I can't even edit the word "chunk." that'll be different later. 
-
-"Prose chunk". -->
-          chunk <span class="directional">directional</span>
-        </dt>
-        <dd>
-          Tomorrow's unit of editing: a piece of prose that converts to markdown as a whole. Candidate term.
-        </dd>
+        <dt>prose chunk <span class="directional">directional</span></dt>
+        <dd>Tomorrow's unit of editing: prose that converts to markdown as a whole.</dd>
         <dt>phrasing content</dt>
         <dd>
           HTML-spec term: text plus inline markup (<code>b</code>, <code>a</code>, <code>code</code>…). See <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Guides/Content_categories">MDN: content categories</a>.
@@ -330,21 +410,18 @@ Have a subagent change it in the code as well, everywhere in this project. -->
             <li>
               What do we call the two kinds of element? The spec's "flow content" includes <code>&lt;p&gt;</code>.
             </li>
-            <li>Which elements are their own chunk?</li>
+            <li>Which elements are their own prose chunk?</li>
             <li>Write IDs into the file? Longer file vs. the agent seeing the same IDs.</li>
-            <li>
-              <!-- @AI: answered this :-) -->
-              Note, comment, or annotation?
-            </li>
           </ul>
         </div>
         <div class="card">
           <strong>Tracker</strong>
           <p>Work lives in <code>yx</code>. Run <code>yx list</code>.</p>
-          <p class="sub">
-            <!-- @AI: this is weirdly formatted, needs line breaks -->
-            Spec: <code>html-notes-spec.md</code> · Usage: <code>README.md</code> · Research notes: commit <code>8683442</code>
-          </p>
+          <ul>
+            <li>Spec: <code>html-notes-spec.md</code></li>
+            <li>Usage: <code>README.md</code></li>
+            <li>Research notes: commit <code>8683442</code></li>
+          </ul>
         </div>
       </div>
     </section>
