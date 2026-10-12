@@ -59,7 +59,7 @@ The skills and the README in iterate-on-docs run and describe this tool. They re
 | Element IDs | the formatter (GET, PUT, and the formatter CLI) writes `data-hrv="<n>"` on each element you can pick and `data-hrv-next="<n>"` on `<html>`. Agents leave both alone: don't change, copy, or remove them. A new element needs none; the next format gives it one |
 | Browser behavior | click a block, link, image, or part of an SVG to leave a directive on it or change its wording; both save into the file as you type. If the element changed on disk since the page loaded, the save is refused with an error that suggests a reload; a change elsewhere in the file only brings a notice |
 | README | this README ships in the output and keeps its "Directive format" section; iterate-on-docs links to it |
-| Vocabulary | the words the user sees: **directive** (the directive box says "Directive", "Directive for this element", "Delete the directive"; the pill says "N directives" (or "1 directive"), "Previous directive", "Next directive", and "N directives · review off"). Not note, comment or annotation |
+| Vocabulary | the words the user sees: **directive** (the directive box says "Directive", "Directive for this element", "Delete the directive (⌥⌘⌫)"; the pill says "N directives" (or "1 directive"), "Previous directive", "Next directive", and "N directives · review off"). The box's buttons are **Done** and **Delete**; its footer says "⌘↵ or esc to close", or the save status "saving…", "saved", "not saved". Typing saves; Done closes the box. Not note, comment or annotation |
 
 If you find a mismatch, the Contract wins.
 
@@ -112,22 +112,25 @@ Open `try-me.html` in a browser (see [Try it](#try-it)).
 
 - [ ] Hovering an element shows crop marks just outside its corners and a copy cursor; `html` and `body` show none. Try an SVG label and an SVG shape too.
 - [ ] Clicking an element opens a directive box below its top edge, with focus in the textarea. While the box is open, the element has heavier crop marks and a hairline outline.
+- [ ] The box's header shows the pencil icon, the tag, and the start of the element's text (`h2 · Text you can edit`); an image shows its alt (`img · armadillo`), an `hr` only its tag.
 - [ ] A marker appears as soon as you type.
 - [ ] A text-only element (`<p>First paragraph</p>`) shows a Text field above the directive; an element with child elements (`<p>Second <b>bold</b> paragraph</p>`) shows only the directive. Clicking `<b>bold</b>` picks its paragraph: `strong`, `b` and the like are not scopes.
+- [ ] The Text field shows the element's font: a heading's is bold and larger, a `pre`'s is monospace. A huge heading stays at 20px.
 - [ ] Typing in the Text field changes the page at once and the file within about half a second. Blanking it changes nothing.
-- [ ] The file on disk updates within about half a second.
+- [ ] Both fields grow as you type more lines, up to about 240px, then scroll.
+- [ ] The file on disk updates within about half a second. The box's footer says `saving…`, then `saved`, then the hint returns.
 - [ ] The pill at the bottom right counts the directives (`N directives`) and changes as you add or delete one.
 - [ ] The pill's ↑ and ↓, and ⌥↑ and ⌥↓ outside a text field, scroll each directive's element to the middle of the window in document order, wrapping at the ends, and show its crop marks for a moment.
 - [ ] Clicking the pill's icon or count turns review mode off (`· review off`): markers hide, hovering shows no marks and no copy cursor, and clicks go to the page. Clicking again turns it back on.
 - [ ] Reloading the page shows the marker. The element itself is not restyled: no stripe, no outline.
 - [ ] Clicking a marker opens its box for editing.
-- [ ] Delete (or emptying the text) removes the directive and the marker.
-- [ ] `⌘↵`, `Esc`, Save, and clicking outside each commit and close the box. (On a page with a full-width wrapper element, clicking the margin opens a box on the wrapper instead; use Esc.)
+- [ ] Delete (or emptying the text, or `⌥⌘⌫` in the box) removes the directive and the marker. Delete's tooltip names the hotkey.
+- [ ] `⌘↵`, `Esc`, Done, and clicking outside each commit and close the box. (On a page with a full-width wrapper element, clicking the margin opens a box on the wrapper instead; use Esc.)
 - [ ] Opening a second box commits and closes the first.
 - [ ] Plain click on a link opens a directive box; ⌘-click on a link navigates.
 - [ ] The page's own layout and styles look the same with the UI loaded, including while hovering: a card keeps its own box-shadow.
 - [ ] Stopping the server and typing shows `save failed: ...` on the pill; restarting and typing again saves and clears it.
-- [ ] Edit one element in the file on disk while the tab is open, then type a directive on that element: the pill says it wasn't saved and suggests a reload, and the file stays untouched.
+- [ ] Edit one element in the file on disk while the tab is open, then type a directive on that element: the pill says it wasn't saved and suggests a reload, the box's footer says `not saved`, the file stays untouched, and the box keeps your text.
 - [ ] Edit a different element on disk, then type a directive: it saves, and the pill says the page changed on disk.
 - [ ] Dark mode gives the box a dark theme.
 
