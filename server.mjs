@@ -509,8 +509,11 @@ const CLIENT_JS = `// html-revisor client. Directives live in the file on disk; 
     positionHover();
   }
 
+  // Over a marker, its element shows crop marks too.
   document.addEventListener('mouseover', function (e) {
-    setHover(inLayer(e.target) ? null : targetElement(e.target));
+    if (!inLayer(e.target)) { setHover(targetElement(e.target)); return; }
+    var marker = e.target.closest('.hrv-marker');
+    setHover(marker ? elementFor(marker.getAttribute('data-for')) : null);
   }, true);
 
   document.addEventListener('mouseout', function (e) {
@@ -519,17 +522,90 @@ const CLIENT_JS = `// html-revisor client. Directives live in the file on disk; 
 
   // ---- markers ----
 
-  function positionMarker(id) {
-    var marker = markers[id];
-    var el = elementFor(id);
-    if (!marker) return;
-    if (!el) { marker.style.display = 'none'; return; }
-    var rect = el.getBoundingClientRect();
-    if (isHidden(rect)) { marker.style.display = 'none'; return; }
+  // Each marker sits outside its element's box, clear of the crop marks, so it never covers what
+  // it marks. Its pencil tip points down-right at the element. The first choice is the left side,
+  // top-aligned with the element's first line; with no room there, above the top-left corner.
+  // A marker that would land on one already placed steps outward, further left or further up.
+  // Inner elements go first, so a section and its first paragraph show two markers side by side.
+  var TILE = 20, STEP = TILE + 2;
+  var markerGap = cropGap + 3;     // clear of the heavier crop marks too
+
+  function overlaps(a, b) {
+    return a.x < b.x + TILE && b.x < a.x + TILE && a.y < b.y + TILE && b.y < a.y + TILE;
+  }
+
+  function markerSpot(rect, placed) {
+    var x = rect.left + window.scrollX, y = rect.top + window.scrollY;
+    var spot = { x: x - markerGap - TILE, y: y };
+    var dx = -STEP, dy = 0;
+    if (spot.x < 2) {
+      spot = { x: Math.max(2, x - TILE / 2), y: y - markerGap - TILE };
+      dx = 0; dy = -STEP;
+    }
+    for (var i = 0; i < 20 && placed.some(function (p) { return overlaps(p, spot); }); i++) {
+      if (spot.x + dx < 2 || spot.y + dy < 2) break;
+      spot = { x: spot.x + dx, y: spot.y + dy };
+    }
+    return { x: Math.max(2, spot.x), y: Math.max(2, spot.y) };
+  }
+
+  function positionMarkers() {
     var o = layerOrigin();
-    marker.style.display = 'block';
-    marker.style.left = Math.max(2, rect.left + window.scrollX - 9) - o.x + 'px';
-    marker.style.top = Math.max(2, rect.top + window.scrollY - 9) - o.y + 'px';
+    var els = [];
+    for (var id in markers) {
+      var el = elementFor(id);
+      var rect = el && el.getBoundingClientRect();
+      if (!rect || isHidden(rect)) { markers[id].style.display = 'none'; continue; }
+      els.push({ id: id, el: el, rect: rect });
+    }
+    // Later in the document first, so a child places before its parent.
+    els.sort(function (a, b) {
+      return a.el.compareDocumentPosition(b.el) & Node.DOCUMENT_POSITION_FOLLOWING ? 1 : -1;
+    });
+    var placed = [];
+    els.forEach(function (m) {
+      var spot = markerSpot(m.rect, placed);
+      placed.push(spot);
+      var marker = markers[m.id];
+      marker.style.display = 'block';
+      marker.style.left = spot.x - o.x + 'px';
+      marker.style.top = spot.y - o.y + 'px';
+    });
+    positionTip();
+  }
+
+  // Our own tooltip, in the material: the directive text, beside the marker under the pointer.
+  var tip = document.createElement('div');
+  tip.className = 'hrv-tip';
+  tip.style.display = 'none';
+  layer.appendChild(tip);
+  var tipId = null;
+
+  function showTip(id) {
+    tipId = id;
+    positionTip();
+  }
+
+  function hideTip() {
+    tipId = null;
+    tip.style.display = 'none';
+  }
+
+  // Above the marker, left edges aligned; below it with no room above. Kept inside the window.
+  function positionTip() {
+    var marker = tipId && markers[tipId];
+    if (!marker || marker.style.display === 'none' || !hasText(tipId)) { hideTip(); return; }
+    tip.textContent = directives[tipId];
+    tip.style.display = 'block';
+    var o = layerOrigin();
+    var m = marker.getBoundingClientRect();
+    var viewW = document.documentElement.clientWidth;
+    var width = tip.offsetWidth, height = tip.offsetHeight;
+    var left = Math.max(8, Math.min(m.left, viewW - width - 8));
+    var top = m.top - height - 6;
+    if (top < 8) top = m.bottom + 6;
+    tip.style.left = left + window.scrollX - o.x + 'px';
+    tip.style.top = top + window.scrollY - o.y + 'px';
   }
 
   // ---- directive box placement ----
@@ -606,7 +682,7 @@ const CLIENT_JS = `// html-revisor client. Directives live in the file on disk; 
   }
 
   function positionAll() {
-    for (var id in markers) positionMarker(id);
+    positionMarkers();
     positionBox();
     positionCrop(selectedCrop, box ? elementFor(boxId) : null);
     positionHover();
@@ -621,27 +697,31 @@ const CLIENT_JS = `// html-revisor client. Directives live in the file on disk; 
     });
   }
 
-  // Make the marker match the directive text.
+  // Make the marker match the directive text. A marker added or removed can move the others.
   function syncMarker(id) {
     if (hasText(id)) {
       var marker = markers[id];
       if (!marker) {
         marker = document.createElement('div');
         marker.className = 'hrv-marker';
+        marker.setAttribute('data-for', id);
         marker.addEventListener('click', function (e) {
           e.preventDefault();
           e.stopPropagation();
+          hideTip();
           openBox(id);
         });
+        marker.addEventListener('mouseenter', function () { showTip(id); });
+        marker.addEventListener('mouseleave', hideTip);
         layer.appendChild(marker);
         markers[id] = marker;
       }
-      marker.title = directives[id];
-      positionMarker(id);
+      marker.setAttribute('aria-label', directives[id]);
     } else if (markers[id]) {
       markers[id].remove();
       delete markers[id];
     }
+    positionMarkers();
   }
 
   window.addEventListener('scroll', schedulePosition, { passive: true });

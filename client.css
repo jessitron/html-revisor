@@ -57,7 +57,9 @@ html:not([data-hrv-review="off"]) [data-hrv]:not(html, body) { cursor: copy !imp
   -webkit-mask: var(--hrv-pencil) center / contain no-repeat; mask: var(--hrv-pencil) center / contain no-repeat;
 }
 
-/* The marker: the icon on a tile of the material, saying "this element has a directive". */
+/* The marker: the icon on a tile of the material, saying "this element has a directive".
+   The client puts it outside the element's box, clear of the crop marks: left of the first line,
+   or above the top-left corner when the left has no room. The pencil tip points at the element. */
 :is(#hrv-layer, .hrv-layer) .hrv-marker {
   position: absolute; width: 20px; height: 20px; padding: 3px;
   background: var(--hrv-surface); box-shadow: var(--hrv-material); cursor: pointer;
@@ -68,6 +70,13 @@ html:not([data-hrv-review="off"]) [data-hrv]:not(html, body) { cursor: copy !imp
 }
 :is(#hrv-layer, .hrv-layer) .hrv-marker:hover { box-shadow: 0 0 0 1px var(--hrv-accent-strong), 0 4px 16px rgba(0, 0, 0, 0.45); }
 :is(#hrv-layer, .hrv-layer) .hrv-marker:hover::before { background: var(--hrv-accent-strong); }
+
+/* The marker's tooltip: the directive text, in the material, monospace like the directive field. */
+:is(#hrv-layer, .hrv-layer) .hrv-tip {
+  position: absolute; width: max-content; max-width: 280px; padding: 6px 8px; background: var(--hrv-surface);
+  box-shadow: var(--hrv-material); font: var(--hrv-mono); white-space: pre-wrap; overflow-wrap: anywhere;
+  pointer-events: none; z-index: 1;
+}
 
 /* Crop marks: four square corners just outside an element. The client sizes .hrv-crop to the
    element's box plus --hrv-crop-gap on each side, so the marks never touch what they mark.
