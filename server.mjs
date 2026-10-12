@@ -385,7 +385,6 @@ const CLIENT_JS = `// html-revisor client. Directives live in the file on disk; 
   var saveTimer = null;
   var saving = false;       // a PUT is in flight
   var unsent = [];          // changes not yet sent, oldest first: {kind: 'directive'|'text', id}
-  var toastTimer = null;
   var version = null;       // fingerprint of the file as this tab last saw it
   var changedOnDisk = false; // a save found the file changed by someone else
 
@@ -400,9 +399,6 @@ const CLIENT_JS = `// html-revisor client. Directives live in the file on disk; 
 
   var layer = document.createElement('div');
   layer.id = 'hrv-layer';
-  var toast = document.createElement('div');
-  toast.className = 'hrv-toast';
-  layer.appendChild(toast);
   document.body.appendChild(layer);
 
   // ---- helpers ----
@@ -496,12 +492,15 @@ const CLIENT_JS = `// html-revisor client. Directives live in the file on disk; 
   // ---- hover ----
 
   var hovered = null;
+  var flashed = null;       // the element the pill just stepped to; its marks show for a moment
+  var reviewing = true;     // review mode: hover marks, copy cursor, click to open, markers
   var hoverCrop = makeCrop('hrv-crop');
   var selectedCrop = makeCrop('hrv-crop hrv-selected');
 
-  // The open box's element shows its heavier marks instead.
+  // The open box's element shows its heavier marks instead. Out of review mode, only a step shows marks.
   function positionHover() {
-    positionCrop(hoverCrop, hovered && hovered !== elementFor(boxId) ? hovered : null);
+    var el = flashed || (reviewing ? hovered : null);
+    positionCrop(hoverCrop, el && el !== elementFor(boxId) ? el : null);
   }
 
   function setHover(el) {
@@ -593,19 +592,118 @@ const CLIENT_JS = `// html-revisor client. Directives live in the file on disk; 
   window.addEventListener('resize', schedulePosition);
   if (window.ResizeObserver) new ResizeObserver(schedulePosition).observe(document.body);
 
-  // ---- saving ----
+  // ---- the pill ----
 
-  function showToast(text, isError, sticky) {
-    toast.textContent = '';
-    toast.appendChild(icon());
-    toast.appendChild(document.createTextNode(text));
-    toast.className = 'hrv-toast hrv-show' + (isError ? ' hrv-error' : '');
-    clearTimeout(toastTimer);
-    if (sticky) return;
-    toastTimer = setTimeout(function () {
-      toast.className = 'hrv-toast';
-    }, isError ? 4000 : 1500);
+  // Bottom right of the window. It counts the directives, steps through them in document order,
+  // and holds a save error or the stale-file warning. Its icon and count switch review mode.
+  var current = null;       // id of the element last stepped to or clicked
+  var problem = null;       // the save error or stale warning the pill shows, if any
+  var flashTimer = null;
+
+  var pill = document.createElement('div');
+  pill.className = 'hrv-pill';
+  var pillMsg = document.createElement('div');
+  pillMsg.className = 'hrv-pill-msg';
+  var pillMain = document.createElement('div');
+  pillMain.className = 'hrv-pill-main';
+  var pillCount = document.createElement('span');
+  pillMain.appendChild(icon());
+  pillMain.appendChild(pillCount);
+  pillMain.addEventListener('click', function () { setReviewing(!reviewing); });
+  pill.appendChild(pillMsg);
+  pill.appendChild(pillMain);
+  pill.appendChild(stepButton('↑', 'Previous directive (⌥↑)', -1));
+  pill.appendChild(stepButton('↓', 'Next directive (⌥↓)', 1));
+  layer.appendChild(pill);
+
+  function stepButton(arrow, title, dir) {
+    var b = document.createElement('div');
+    b.className = 'hrv-step';
+    b.textContent = arrow;
+    b.title = title;
+    b.addEventListener('click', function () { step(dir); });
+    return b;
   }
+
+  function updatePill() {
+    var n = directiveCount();
+    pillCount.textContent = n + (n === 1 ? ' directive' : ' directives') + (reviewing ? '' : ' · review off');
+    pillMsg.textContent = problem || '';
+    pillMain.title = reviewing
+      ? 'Review mode: click to hide the marks and read the page'
+      : 'Review mode is off: click to leave directives again';
+    pill.className = 'hrv-pill' + (n === 0 ? ' hrv-none' : '') + (reviewing ? '' : ' hrv-off') +
+      (problem ? ' hrv-error' : '');
+  }
+
+  function showProblem(text) {
+    problem = text;
+    updatePill();
+  }
+
+  // Elements with directives, in document order.
+  function directiveElements() {
+    var els = [];
+    for (var id in directives) {
+      var el = hasText(id) && elementFor(id);
+      if (el) els.push(el);
+    }
+    return els.sort(function (a, b) { return follows(a, b) ? -1 : 1; });
+  }
+
+  function follows(a, b) {
+    return !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+  }
+
+  // Scroll the next (dir 1) or previous (dir -1) directive's element to the middle of the window
+  // and show its crop marks for a moment. Wraps around at the ends.
+  function step(dir) {
+    var els = directiveElements();
+    if (!els.length) return;
+    var from = current !== null && elementFor(current);
+    var target = null;
+    if (dir > 0) {
+      for (var i = 0; i < els.length && !target; i++) if (!from || follows(from, els[i])) target = els[i];
+      target = target || els[0];
+    } else {
+      for (var j = els.length - 1; j >= 0 && !target; j--) if (!from || follows(els[j], from)) target = els[j];
+      target = target || els[els.length - 1];
+    }
+    closeBox();
+    current = target.getAttribute('data-hrv');
+    target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    flashed = target;
+    positionHover();
+    clearTimeout(flashTimer);
+    flashTimer = setTimeout(function () {
+      flashed = null;
+      positionHover();
+    }, 2000);
+  }
+
+  // Review mode off reads the page clean: no marks, no copy cursor, clicks go to the page.
+  // The cursor rule is the one place this reaches the page: an attribute on the html element.
+  function setReviewing(on) {
+    reviewing = on;
+    if (!on) closeBox();
+    if (on) document.documentElement.removeAttribute('data-hrv-review');
+    else document.documentElement.setAttribute('data-hrv-review', 'off');
+    layer.classList.toggle('hrv-reading', !on);
+    positionHover();
+    updatePill();
+  }
+
+  // ⌥↓ and ⌥↑ step, unless the reader is typing somewhere.
+  document.addEventListener('keydown', function (e) {
+    if (!e.altKey || e.metaKey || e.ctrlKey || e.shiftKey) return;
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    var t = e.target;
+    if (t instanceof Element && (t.isContentEditable || t.closest('input, textarea, select'))) return;
+    e.preventDefault();
+    step(e.key === 'ArrowDown' ? 1 : -1);
+  });
+
+  // ---- saving ----
 
   function directiveCount() {
     var n = 0;
@@ -648,20 +746,17 @@ const CLIENT_JS = `// html-revisor client. Directives live in the file on disk; 
       if (!data.ok) {
         // A conflict: we weren't taking turns. Say so; the reload is up to the human.
         failed = true;
-        showToast('not saved: ' + data.error + '. Copy what you wrote, then reload to see the page as it is now', true, true);
+        showProblem('not saved: ' + data.error + '. Copy what you wrote, then reload to see the page as it is now');
         return;
       }
       for (var id in data.bases) bases[id] = data.bases[id];
       if (data.before !== version) changedOnDisk = true;
       version = data.after;
-      var n = data.count;
-      var saved = 'saved · ' + n + (n === 1 ? ' directive' : ' directives');
-      if (changedOnDisk) showToast(saved + ' · the page changed on disk; reload to see it', false, true);
-      else showToast(saved, false);
+      showProblem(changedOnDisk ? 'the page changed on disk; reload to see it' : null);
     }).catch(function (err) {
       failed = true;
       addUnsent(change.kind, change.id); // a later edit retries it
-      showToast('save failed: ' + (err && err.message ? err.message : err), true);
+      showProblem('save failed: ' + (err && err.message ? err.message : err));
     }).then(function () {
       saving = false;
       if (!failed) saveNow();
@@ -680,6 +775,7 @@ const CLIENT_JS = `// html-revisor client. Directives live in the file on disk; 
     if (text.trim() === '') delete directives[id];
     else directives[id] = text;
     syncMarker(id);
+    updatePill();
   }
 
   // Commit and close the open box.
@@ -794,7 +890,7 @@ const CLIENT_JS = `// html-revisor client. Directives live in the file on disk; 
 
   // Capture phase on document, so page handlers and link navigation lose.
   document.addEventListener('click', function (e) {
-    if (inLayer(e.target)) return;
+    if (inLayer(e.target) || !reviewing) return;
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     var el = targetElement(e.target);
     if (!el) {
@@ -803,12 +899,14 @@ const CLIENT_JS = `// html-revisor client. Directives live in the file on disk; 
     }
     e.preventDefault();
     e.stopPropagation();
-    openBox(el.getAttribute('data-hrv'));
+    current = el.getAttribute('data-hrv');
+    openBox(current);
   }, true);
 
   // ---- start ----
 
   for (var id in directives) syncMarker(id);
+  updatePill();
 })();
 `;
 

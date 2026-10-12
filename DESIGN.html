@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-hrv-next="209" lang="en">
+<html data-hrv-next="248" lang="en">
   <head>
     <meta charset="utf-8">
     <title>html-revisor: design</title>
@@ -89,7 +89,7 @@
             The Text field shows the element's own font. Once it holds markdown, monospace. (direction)
           </li>
           <li data-hrv="26">
-            <strong>The pill:</strong> bottom right, in the tool's material, with the icon. It counts the directives, steps through them, and holds the stale-file warning. Later, it turns review mode off. (direction)
+            <strong>The pill:</strong> bottom right, in the tool's material, with the icon. It counts the directives, steps through them, and holds the stale-file warning. Clicking it turns review mode off, to read the page clean.
           </li>
           <li data-hrv="27">
             The popup is the <strong>directive box</strong>. On a text element, it is a <strong>directive box with editor</strong>: the editor is the field for the element's text.
@@ -368,30 +368,93 @@
         <div data-hrv="198" class="hrv-marker" style="left: 60px; top: 24px; transform: scale(2); transform-origin: top left;">
           
         </div>
-        <div data-hrv="199" class="hrv-toast hrv-show" style="position: absolute; right: auto; left: 120px; bottom: auto; top: 28px;">
-          <span class="hrv-icon"></span>icon, in a component
+        <div data-hrv="199" class="hrv-pill" style="position: absolute; right: auto; left: 120px; bottom: auto; top: 28px;">
+          <div data-hrv="200" class="hrv-pill-main">
+            <span class="hrv-icon"></span><span>icon, in a component</span>
+          </div>
         </div>
       </div>
     </div>
-    <h2 data-hrv="200">Toast</h2>
-    <p data-hrv="201" class="note">
-      Bottom right of the window. Fades in; leaves after 1.5 s, or 4 s for an error. The stale-file toast stays.
+    <h2 data-hrv="201">Pill</h2>
+    <p data-hrv="202" class="note">
+      <code>.hrv-pill</code>: bottom right of the window, always there. The count follows each keystroke. ↑ and ↓ (or ⌥↑ and ⌥↓, when the focus isn't in a text field) step through the directives in document order, wrapping at the ends: the element scrolls to the middle of the window and shows its crop marks for 2 s. Stepping doesn't open the box, since the box takes the focus and covers the page; the marker is right there to open it. Clicking the icon and count turns review mode off: no markers, no hover marks, no copy cursor, and clicks go to the page, links included. Click again to turn it back on. A save error stays on the pill until a save succeeds; the stale-file warning stays until reload.
     </p>
-    <div data-hrv="202" class="stage" style="height: 150px;">
-      <div data-hrv="203" class="hrv-layer">
-        <div data-hrv="204" class="hrv-toast hrv-show" style="position: absolute; right: auto; left: 24px; bottom: auto; top: 24px;">
-          <span class="hrv-icon"></span>saved · 3 directives
+    <div data-hrv="203" class="row">
+      <div data-hrv="204">
+        <div data-hrv="205" class="stage" style="height: 110px;">
+          <div data-hrv="206" class="hrv-layer">
+            <div data-hrv="207" class="hrv-pill" style="position: absolute; right: auto; left: 24px; bottom: auto; top: 24px;">
+              <div data-hrv="208" class="hrv-pill-msg"></div>
+              <div data-hrv="209" class="hrv-pill-main" title="Review mode: click to hide the marks and read the page">
+                <span class="hrv-icon"></span><span>3 directives</span>
+              </div>
+              <div data-hrv="210" class="hrv-step" title="Previous directive (⌥↑)">↑</div>
+              <div data-hrv="211" class="hrv-step" title="Next directive (⌥↓)">↓</div>
+            </div>
+            <div data-hrv="212" class="hrv-pill hrv-none" style="position: absolute; right: auto; left: 24px; bottom: auto; top: 64px;">
+              <div data-hrv="213" class="hrv-pill-msg"></div>
+              <div data-hrv="214" class="hrv-pill-main">
+                <span class="hrv-icon"></span><span>0 directives</span>
+              </div>
+              <div data-hrv="215" class="hrv-step">↑</div>
+              <div data-hrv="216" class="hrv-step">↓</div>
+            </div>
+          </div>
         </div>
-        <div data-hrv="205" class="hrv-toast hrv-show hrv-error" style="position: absolute; right: auto; left: 24px; bottom: auto; top: 64px;">
-          <span class="hrv-icon"></span>save failed: Failed to fetch
+        <p data-hrv="217" class="note">Counting; with no directives, it shows only the count.</p>
+      </div>
+      <div data-hrv="218">
+        <div data-hrv="219" class="stage" style="height: 100px;">
+          <div data-hrv="220" class="hrv-layer">
+            <div data-hrv="221" class="hrv-pill hrv-off" style="position: absolute; right: auto; left: 24px; bottom: auto; top: 24px;">
+              <div data-hrv="222" class="hrv-pill-msg"></div>
+              <div data-hrv="223" class="hrv-pill-main" title="Review mode is off: click to leave directives again">
+                <span class="hrv-icon"></span><span>3 directives · review off</span>
+              </div>
+              <div data-hrv="224" class="hrv-step">↑</div>
+              <div data-hrv="225" class="hrv-step">↓</div>
+            </div>
+          </div>
         </div>
-        <div data-hrv="206" class="hrv-toast hrv-show hrv-error" style="position: absolute; right: auto; left: 24px; bottom: auto; top: 104px;">
-          <span class="hrv-icon"></span>file changed on disk — reload to see it (your unsaved text is in the box)
-        </div>
+        <p data-hrv="226" class="note">Review mode off: the icon and words go grey.</p>
       </div>
     </div>
-    <h2 data-hrv="207">Type</h2>
-    <p data-hrv="208" class="note">
+    <div data-hrv="227" class="row">
+      <div data-hrv="228">
+        <div data-hrv="229" class="stage" style="height: 100px;">
+          <div data-hrv="230" class="hrv-layer">
+            <div data-hrv="231" class="hrv-pill hrv-error" style="position: absolute; right: auto; left: 24px; bottom: auto; top: 24px;">
+              <div data-hrv="232" class="hrv-pill-msg">save failed: Failed to fetch</div>
+              <div data-hrv="233" class="hrv-pill-main">
+                <span class="hrv-icon"></span><span>3 directives</span>
+              </div>
+              <div data-hrv="234" class="hrv-step">↑</div>
+              <div data-hrv="235" class="hrv-step">↓</div>
+            </div>
+          </div>
+        </div>
+        <p data-hrv="236" class="note">Save failed. The next edit retries.</p>
+      </div>
+      <div data-hrv="237">
+        <div data-hrv="238" class="stage" style="height: 100px;">
+          <div data-hrv="239" class="hrv-layer">
+            <div data-hrv="240" class="hrv-pill hrv-error" style="position: absolute; right: auto; left: 24px; bottom: auto; top: 24px;">
+              <div data-hrv="241" class="hrv-pill-msg">
+                file changed on disk — reload to see it (your unsaved text is in the box)
+              </div>
+              <div data-hrv="242" class="hrv-pill-main">
+                <span class="hrv-icon"></span><span>4 directives</span>
+              </div>
+              <div data-hrv="243" class="hrv-step">↑</div>
+              <div data-hrv="244" class="hrv-step">↓</div>
+            </div>
+          </div>
+        </div>
+        <p data-hrv="245" class="note">Stale file: no more saves until reload.</p>
+      </div>
+    </div>
+    <h2 data-hrv="246">Type</h2>
+    <p data-hrv="247" class="note">
       Everything in the layer: <code>--hrv-font</code>, 13px system-ui at line height 1.4. The directive field: <code>--hrv-mono</code>, 12px monospace, since a directive is an instruction headed into an HTML comment. Labels and the hint: <code>--hrv-small</code>, 11px, muted.
     </p>
     <script>
