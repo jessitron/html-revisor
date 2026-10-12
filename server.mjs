@@ -2,7 +2,7 @@
 //
 // Three tiers, dependencies point downward only:
 //   Tier I   orchestration: CLI, request routing, the GET and PUT flows
-//   Tier II  domain: text edits, element identity (pure functions over a DOM);
+//   Tier II  domain: markdown edits, element identity (pure functions over a DOM);
 //            directives.mjs, formatter.mjs, and scopes.mjs are Tier II too
 //   Tier III interface: filesystem gateway, content types, listings, client assets
 import crypto from 'node:crypto';
@@ -10,8 +10,9 @@ import http from 'node:http';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { formatFiles, parse, normalize, serialize, assignIds, formatElement, ID, VOID, trimAscii, escapeText } from './formatter.mjs';
-import { TEXT_ONLY, isDirective, collectDirectives, removeDirectives, setDirective } from './directives.mjs';
+import { formatFiles, parse, normalize, serialize, assignIds, formatElement, ID, trimAscii, escapeText } from './formatter.mjs';
+import { collectDirectives, removeDirectives, setDirective } from './directives.mjs';
+import { scopeElements, scopeMarkdown, scopeFromMarkdown } from './scopes.mjs';
 
 // ======================================================================
 // Tier I: orchestration
@@ -54,7 +55,8 @@ async function route(req, res, config) {
 }
 
 // GET: format on disk (which assigns element IDs), then serve a copy with directives lifted
-// out into JSON, and the base of every element so the tab can send it back with a change.
+// out into JSON, the base of every element so the tab can send it back with a change, and the
+// markdown of every scope for the box to edit.
 async function getPage(res, file, urlPath, { author }) {
   const onDisk = await fs.readFile(file, 'utf8');
   const formatted = normalize(onDisk);
@@ -66,7 +68,8 @@ async function getPage(res, file, urlPath, { author }) {
   const directives = collectDirectives(document, author);
   removeDirectives(document, author);
   const bases = basesOf(document.querySelectorAll(`[${ID}]`), author);
-  injectClient(document, { directives, bases }, versionOf(formatted), await readClientAssets());
+  const markdowns = markdownsOf(scopeElements(document));
+  injectClient(document, { directives, bases, markdowns }, versionOf(formatted), await readClientAssets());
   console.log(`${urlPath} — ${Object.keys(directives).length} pending directives`);
   sendHtml(res, document.toString());
 }
@@ -76,11 +79,13 @@ const versionOf = (bytes) => crypto.createHash('sha1').update(bytes).digest('hex
 
 // PUT: the body is one change to one element, with the base the tab started from:
 //   {"id": "7", "base": "…", "directive": "text"}   sets the element's directive; "" removes it
-//   {"id": "7", "base": "…", "text": "new text"}     replaces the text of a text element
+//   {"id": "7", "base": "…", "markdown": "…"}       replaces a scope with what its markdown says
 // IDs come first, so elements an agent added since the last format have them. A base that
 // doesn't match the element now, or an ID that isn't there, is a conflict: 412, nothing written.
 // The answer carries the new bases of the element and the elements around it, and the file's
-// fingerprint before and after, so the tab can notice an outside change.
+// fingerprint before and after, so the tab can notice an outside change. A markdown save also
+// answers with the HTML that replaced the scope, as served, the ID now holding the scope, and
+// the new markdown of the scopes around it.
 async function putChange(req, res, file, urlPath, { author }) {
   let change;
   try {
@@ -88,9 +93,9 @@ async function putChange(req, res, file, urlPath, { author }) {
   } catch {
     throw new HttpError(400, 'body must be JSON');
   }
-  const { id, base, directive, text } = change ?? {};
-  if (typeof id !== 'string' || typeof base !== 'string' || (typeof directive === 'string') === (typeof text === 'string')) {
-    throw new HttpError(400, 'body must look like {"id": "<id>", "base": "<base>", "directive": "text"} or {"id", "base", "text"}');
+  const { id, base, directive, markdown } = change ?? {};
+  if (typeof id !== 'string' || typeof base !== 'string' || (typeof directive === 'string') === (typeof markdown === 'string')) {
+    throw new HttpError(400, 'body must look like {"id": "<id>", "base": "<base>", "directive": "text"} or {"id", "base", "markdown"}');
   }
   const onDisk = await fs.readFile(file, 'utf8');
   const document = parse(onDisk);
@@ -101,14 +106,31 @@ async function putChange(req, res, file, urlPath, { author }) {
     res.writeHead(412, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({ ok: false, error: el ? 'that element changed on disk' : 'that element is gone from the file' }));
   }
-  if (typeof directive === 'string') setDirective(el, directive, author);
-  else if (!setText(el, text, author)) throw new HttpError(400, 'text edits need a text element and non-blank text');
+  let changed, answer = {};
+  if (typeof directive === 'string') {
+    setDirective(el, directive, author);
+    changed = around([el]);
+  } else {
+    const nodes = saveMarkdown(el, markdown);
+    if (!nodes) throw new HttpError(400, 'markdown edits need a scope and non-blank markdown');
+    changed = around(nodes.filter((n) => n.nodeType === 1));
+    answer = { html: servedHTML(nodes, author), id: holderOf(nodes, id, new Set(scopeElements(document))) };
+  }
   const written = serialize(document);
   if (written !== onDisk) await fs.writeFile(file, written);
   const count = Object.keys(collectDirectives(document, author)).length;
-  console.log(`${urlPath} — saved ${typeof directive === 'string' ? 'directive' : 'text'} on ${id}`);
+  // Bases and markdown as a reload would serve them: from the file in canonical layout.
+  const served = parse(written);
+  removeDirectives(served, author);
+  const now = changed.map((e) => elementById(served, e.getAttribute(ID))).filter(Boolean);
+  answer.bases = basesOf(now, author);
+  if (typeof markdown === 'string') {
+    const scopes = new Set(scopeElements(served));
+    answer.markdowns = markdownsOf(now.filter((e) => scopes.has(e)));
+  }
+  console.log(`${urlPath} — saved ${typeof directive === 'string' ? 'directive' : 'markdown'} on ${id}`);
   res.writeHead(200, { 'Content-Type': 'application/json' });
-  res.end(JSON.stringify({ ok: true, count, bases: basesOf(around(el), author), before: versionOf(onDisk), after: versionOf(written) }));
+  res.end(JSON.stringify({ ok: true, count, ...answer, before: versionOf(onDisk), after: versionOf(written) }));
 }
 
 function sendError(res, err) {
@@ -165,38 +187,52 @@ export function basesOf(elements, author) {
   return Object.fromEntries([...elements].map((el) => [el.getAttribute(ID), baseOf(el, author)]));
 }
 
-// The elements whose base an edit to el can change: el, the IDs inside it, and its ancestors.
-function around(el) {
-  const out = [...el.querySelectorAll(`[${ID}]`)];
-  for (let a = el; a?.nodeType === 1; a = a.parentNode) if (a.hasAttribute(ID)) out.push(a);
-  return out;
+// The elements whose base an edit to these can change: each one, the IDs inside it, and its
+// ancestors.
+function around(els) {
+  const out = new Set();
+  for (const el of els) {
+    el.querySelectorAll(`[${ID}]`).forEach((e) => out.add(e));
+    for (let a = el; a?.nodeType === 1; a = a.parentNode) if (a.hasAttribute(ID)) out.add(a);
+  }
+  return [...out];
 }
 
-// ---- Text edits ---------------------------------------------------------
+// ---- Markdown edits -----------------------------------------------------
 
-// A text element holds nothing but text (once directives are lifted out), so replacing its text
-// loses no markup. Elements whose text is code or not shown are excluded.
-const NOT_TEXT = new Set([...VOID, ...TEXT_ONLY, 'script', 'style', 'template', 'textarea']);
-
-export function isTextElement(el) {
-  const kids = [...el.childNodes];
-  return (
-    !NOT_TEXT.has(el.localName) &&
-    kids.length > 0 &&
-    kids.every((n) => n.nodeType === 3) &&
-    trimAscii(el.textContent) !== ''
+// Each scope's markdown, by ID: what the box shows. Not body's, which nobody picks.
+export function markdownsOf(scopes) {
+  return Object.fromEntries(
+    scopes.filter((el) => el.hasAttribute(ID) && el.localName !== 'body').map((el) => [el.getAttribute(ID), scopeMarkdown(el)]),
   );
 }
 
-// Replace the element's text, keeping its directives. Refuses (returns false) for non-text
-// elements and blank text.
-export function setText(el, text, author) {
-  const own = [...el.childNodes].filter((n) => isDirective(n, author));
-  own.forEach((n) => n.remove());
-  const ok = isTextElement(el) && trimAscii(text) !== '';
-  if (ok) el.textContent = text;
-  el.prepend(...own);
-  return ok;
+// Replace a scope with what its markdown says. The elements you left or changed keep their IDs
+// and directives (scopes.mjs reconciles); new ones get IDs. Returns the nodes that replaced it,
+// or null, changing nothing, for an element that isn't a scope or blank markdown.
+export function saveMarkdown(el, markdown) {
+  const document = el.ownerDocument;
+  if (trimAscii(markdown) === '' || el.localName === 'body' || !scopeElements(document).includes(el)) return null;
+  const nodes = scopeFromMarkdown(el, markdown);
+  el.replaceWith(...nodes);
+  assignIds(document);
+  return nodes;
+}
+
+// The nodes as the tab shows them: directives lifted out.
+export function servedHTML(nodes, author) {
+  const holder = nodes[0].ownerDocument.createElement('div');
+  holder.append(...nodes.map((n) => n.cloneNode(true)));
+  removeDirectives(holder, author);
+  return holder.innerHTML;
+}
+
+// The ID that holds the scope after a save: its own, if its element came back, else the first
+// new scope's, so the box can follow it. Null when the scope became bare text.
+function holderOf(nodes, id, scopes) {
+  const els = nodes.filter((n) => n.nodeType === 1);
+  const holder = els.find((e) => e.getAttribute(ID) === id) ?? els.find((e) => scopes.has(e) && e.hasAttribute(ID));
+  return holder?.getAttribute(ID) ?? null;
 }
 
 // ======================================================================
@@ -292,8 +328,8 @@ export async function readClientAssets() {
   return { css, js };
 }
 
-// directives: {id: text}. bases: {id: base}, sent back with each change.
-export function injectClient(document, { directives, bases }, version, { css, js }) {
+// directives: {id: text}. bases: {id: base}, sent back with each change. markdowns: {id: markdown}.
+export function injectClient(document, { directives, bases, markdowns = {} }, version, { css, js }) {
   const head = document.querySelector('head') ?? document.documentElement;
   const body = document.querySelector('body') ?? document.documentElement;
 
@@ -313,6 +349,12 @@ export function injectClient(document, { directives, bases }, version, { css, js
   baseData.setAttribute('id', 'hrv-bases');
   baseData.textContent = JSON.stringify(bases);
   body.appendChild(baseData);
+
+  const markdownData = document.createElement('script');
+  markdownData.setAttribute('type', 'application/json');
+  markdownData.setAttribute('id', 'hrv-markdown');
+  markdownData.textContent = JSON.stringify(markdowns).replace(/</g, '\\u003c');
+  body.appendChild(markdownData);
 
   const script = document.createElement('script');
   script.textContent = js;

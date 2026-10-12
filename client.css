@@ -125,8 +125,8 @@ html:not([data-hrv-review="off"]) [data-hrv]:not(html, body) { cursor: copy !imp
 }
 /* The directive is an instruction headed into an HTML comment: monospace. */
 :is(#hrv-layer, .hrv-layer) .hrv-box textarea.hrv-directive { font: var(--hrv-mono); }
-/* The Text field takes the element's font from the client; this is the fallback. */
-:is(#hrv-layer, .hrv-layer) .hrv-box textarea.hrv-text { height: 32px; min-height: 32px; }
+/* The Text field holds the element's markdown, syntax and all: monospace too. */
+:is(#hrv-layer, .hrv-layer) .hrv-box textarea.hrv-text { font: var(--hrv-mono); height: 32px; min-height: 32px; }
 :is(#hrv-layer, .hrv-layer) .hrv-box textarea::placeholder { color: var(--hrv-muted); }
 :is(#hrv-layer, .hrv-layer) .hrv-label { display: block; margin: 6px 0 2px; color: var(--hrv-muted); }
 :is(#hrv-layer, .hrv-layer) .hrv-label:first-child { margin-top: 0; }

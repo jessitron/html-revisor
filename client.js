@@ -3,14 +3,15 @@
   'use strict';
 
   var directives = {};      // id -> text, the full current set
-  var texts = {};           // id -> new text of each text element edited in this tab
+  var markdowns = {};       // id -> markdown of each scope, as the server last saw it
+  var edits = {};           // id -> markdown typed for a scope in this tab, not yet answered
   var bases = {};           // id -> base: the element's content as the server last saw it
   var markers = {};         // id -> marker element
   var box = null;           // the open directive box, if any
   var boxId = null;         // id of the element the open box is for
   var saveTimer = null;
   var saving = false;       // a PUT is in flight
-  var unsent = [];          // changes not yet sent, oldest first: {kind: 'directive'|'text', id}
+  var unsent = [];          // changes not yet sent, oldest first: {kind: 'directive'|'markdown', id}
   var version = null;       // fingerprint of the file as this tab last saw it
   var changedOnDisk = false; // a save found the file changed by someone else
 
@@ -19,6 +20,7 @@
     directives = JSON.parse(data.textContent) || {};
     version = data.getAttribute('data-version');
     bases = JSON.parse(document.getElementById('hrv-bases').textContent) || {};
+    markdowns = JSON.parse(document.getElementById('hrv-markdown').textContent) || {};
   } catch (e) {
     directives = directives || {};
   }
@@ -49,23 +51,11 @@
     return el;
   }
 
-  // An element holding only text, so the box can edit it without losing markup.
-  // Same rule as isTextElement on the server.
-  var NOT_TEXT = ('area base br col embed hr img input link meta param source track wbr ' +
-    'title iframe xmp noembed noframes script style template textarea').split(' ');
   var SPACE = /[ \t\n\r\f]+/g;   // the whitespace HTML collapses; not U+00A0
 
-  function isTextElement(el) {
-    var kids = el.childNodes;
-    if (NOT_TEXT.indexOf(el.localName) >= 0 || kids.length === 0) return false;
-    for (var i = 0; i < kids.length; i++) if (kids[i].nodeType !== 3) return false;
-    return el.textContent.replace(SPACE, '') !== '';
-  }
-
-  // The text as the reader sees it. Outside pre, layout whitespace collapses.
-  function shownText(el) {
-    if (el.localName === 'pre') return el.textContent;
-    return el.textContent.replace(SPACE, ' ').trim();
+  // A scope edits as markdown; the server sent the markdown of each one.
+  function isScope(id) {
+    return typeof markdowns[id] === 'string';
   }
 
   // Where the layer's origin sits in the document. Zero unless body is positioned.
@@ -483,8 +473,45 @@
 
   function bodyFor(change) {
     var body = { id: change.id, base: bases[change.id] || '' };
-    body[change.kind] = change.kind === 'text' ? texts[change.id] : (directives[change.id] || '');
+    body[change.kind] = change.kind === 'markdown' ? edits[change.id] : (directives[change.id] || '');
     return body;
+  }
+
+  // A markdown save answers with the HTML that replaced the scope. The page takes it, and the
+  // markdown of the scopes around it. Elements the edit deleted take their directives with them.
+  // If the scope's own element went (a list typed into a paragraph), its ID moves to the one
+  // that holds it now, and so do its directive, the box, and changes not yet sent.
+  function applyScope(id, data) {
+    var el = elementFor(id);
+    if (el) {
+      var tpl = document.createElement('template');
+      tpl.innerHTML = data.html;
+      el.replaceWith(tpl.content);
+    }
+    for (var k in data.markdowns) markdowns[k] = data.markdowns[k];
+    if (data.id && data.id !== id) moveId(id, data.id);
+    for (var d in directives) {
+      if (!elementFor(d)) {
+        delete directives[d];
+        syncMarker(d);
+      }
+    }
+    if (box && !elementFor(boxId)) dropBox();
+    else if (box) box.querySelector('.hrv-what').textContent = describe(elementFor(boxId));
+    updateDocket();
+    schedulePosition();
+  }
+
+  function moveId(from, to) {
+    if (hasText(from) && !hasText(to)) directives[to] = directives[from];
+    delete directives[from];
+    syncMarker(from);
+    syncMarker(to);
+    if (from in edits) edits[to] = edits[from];
+    delete edits[from];
+    unsent.forEach(function (c) { if (c.id === from) c.id = to; });
+    if (boxId === from) boxId = to;
+    if (current === from) current = to;
   }
 
   // One PUT at a time, one change per PUT. When a PUT ends, the next change goes out.
@@ -514,6 +541,7 @@
         return;
       }
       for (var id in data.bases) bases[id] = data.bases[id];
+      if (change.kind === 'markdown') applyScope(change.id, data);
       if (data.before !== version) changedOnDisk = true;
       version = data.after;
       showProblem(changedOnDisk ? 'the page changed on disk; reload to see it' : null);
@@ -571,17 +599,6 @@
     ta.style.height = ta.scrollHeight + ta.offsetHeight - ta.clientHeight + 'px';
   }
 
-  // The Text field wears the element's own font, so editing feels like editing the page.
-  // Size stays between 12 and 20px: a hero heading would crowd the box, a footnote strain the eye.
-  function wearFont(ta, el) {
-    var cs = getComputedStyle(el);
-    ta.style.fontFamily = cs.fontFamily;
-    ta.style.fontStyle = cs.fontStyle;
-    ta.style.fontWeight = cs.fontWeight;
-    ta.style.fontSize = Math.max(12, Math.min(20, parseFloat(cs.fontSize) || 13)) + 'px';
-    ta.style.lineHeight = '1.35';
-  }
-
   function setDirective(id, text) {
     if (text.trim() === '') delete directives[id];
     else directives[id] = text;
@@ -593,15 +610,19 @@
   function closeBox() {
     if (!box) return;
     var ta = box.querySelector('textarea.hrv-directive');
-    var id = boxId;
-    setDirective(id, ta.value);
+    setDirective(boxId, ta.value);
+    dropBox();
+    saveNow();
+  }
+
+  // Close the box without committing: its element is gone, and its directive with it.
+  function dropBox() {
     clearTimeout(statusTimer);
     box.remove();
     box = null;
     boxId = null;
     positionCrop(selectedCrop, null);
     positionHover();
-    saveNow();
   }
 
   function deleteDirective(ta, id) {
@@ -632,22 +653,20 @@
     head.appendChild(what);
     box.appendChild(head);
 
-    // Text elements get a field for their text above the directive.
-    // The page shows each edit at once; blank text is not applied.
+    // A scope gets a field for its markdown above the directive. The page shows each edit when
+    // the server answers the save; blank markdown is not applied. A save can give the scope a
+    // new ID, so the handlers read boxId, not id.
     var textArea = null;
-    if (isTextElement(el)) {
+    if (isScope(id)) {
       textArea = document.createElement('textarea');
       textArea.className = 'hrv-text';
-      textArea.value = shownText(el);
-      wearFont(textArea, el);
+      textArea.value = markdowns[id];
       textArea.addEventListener('input', function () {
         fit(textArea);
         schedulePosition();
         if (textArea.value.replace(SPACE, '') === '') return;
-        el.textContent = textArea.value;
-        texts[id] = textArea.value;
-        what.textContent = describe(el);
-        scheduleSave('text', id);
+        edits[boxId] = textArea.value;
+        scheduleSave('markdown', boxId);
       });
       box.appendChild(label('Text'));
       box.appendChild(textArea);
@@ -661,8 +680,8 @@
     ta.addEventListener('input', function () {
       fit(ta);
       schedulePosition();
-      setDirective(id, ta.value);
-      scheduleSave('directive', id);
+      setDirective(boxId, ta.value);
+      scheduleSave('directive', boxId);
     });
     box.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' || (e.key === 'Enter' && (e.metaKey || e.ctrlKey))) {
@@ -670,7 +689,7 @@
         closeBox();
       } else if (e.key === 'Backspace' && e.altKey && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        deleteDirective(ta, id);
+        deleteDirective(ta, boxId);
       }
     });
 
@@ -682,7 +701,7 @@
     del.className = 'hrv-btn hrv-quiet';
     del.textContent = 'Delete';
     del.title = 'Delete the directive (' + DELETE_KEY + ')';
-    del.addEventListener('click', function () { deleteDirective(ta, id); });
+    del.addEventListener('click', function () { deleteDirective(ta, boxId); });
 
     var done = document.createElement('div');
     done.className = 'hrv-btn hrv-done';
