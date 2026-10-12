@@ -148,13 +148,13 @@
 
   // ---- markers ----
 
-  // Each marker sits outside its element's box, clear of the crop marks, so it never covers what
-  // it marks. Its pencil tip points down-right at the element. The first choice is the left side,
+  // Each marker sits outside its element's box and flush against it: it never covers what it
+  // marks, and a gap would make it read as a neighbor's. It covers the crop mark at that corner.
+  // Its pencil tip points down-right at the element. The first choice is the left side,
   // top-aligned with the element's first line; with no room there, above the top-left corner.
   // A marker that would land on one already placed steps outward, further left or further up.
   // Inner elements go first, so a section and its first paragraph show two markers side by side.
   var TILE = 20, STEP = TILE + 2;
-  var markerGap = cropGap + 3;     // clear of the heavier crop marks too
 
   function overlaps(a, b) {
     return a.x < b.x + TILE && b.x < a.x + TILE && a.y < b.y + TILE && b.y < a.y + TILE;
@@ -162,10 +162,10 @@
 
   function markerSpot(rect, placed) {
     var x = rect.left + window.scrollX, y = rect.top + window.scrollY;
-    var spot = { x: x - markerGap - TILE, y: y };
+    var spot = { x: x - TILE, y: y };
     var dx = -STEP, dy = 0;
     if (spot.x < 2) {
-      spot = { x: Math.max(2, x - TILE / 2), y: y - markerGap - TILE };
+      spot = { x: Math.max(2, x - TILE / 2), y: y - TILE };
       dx = 0; dy = -STEP;
     }
     for (var i = 0; i < 20 && placed.some(function (p) { return overlaps(p, spot); }); i++) {
