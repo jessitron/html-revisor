@@ -38,7 +38,7 @@ The files this tool serves are project-overview documents that Jess's agents gen
 - `client.css` holds every style the tool adds to a page. DESIGN.html links it and draws each component from the real classes inside a `.hrv-layer` wrapper; try style changes there, against its stress test of hostile backgrounds. Show it to Jess with `./run`, not a static server: she comments on what she sees, and only html-revisor takes directives. The stress test's `design/armadillo.jpg` is gitignored, so a new worktree lacks it; copy it from the main checkout.
 - To find directives in a page, grep `'<!-- *@AI:'`, not `'@AI:'`. A page that talks about directives (OVERVIEW.html does) holds the bare prefix in examples. The formatter decodes entities, so escaping can't hide it.
 - The formatter puts all of an `<svg>` on one line, and every element inside it can take a directive. Commenting on SVG text works and Jess likes it; see the SVG yak before changing either.
-- The client script is a string inside `server.mjs`, so client UI work, the save protocol, and server code all edit one file. When picking yaks to run in parallel, two that touch the client collide with each other and with server work. Yak "Move the client script out of server.mjs into client.js" fixes this.
+- The client script is `client.js`, a plain browser script (no modules, no build) that the server inlines into each page on GET. Client UI work and server work edit different files, but the save protocol spans both: a PUT change touches `client.js` and `server.mjs` together. When picking yaks to run in parallel, two that touch the client still collide with each other.
 
 ## Task tracking: use `yx`
 
