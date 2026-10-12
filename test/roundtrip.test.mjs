@@ -212,6 +212,7 @@ const replaceWord = (r, t, word) => {
   const m = r.pick(words);
   t.data = t.data.slice(0, m.index) + word + t.data.slice(m.index + m[0].length);
 };
+const bareHTML = (el) => el.outerHTML.replace(/ data-hrv="\d+"/g, '');
 // A copy with new words, so it shares none with the element it came from, and no stand-ins.
 function fresh(el) {
   const copy = el.cloneNode(true);
@@ -236,8 +237,12 @@ const EDITS = {
     at.after(fresh(at));
     return `a new <${at.localName}> after <${at.localName} data-hrv="${at.getAttribute('data-hrv')}">`;
   },
+  // Not one of two that are the same: nothing says which of them went.
   remove(r, el) {
-    const candidates = repeatable(el).filter((e) => [...e.parentNode.children].filter((s) => s.localName === e.localName).length > 1);
+    const candidates = repeatable(el).filter((e) => {
+      const kin = [...e.parentNode.children].filter((s) => s.localName === e.localName);
+      return kin.length > 1 && kin.every((s) => s === e || bareHTML(s) !== bareHTML(e));
+    });
     if (candidates.length === 0) return null;
     const at = r.pick(candidates);
     at.remove();
@@ -245,7 +250,7 @@ const EDITS = {
   },
   swap(r, el) {
     const candidates = repeatable(el).filter(
-      (e) => e.nextElementSibling?.localName === e.localName && e.outerHTML.replace(/ data-hrv="\d+"/g, '') !== e.nextElementSibling.outerHTML.replace(/ data-hrv="\d+"/g, ''),
+      (e) => e.nextElementSibling?.localName === e.localName && bareHTML(e) !== bareHTML(e.nextElementSibling),
     );
     if (candidates.length === 0) return null;
     const at = r.pick(candidates);

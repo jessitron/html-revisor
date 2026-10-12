@@ -456,7 +456,9 @@ function codeBlock(el, markdown) {
 
 // What markdown holds as a stand-in comes back from the prior HTML, in order: ⟦svg⟧ is the
 // next svg, ⟦script⟧ the next script, and an image keeps the attributes markdown can't say (D2).
-// One that stood between blocks comes out of the paragraph markdown put it in.
+// One that stood between blocks comes out of the paragraph markdown put it in. A token alone in
+// its paragraph takes the next one that stood between blocks, and one inside text the next one
+// that sat in text, so deleting an inline icon doesn't hand its place to a diagram.
 function restore(prior, nodes) {
   const tokens = new Map();
   const images = [];
@@ -474,7 +476,9 @@ function restore(prior, nodes) {
   const alone = new Set();
   for (const mark of holder.querySelectorAll(STAND_IN)) {
     const name = mark.getAttribute('name');
-    const original = tokens.get(name)?.shift();
+    const left = tokens.get(name) ?? [];
+    const at = left.findIndex((o) => standsAlone(o) === inOwnParagraph(mark));
+    const [original] = left.splice(Math.max(at, 0), 1);
     if (!original) {
       mark.replaceWith(`⟦${name}⟧`); // nothing it stood for: the text you typed
       continue;
@@ -501,6 +505,13 @@ function restore(prior, nodes) {
     if (kids.length > 0 && kids.every((k) => alone.has(k)) && !hasAttrs(p)) p.replaceWith(...p.childNodes);
   }
   return [...holder.childNodes];
+}
+
+// Whether markdown put the token in a paragraph of its own, maybe beside other stand-ins.
+function inOwnParagraph(mark) {
+  const p = mark.parentNode;
+  if (p?.localName !== 'p' || hasAttrs(p)) return false;
+  return [...p.childNodes].filter(meaningful).every((k) => k.nodeType === 1 && (k.localName === STAND_IN || k.localName === 'img'));
 }
 
 // Whether the element stood between blocks, outside any paragraph, maybe beside other stand-ins.
@@ -605,16 +616,20 @@ function likeness(x, y) {
   return (2 * shared) / Math.max(x.length + y.length - 2, 1);
 }
 
-// Index pairs of a longest common subsequence, in order.
+// Index pairs of a longest common subsequence, in order. Of the longest, the one whose pairs
+// moved least: edit an item into a copy of its neighbor, and each copy still pairs in place.
 function commonSubsequence(xs, ys) {
-  const len = Array.from({ length: xs.length + 1 }, () => new Array(ys.length + 1).fill(0));
+  const worth = xs.length + ys.length + 1; // one more pair outweighs any distance
+  const best = Array.from({ length: xs.length + 1 }, () => new Array(ys.length + 1).fill(0));
   for (let i = xs.length - 1; i >= 0; i--)
-    for (let j = ys.length - 1; j >= 0; j--)
-      len[i][j] = xs[i] === ys[j] ? len[i + 1][j + 1] + 1 : Math.max(len[i + 1][j], len[i][j + 1]);
+    for (let j = ys.length - 1; j >= 0; j--) {
+      const skip = Math.max(best[i + 1][j], best[i][j + 1]);
+      best[i][j] = xs[i] === ys[j] ? Math.max(skip, best[i + 1][j + 1] + worth - Math.abs(i - j)) : skip;
+    }
   const out = [];
   for (let i = 0, j = 0; i < xs.length && j < ys.length; ) {
-    if (xs[i] === ys[j]) out.push([i++, j++]);
-    else if (len[i + 1][j] >= len[i][j + 1]) i++;
+    if (xs[i] === ys[j] && best[i][j] === best[i + 1][j + 1] + worth - Math.abs(i - j)) out.push([i++, j++]);
+    else if (best[i + 1][j] >= best[i][j + 1]) i++;
     else j++;
   }
   return out;

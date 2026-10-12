@@ -164,3 +164,10 @@ test('two images of one picture that swap places keep their own sizes', () => {
   const back = canonicalHTML(document, scopeFromMarkdown(el, '![small](a.png) ![big](a.png)'));
   assert.match(back, /alt="small" width="9">.*alt="big" width="90"/);
 });
+
+test('deleting an inline icon leaves a diagram between blocks, not in a paragraph', () => {
+  const icon = '<svg viewBox="0 0 1 1"><circle r="1"></circle></svg>';
+  const { document, el } = scopeIn(`<section><p>a ${icon} b</p><svg viewBox="0 0 9 9"><text>diagram</text></svg></section>`);
+  const back = canonicalHTML(document, scopeFromMarkdown(el, 'a b\n\n⟦svg⟧'));
+  assert.match(back, /<\/p>\s*<svg viewBox="0 0 9 9">/);
+});
