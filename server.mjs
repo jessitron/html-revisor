@@ -2,15 +2,16 @@
 //
 // Three tiers, dependencies point downward only:
 //   Tier I   orchestration: CLI, request routing, the GET and PUT flows
-//   Tier II  domain: directives, text edits, element identity (pure functions over a DOM);
-//            the formatter is Tier II too, in formatter.mjs
+//   Tier II  domain: text edits, element identity (pure functions over a DOM);
+//            directives.mjs, formatter.mjs, and scopes.mjs are Tier II too
 //   Tier III interface: filesystem gateway, content types, listings, client assets
 import crypto from 'node:crypto';
 import http from 'node:http';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { formatFiles, parse, normalize, serialize, assignIds, formatElement, ID, VOID, RAW, trimAscii, escapeText } from './formatter.mjs';
+import { formatFiles, parse, normalize, serialize, assignIds, formatElement, ID, VOID, trimAscii, escapeText } from './formatter.mjs';
+import { TEXT_ONLY, isDirective, collectDirectives, removeDirectives, setDirective } from './directives.mjs';
 
 // ======================================================================
 // Tier I: orchestration
@@ -169,90 +170,6 @@ function around(el) {
   const out = [...el.querySelectorAll(`[${ID}]`)];
   for (let a = el; a?.nodeType === 1; a = a.parentNode) if (a.hasAttribute(ID)) out.push(a);
   return out;
-}
-
-// ---- Directives ---------------------------------------------------------
-
-// Directives go before these elements; for everything else a directive is the first child.
-// Elements whose content is parsed as plain text (title, iframe, ...) cannot hold a comment.
-const TEXT_ONLY = 'title iframe xmp noembed noframes'.split(' ');
-const DIRECTIVE_BEFORE = new Set([...VOID, ...RAW, ...TEXT_ONLY]);
-const directiveGoesBefore = (el) => DIRECTIVE_BEFORE.has(el.localName);
-
-// A directive is an HTML comment inside an element whose text starts with "<author>:".
-// Comments outside any element (before <html>) are never directives.
-export function isDirective(node, author) {
-  return (
-    node.nodeType === 8 &&
-    node.parentNode?.nodeType === 1 &&
-    node.data.trimStart().startsWith(`${author}:`)
-  );
-}
-
-export function directiveText(comment, author) {
-  return comment.data.trimStart().slice(author.length + 1).trim();
-}
-
-// Escape so the text cannot end the comment early. Repeat for runs like "---".
-export function escapeDirectiveText(text) {
-  let out = text;
-  while (out.includes('--')) out = out.replaceAll('--', '- -');
-  return out.replaceAll('>', '&gt;');
-}
-
-function allComments(node, found = []) {
-  for (const child of node.childNodes) {
-    if (child.nodeType === 8) found.push(child);
-    else if (child.nodeType === 1) allComments(child, found);
-  }
-  return found;
-}
-
-// The reading rule: a directive belongs to its parent, unless the next sibling (skipping
-// whitespace-only text) is a void or preformatted element; then it belongs to that sibling.
-// Only whitespace is skipped, not other directives. Skipping directives would make a parent's
-// directive and the directive of its first-child <img> ambiguous; since writing merges to one
-// directive per element, they sit in order [parent directive][img directive][img] and read back correctly.
-// Known limit: a parent's directive directly before an <img> first child that has no directive reads as the img's.
-function directiveOwner(comment) {
-  let next = comment.nextSibling;
-  while (next?.nodeType === 3 && trimAscii(next.data) === '') next = next.nextSibling;
-  return next?.nodeType === 1 && directiveGoesBefore(next) ? next : comment.parentNode;
-}
-
-// { [element ID]: directive text }; several directives on one element join with newlines.
-// A directive on an element with no ID stays in the file, unseen.
-export function collectDirectives(document, author) {
-  const directives = {};
-  for (const comment of allComments(document)) {
-    if (!isDirective(comment, author)) continue;
-    const id = directiveOwner(comment).getAttribute?.(ID);
-    if (id == null) continue;
-    const text = directiveText(comment, author);
-    directives[id] = id in directives ? `${directives[id]}\n${text}` : text;
-  }
-  return directives;
-}
-
-export function removeDirectives(document, author) {
-  for (const comment of allComments(document)) {
-    if (isDirective(comment, author)) comment.remove();
-  }
-}
-
-// Replace the element's directives with this one; empty text leaves it none. Other
-// elements' directives stay where they are.
-export function setDirective(el, text, author) {
-  for (const comment of allComments(el.ownerDocument)) {
-    if (isDirective(comment, author) && directiveOwner(comment) === el) comment.remove();
-  }
-  if (text.trim()) placeDirective(el, text, author);
-}
-
-export function placeDirective(el, text, author) {
-  const comment = el.ownerDocument.createComment(` ${author}: ${escapeDirectiveText(text.trim())} `);
-  if (directiveGoesBefore(el) && el.parentNode) el.parentNode.insertBefore(comment, el);
-  else el.insertBefore(comment, el.firstChild);
 }
 
 // ---- Text edits ---------------------------------------------------------
