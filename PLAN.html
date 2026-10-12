@@ -55,7 +55,9 @@
         <tr>
           <th></th>
           <th>here: <code>html-with-comments/</code></th>
-          <th>there: <code>iterate-on-docs/html-with-comments/</code></th>
+          <th>
+            there: <code><!-- @AI: pre-rename. yeah the rename is pretty urgent. While we write the deploy, we can accumulate context on where all the rename has to happen in both projects -->iterate-on-docs/html-with-comments/</code>
+          </th>
         </tr>
         <tr>
           <td>role</td>
@@ -79,6 +81,8 @@
         </tr>
       </table>
       <div class="q">
+        <!-- @AI: ok. Good idea. Let's call it 'deploy' because that's my standard name for this. In this project a deploy is a little odd... hmm shall we just copy it over locally, or do a PR? 
+... that's out of scope for this discussion. Let's make a yak for it (if it isn't already) and this becomes a prereq for proceeding -->
         Whose job is the copy? Options: a <code>npm run ship</code> here that writes into iterate-on-docs and commits there; a pull script in iterate-on-docs; or a step in our end-session routine. I lean toward <code>ship</code> here, since this repo knows what the build is.
       </div>
     </section>
@@ -96,6 +100,7 @@
               Default author to <code>@AI</code> here <span class="yak">default-author-to-ai…5x8n</span>
             </li>
             <li>
+              <!-- @AI: hmm I am not familiar with this -->
               Bring the copy's README additions (“Files it serves”, “Gotchas for maintainers”) back here <span class="new">new</span>
             </li>
             <li>
@@ -193,6 +198,7 @@
           <strong>Client style guide</strong><br>box, marker, toast, hover; mocks follow it <span class="yak">vrc3</span>
         </div>
         <div class="card">
+          <!-- @AI: yeah we can delete this, I'm super happy with where it is now -->
           <strong>SVG</strong><br>on hold: commenting inside SVG works and you like it <span class="yak">66nv</span>
         </div>
       </div>
@@ -209,27 +215,44 @@
           <td>stage 1</td>
         </tr>
         <tr>
-          <td>Built output: files, or one bundled file?</td>
+          <td>
+            <!-- @AI: the same way it works now. Multiple files but no npm-install required, see iterate-on-docs -->
+            Built output: files, or one bundled file?
+          </td>
           <td>stage 1</td>
         </tr>
         <tr>
-          <td>Rename before the first scripted copy?</td>
+          <td>
+            <!-- @AI: let's script and then rename, using the script exercise to list rename places -->
+            Rename before the first scripted copy?
+          </td>
           <td>order of 1 and 2</td>
         </tr>
         <tr>
-          <td>Format before prose, or prose first? The overview says order is loose.</td>
+          <td>
+            <!-- @AI: breaking out formatting is first because it lets us add validation steps. Which I suspect we'll need for prose-markdown -->
+            Format before prose, or prose first? The overview says order is loose.
+          </td>
           <td>order of 3 and 4</td>
         </tr>
         <tr>
-          <td>Which validation rules?</td>
+          <td>
+            <!-- @AI: this falls out of implementation - so none until needed -->
+            Which validation rules?
+          </td>
           <td>stage 3</td>
         </tr>
         <tr>
-          <td>IDs written into the file?</td>
+          <td>
+            <!-- @AI: no unless we find a use for that in implementation -->
+            IDs written into the file?
+          </td>
           <td>stage 4</td>
         </tr>
         <tr>
           <td>
+            <!-- @AI: yes, yes it does. Have the overview link here.
+Put a diagram at the top that shows what we know: right now we want to do the script and then the rename; then we'll regroup and chart more. -->
             Does this page replace the overview's “Where it's headed” diagram? <span class="yak">rethink…24kr</span>
           </td>
           <td>nothing</td>
