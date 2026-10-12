@@ -191,13 +191,13 @@
         </tr>
         <tr>
           <td data-hrv="108">CLI</td>
-          <td data-hrv="109"><code>node &lt;server&gt; &lt;dir&gt; --port 0</code></td>
+          <td data-hrv="109">
+            <code>node &lt;server&gt; &lt;file&gt; --port 0</code>, formats the file first
+          </td>
         </tr>
         <tr>
           <td data-hrv="110">startup line</td>
-          <td data-hrv="111">
-            <code>html-revisor: http://localhost:&lt;port&gt;/ serving &lt;dir&gt;</code>
-          </td>
+          <td data-hrv="111"><code>html-revisor: &lt;page URL&gt; serving &lt;dir&gt;</code></td>
         </tr>
         <tr>
           <td data-hrv="112">directive syntax</td>
@@ -208,7 +208,7 @@
         <tr>
           <td data-hrv="114">loading a page reformats its file</td>
           <td data-hrv="115">
-            The skill loads the page before each commit, so the reformat lands in the agent's commit and doesn't read as the user's next edit.
+            The skill runs the formatter CLI before each commit, so the reformat lands in the agent's commit and doesn't read as the user's next edit.
           </td>
         </tr>
         <tr>
