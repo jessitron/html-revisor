@@ -9,7 +9,7 @@
 // Directives ride along (stage 7): every element gets one, and after a save each is on the
 // element it was on, or, if the edit removed that element, on the one that held it.
 //
-// Two sources of scopes: every page in this repo, and pages generated from a seed in the shapes
+// Two sources of scopes: frozen copies of this repo's pages, and pages generated from a seed in the shapes
 // agents write, with text full of characters markdown reads as syntax. No property-testing
 // library: deploy runs these tests where npm install can't. A failure prints its seed.
 import { test } from 'node:test';
@@ -35,11 +35,10 @@ function roundTripFailure(document, el) {
 
 // ---- Every page here ----------------------------------------------------
 
-// The dev-only pages don't deploy; the test runs on what is there.
-const pages = [
-  ...['OVERVIEW.html', 'PLAN.html', 'DESIGN.html', 'try-me.html'].map((f) => path.join(root, f)),
-  ...fs.readdirSync(path.join(root, 'test/fixtures')).filter((f) => f.endsWith('.html')).map((f) => path.join(root, 'test/fixtures', f)),
-].filter((f) => fs.existsSync(f));
+// test/pages holds frozen copies of this repo's own pages. The live ones change under every
+// iteration, and a test shouldn't fail because Jess edited a page.
+const pages = ['test/pages', 'test/fixtures'].flatMap((dir) =>
+  fs.readdirSync(path.join(root, dir)).filter((f) => f.endsWith('.html')).map((f) => path.join(root, dir, f)));
 
 for (const file of pages) {
   test(`every scope in ${path.relative(root, file)} round-trips`, () => {
