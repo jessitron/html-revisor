@@ -54,8 +54,40 @@
     <div class="row">
       <div>
         <p><strong>Decided</strong></p>
+        <p class="note"><strong>(direction)</strong>: decided, not built yet.</p>
         <ul>
-          <li>An icon appears in every UI element html-revisor adds.</li>
+          <li>
+            <strong>Distinct by form, not color.</strong> Any color clashes with some page. A shape and material that never change hold up on all of them.
+          </li>
+          <li>
+            <strong>The tool draws over the page and never styles it.</strong> Hover, selection, and directive marks are elements in the layer, placed over their target. Page elements get no classes. (direction) Today <code>.hrv-hover</code> and <code>.hrv-has-directive</code> restyle the element and replace its own box-shadow and outline.
+          </li>
+          <li>
+            <strong>One material for every component:</strong> near-black surface, 1px light ring, shadow, square corners, the same in light and dark mode. Agent-made pages round their corners; square ones read as not from this page. (direction)
+          </li>
+          <li>
+            <strong>The accent is magenta,</strong> the revisor's red pencil. It colors the icon, the marks, and the main action.
+          </li>
+          <li>An icon appears in every UI element html-revisor adds. (direction)</li>
+          <li>
+            <strong>Crop marks</strong> show hover and selection: four corners with the halo, thin on hover, heavier while the element's box is open. They never touch the text. (direction)
+          </li>
+          <li>No stripe. The marker says the element has a directive. (direction)</li>
+          <li>
+            <strong>The directive box opens beside its element, never over it,</strong> and points at it. Placement is chosen at runtime: below, above, or in the margin when there is room. Phones count. (direction)
+          </li>
+          <li>
+            <strong>Markers sit where they don't cover what they mark,</strong> in SVG diagrams too. Hovering one shows crop marks on its element and the directive in our own tooltip. (direction)
+          </li>
+          <li>
+            <strong>The box's words are true:</strong> Done, not Save, since typing saves; "saved" in the box's footer; a quieter Delete; a header with the icon and the element. (direction)
+          </li>
+          <li>
+            The Text field shows the element's own font. Once it holds markdown, monospace. (direction)
+          </li>
+          <li>
+            <strong>The pill:</strong> bottom right, in the tool's material, with the icon. It counts the directives, steps through them, and holds the stale-file warning. Later, it turns review mode off. (direction)
+          </li>
           <li>
             The popup is the <strong>directive box</strong>. On a text element, it is a <strong>directive box with editor</strong>: the editor is the field for the element's text.
           </li>
@@ -64,14 +96,12 @@
       <div>
         <p><strong>Not decided</strong></p>
         <p class="note">
-          Everything below this section is a prototype, not a deliberate choice.
+          Everything below this section is today's prototype. Where it disagrees with Decided, Decided wins.
         </p>
         <ul>
           <li>What the icon looks like.</li>
-          <li>Colors. All of them are arbitrary choices so far.</li>
-          <li>How a hovered element looks. The halo helped in the stress test.</li>
-          <li>How the directive box looks.</li>
-          <li>Fonts, borders, sizes: everything else.</li>
+          <li>The rules that place the box and the markers.</li>
+          <li>Fonts, sizes, and spacing inside the box.</li>
         </ul>
       </div>
     </div>
@@ -180,7 +210,7 @@
       </div>
     </div>
     <p class="note">
-      <strong>What it shows.</strong> The halo keeps the marker and the hover outline visible on every ground. The armadillo is the hardest: the outline's white gaps blend into its pale scales, and only the pink dashes carry it. The stripe fails: it draws over the first letter, disappears on pink, can't show on an image, and next to a page's own pink border it reads as part of the page. Recommendation: rethink or drop the stripe, since the marker already says "this element has a directive".
+      <strong>What it shows.</strong> The halo keeps the marker and the hover outline visible on every ground. The armadillo is the hardest: the outline's white gaps blend into its pale scales, and only the pink dashes carry it. The stripe fails: it draws over the first letter, disappears on pink, can't show on an image, and next to a page's own pink border it reads as part of the page. Decided: no stripe, since the marker already says "this element has a directive".
     </p>
     <h2>Palette</h2>
     <p class="note">
