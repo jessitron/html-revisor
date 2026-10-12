@@ -32,6 +32,8 @@
     --hrv-field: #1a1b1e;
     --hrv-button: #383b40;
     --hrv-button-hover: #4a4d53;
+    --hrv-toast: #eee;
+    --hrv-on-toast: #222;
   }
 }
 
