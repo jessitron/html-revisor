@@ -95,4 +95,11 @@ The HTML parser is [linkedom](https://github.com/WebReflection/linkedom), bundle
 - **Tier II, domain**: pure functions. The formatter (`normalize`), the directives language (`collectDirectives`, `removeDirectives`, `placeDirective`, escaping), text edits (`isTextElement`, `setText`), and element identity (`stamp`, `unstamp`: `data-n` is the element's document-order index).
 - **Tier III, interface**: the filesystem gateway (paths under the root, 403 on escape), content types, directory listing, and the client assets (`CLIENT_CSS`, `CLIENT_JS`) injected into served pages.
 - **Text edits**: PUT also carries `texts`, `{"<id>": "new text"}`, holding every element the tab has edited. Resending is harmless. The server replaces the text only of elements that hold nothing but text (after directives are lifted out) and ignores blank text, so no markup is lost.
+- **Files it serves**: agent-generated documents whose generation we control. The tool may require things of them, limit what they contain, and rewrite them on disk. When a file shape causes trouble, normalize it into a shape the tool handles rather than supporting every HTML a browser accepts. If a requirement can't be met by normalizing, add it to the agent instructions above.
 - **Deviation from the spec**: PUT carries an optional `version` (hash of the file bytes, from `data-version` on the `#hn-directives` script); a mismatch gets 409 and no write. A PUT without `version` skips the check.
+
+## Gotchas for maintainers
+
+- linkedom doesn't create a missing `<html>`/`<head>`/`<body>`. It makes the first element the root, and reading `document.head` or `document.body` silently creates empty ones inside that root. Go through `parse()`, never `parseHTML` directly.
+- `vendor/linkedom.mjs` is a generated bundle. Don't edit it. After changing the linkedom version, run `npm run vendor`.
+- GET normalizes the file in place. To try the server by hand, serve a temp copy of `test/fixtures`, not the directory itself.
