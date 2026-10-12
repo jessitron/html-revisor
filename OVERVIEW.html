@@ -127,7 +127,7 @@
           </div>
           <div data-hrv="207" class="body">
             <p data-hrv="208">
-              Parse with linkedom, rewrite into canonical shape: add <code>html/head/body</code> if missing, one block per line, inline runs on one line, whitespace collapsed, two-space indent. Idempotent. Writes to disk when it differs.
+              Parse with linkedom, rewrite into canonical shape: add <code>html/head/body</code> if missing, <code>b</code>→<code>strong</code> and the other forms markdown writes back, one block per line, inline runs on one line, whitespace collapsed, two-space indent. Idempotent. Writes to disk when it differs.
             </p>
             <div data-hrv="209" class="ba">
               <div data-hrv="210">
@@ -304,7 +304,7 @@ OVERVIEW.html: &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing content
             <div data-hrv="282" class="dirpart" id="d-prose">
               <h3 data-hrv="283">set prose <span class="directional">directional</span></h3>
               <pre data-hrv="284">prose {"4": "Ship the **formatter** last."}
-  →  &lt;p&gt;Ship the &lt;b&gt;formatter&lt;/b&gt; last.&lt;/p&gt;</pre>
+  →  &lt;p&gt;Ship the &lt;strong&gt;formatter&lt;/strong&gt; last.&lt;/p&gt;</pre>
               <p data-hrv="285" class="sub">
                 Open, then save unchanged: the HTML stays byte-for-byte the same. See <a data-hrv="286" href="#prose">Prose editing</a>.
               </p>

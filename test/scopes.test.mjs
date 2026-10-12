@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parse, serialize } from '../formatter.mjs';
-import { scopeOf, scopesWithin, scopeMarkdown, annotate } from '../scopes.mjs';
+import { normalize, parse, serialize } from '../formatter.mjs';
+import { scopeOf, scopesWithin, scopeMarkdown, scopeFromMarkdown, roundTrips, canonicalHTML, annotate } from '../scopes.mjs';
 
 const body = (html) => parse(`<html><body>${html}</body></html>`).querySelector('body');
 const markdownOf = (html) => scopeMarkdown(body(html).firstElementChild);
@@ -69,4 +69,85 @@ test('annotating twice gives the same page', () => {
   assert.match(once, /<table class="scope-report">[\s\S]*all markdown/);
   assert.match(once, /<details class="scope-report">/);
   assert.equal(scopeOf(document.querySelector('.ex')).children.length, 1);
+});
+
+// ---- Round-trip rules (PLAN.html stage 5) ---------------------------------
+// The property itself is in roundtrip.test.mjs; these are the rules, one example each.
+
+const scopeIn = (html) => {
+  const document = parse(normalize(`<html><body>${html}</body></html>`));
+  return { document, el: document.querySelector('body').firstElementChild };
+};
+const saved = (html) => {
+  const { document, el } = scopeIn(html);
+  const markdown = scopeMarkdown(el);
+  return { markdown, same: roundTrips(el, markdown), back: canonicalHTML(document, scopeFromMarkdown(el, markdown)) };
+};
+
+test('text that reads as syntax is escaped, and entity-shaped text stays text', () => {
+  const { markdown, same } = saved('<p>snake_case a*b [x] &amp;copy; &lt;tag&gt; ~~no~~ ⟦svg⟧</p>');
+  assert.equal(markdown, 'snake\\_case a\\*b \\[x\\] &amp;copy; &lt;tag> \\~\\~no\\~\\~ \\⟦svg⟧');
+  assert.ok(same);
+});
+
+test('a line that would start a block is escaped', () => {
+  const { markdown, same } = saved('<p>a<br># b<br>- c<br>1. d<br>=== e</p>');
+  assert.equal(markdown, 'a\n\\# b\n\\- c\n1\\. d\n\\=== e');
+  assert.ok(same);
+});
+
+test('emphasis markdown cannot say stays HTML, and still round-trips', () => {
+  const { markdown, same } = saved('<p>x<strong> a </strong>y</p>');
+  assert.equal(markdown, 'x<strong> a </strong>y');
+  assert.ok(same);
+});
+
+test('inside a bigger scope, a block with attributes is HTML; picked alone, its class is its own', () => {
+  assert.equal(saved('<section><p class="why">a <strong>b</strong></p></section>').markdown, '<p class="why">a <strong>b</strong></p>');
+  assert.equal(saved('<p class="why">a <strong>b</strong></p>').markdown, 'a **b**');
+  const list = saved('<ul class="yaks"><li>a</li></ul>');
+  assert.equal(list.markdown, '- a');
+  assert.ok(list.same);
+});
+
+test('a card keeps its tag, with markdown inside', () => {
+  assert.equal(saved('<section><div class="card"><p>a</p><ul><li>b</li></ul></div></section>').markdown, '<div class="card">\n\na\n\n- b\n\n</div>');
+});
+
+test('pre: backticks for <pre><code>, tildes for a bare <pre>, HTML when it holds markup', () => {
+  assert.equal(saved('<section><pre><code class="language-js">a\n\nb</code></pre></section>').markdown, '```js\na\n\nb\n```');
+  assert.equal(saved('<section><pre>a ``` b</pre></section>').markdown, '~~~\na ``` b\n~~~');
+  const marked = saved('<pre>a <span class="add">b</span></pre>');
+  assert.equal(marked.markdown, '<pre>a <span class="add">b</span></pre>');
+  assert.ok(marked.same);
+});
+
+test('a stand-in comes back as its element: svg, script, and an image with its other attributes', () => {
+  const page = saved('<section><h2>T</h2><svg viewBox="0 0 1 1"><text>x</text></svg><p><img src="a.png" alt="A" width="9"></p><script>go()</script></section>');
+  assert.equal(page.markdown, '## T\n\n⟦svg⟧\n\n![A](a.png)\n\n⟦script⟧');
+  assert.ok(page.same, page.back);
+});
+
+test('text bare beside blocks stays bare when saved unchanged; edited, it is a paragraph (C10)', () => {
+  const { document, el } = scopeIn('<div>before<ul><li>a</li></ul>after</div>');
+  assert.ok(roundTrips(el, 'before\n\n- a\n\nafter'));
+  assert.match(canonicalHTML(document, scopeFromMarkdown(el, 'before!\n\n- a\n\nafter')), /<p>before!<\/p>/);
+});
+
+test('two lists in a row stay two lists', () => {
+  const { markdown, same } = saved('<section><ul><li>a</li></ul><ul><li>b</li></ul><ol><li>c</li></ol><ol><li>d</li></ol></section>');
+  assert.equal(markdown, '- a\n\n* b\n\n1. c\n\n1) d');
+  assert.ok(same);
+});
+
+test('a table with a header row is GFM; a pipe in a cell is escaped', () => {
+  const { markdown, same } = saved('<table><tr><th>a|b</th></tr><tr><td><code>x|y</code></td></tr></table>');
+  assert.equal(markdown, '| a\\|b |\n| --- |\n| `x\\|y` |');
+  assert.ok(same);
+});
+
+test('a destination with a space or parenthesis goes in angle brackets; a title keeps its quotes', () => {
+  const { markdown, same } = saved('<p><a href="a b(1).html" title="say &quot;hi&quot;">x</a></p>');
+  assert.equal(markdown, '[x](<a b(1).html> "say \\"hi\\"")');
+  assert.ok(same);
 });

@@ -7,16 +7,19 @@
 // A scope is any block element, plus links and images. You pick it to leave a directive or to
 // edit its whole content as markdown: a section, a list, one list item, a table, one cell (Jess,
 // 2026-10-12, F2 in try-me.html#scopes). Other inline elements, like strong, belong to their
-// block. The markdown here is a first pass for looking at cases; PLAN.html stage 5 owns the
-// real round-trip.
+// block. scopeMarkdown writes a scope as markdown and scopeFromMarkdown reads it back; saving
+// it unchanged gives back the same HTML, element IDs and directives aside (PLAN.html stage 5,
+// test/roundtrip.test.mjs).
 //
 // Tiers, dependencies point downward only:
 //   Tier I   orchestration: the CLI
-//   Tier II  domain: scopes, markdown, the report, annotation (pure functions over a DOM)
-//   Tier III interface: the filesystem, through fs in the CLI; parse/serialize from formatter.mjs
+//   Tier II  domain: scopes, markdown both ways, the report, annotation (pure functions over a DOM)
+//   Tier III interface: the filesystem, through fs in the CLI; parse/serialize from formatter.mjs;
+//            the markdown parser, markdown-it
 import fs from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
-import { parse, serialize, trimAscii } from './formatter.mjs';
+import { parse, serialize, trimAscii, formatElement, VOID } from './formatter.mjs';
+import { MarkdownIt } from './vendor/markdown-it.mjs';
 
 // ======================================================================
 // Tier I: orchestration
@@ -47,7 +50,7 @@ export async function main(args, { stdout = process.stdout, stderr = process.std
 
 // ---- Kinds of element ---------------------------------------------------
 
-// Not shown, so never a scope and never in the markdown.
+// Not shown, so never a scope. In markdown it is a token like ⟦svg⟧, so saving keeps it.
 const HIDDEN = new Set('head script style template title meta link noscript'.split(' '));
 
 // Shown, but not text. Inside prose it is a token: ⟦svg⟧.
@@ -110,36 +113,58 @@ export function scopeElements(document) {
 // ---- Markdown -----------------------------------------------------------
 
 // Unlikely shapes (empty paragraphs, dl, stat tiles) may come out ugly here. Spend the effort
-// on the shapes agents write (Jess, 2026-10-12). They still have to round-trip.
+// on the shapes agents write (Jess, 2026-10-12). They still have to round-trip, so each piece
+// is checked against the parser: a block, or a run of phrasing, that markdown-it wouldn't read
+// back the same is written as HTML instead. The rules make the markdown readable; the check
+// keeps it true.
 
 // The markdown for a scope's content. The scope's own tag is the element's business, so a
-// heading picked alone shows no #; inside a bigger scope it does (A3).
+// heading picked alone shows no #; inside a bigger scope it does (A3). So is a list's or a
+// table's class: picked alone, a ul.yaks is its - lines.
 export function scopeMarkdown(el) {
-  if (el.localName === 'pre') return fence(el);
-  if (INLINE_SCOPES.has(el.localName) && !isBlock(el)) return inline([el]); // the whole link: [text](href)
-  if (MARKDOWN_ITSELF.has(el.localName)) return block(el);
-  if (el.localName === 'li') return itemBody(el, isLoose(el));
+  const name = el.localName;
+  if (name === 'pre') return fenceable(el, true) ? fence(el) : rawBlock(el);
+  if (INLINE_SCOPES.has(name) && !isBlock(el)) return inline([el]); // the whole link: [text](href)
+  if (MARKDOWN_ITSELF.has(name)) {
+    const md = syntax(el);
+    return md !== null && roundTrips(el, md) ? md : rawBlock(el);
+  }
+  if (name === 'li') return orHTML(el, itemBody(el, isLoose(el)), isLoose(el) ? '\n\n' : '\n');
   if (!holdsBlocks(el)) return inline(el.childNodes);
-  return blocks(el.childNodes, '\n\n');
+  return orHTML(el, blocks(el.childNodes, '\n\n'), '\n\n');
 }
+
+// The markdown if saving it unchanged gives back the scope, else its blocks as HTML.
+const orHTML = (el, md, sep) => (roundTrips(el, md) ? md : blocks(el.childNodes, sep, true));
 
 // Elements whose markdown is the syntax itself: a list's content is its - lines.
 const MARKDOWN_ITSELF = new Set(['ul', 'ol', 'table']);
 
+const syntax = (el) => (el.localName === 'table' ? gfmTable(el) : list(el));
+
 // Block children in markdown, separated by sep. Bare text between blocks is a paragraph (C10).
-function blocks(nodes, sep) {
+function blocks(nodes, sep, asHTML = false) {
   const parts = [];
   let run = [];
+  let last = null; // the block before, and whether it took the other list marker
   const flush = () => {
     const md = inline(run);
-    if (md) parts.push(md);
+    if (md) {
+      parts.push(md);
+      last = null;
+    }
     run = [];
   };
   for (const n of nodes) {
-    if (n.nodeType === 1 && HIDDEN.has(n.localName)) continue;
     if (n.nodeType === 1 && isBlock(n)) {
+      const afterText = run.some(meaningful);
       flush();
-      parts.push(block(n));
+      // On the line after text, a list numbered from past 1 would be more of the text.
+      const joinsText = afterText && sep === '\n' && n.localName === 'ol' && (n.getAttribute('start') ?? '1') !== '1';
+      const alt = last?.el.localName === n.localName && !last.alt;
+      const md = (!asHTML && !joinsText && checked(n, block(n, alt))) || null;
+      parts.push(md ?? rawBlock(n));
+      last = { el: n, alt: alt && md !== null };
     } else if (n.nodeType === 1 || n.nodeType === 3) {
       run.push(n);
     }
@@ -148,29 +173,58 @@ function blocks(nodes, sep) {
   return parts.join(sep);
 }
 
-function block(el) {
+// The markdown for a block inside a bigger scope, or null where markdown has no way to say it.
+function block(el, alt) {
   const name = el.localName;
   const plain = !hasAttrs(el);
-  if (name === 'hr') return '---';
-  if (name === 'pre') return fence(el);
-  if (plain && /^h[1-6]$/.test(name)) return `${'#'.repeat(Number(name[1]))} ${inline(el.childNodes)}`;
-  if (plain && (name === 'p' || name === 'div') && !holdsBlocks(el)) return inline(el.childNodes);
-  if (plain && name === 'ul') return list(el, null);
-  if (name === 'ol' && attrNames(el).every((a) => a === 'start')) return list(el, Number(el.getAttribute('start') ?? 1));
-  if (plain && name === 'blockquote') return quote(scopeMarkdown(el));
-  if (plain && name === 'table' && simpleTable(el)) return gfmTable(el);
-  if (name === 'table') return rawHTML(el);
-  // Markdown has no syntax for it: the tag stays, with markdown inside.
-  if (!holdsBlocks(el)) return `${openTag(el)}${inline(el.childNodes)}</${name}>`;
-  return `${openTag(el)}\n\n${blocks(el.childNodes, '\n\n')}\n\n</${name}>`;
+  if (name === 'hr') return plain ? '---' : null;
+  if (name === 'pre') return fenceable(el, false) ? fence(el) : null;
+  if (name === 'ol' && attrNames(el).every((a) => a === 'start')) return list(el, alt);
+  if (!plain) return holdsBlocks(el) ? wrapped(el) : null;
+  if (/^h[1-6]$/.test(name)) return oneLine(inline(el.childNodes), (md) => `${'#'.repeat(Number(name[1]))} ${md}`);
+  if (name === 'p') return inline(el.childNodes) || null;
+  if (name === 'ul') return list(el, alt);
+  if (name === 'table') return gfmTable(el);
+  if (name === 'blockquote') return holdsBlocks(el) ? quote(blocks(el.childNodes, '\n\n')) : null;
+  return holdsBlocks(el) ? wrapped(el) : null;
 }
 
-function list(el, start) {
-  const items = [...el.children].filter((c) => c.localName === 'li');
+// Markdown has no syntax for the element: its tag stays as HTML, with markdown inside.
+const wrapped = (el) => `${openTag(el)}\n\n${blocks(el.childNodes, '\n\n')}\n\n</${el.localName}>`;
+
+const oneLine = (md, f) => (md.includes('\n') ? null : f(md));
+
+// The markdown if markdown-it reads it back as el, else null.
+function checked(el, md) {
+  return md !== null && sameNodes([el], render(md)) ? md : null;
+}
+
+// The element as HTML, the way the file has it: an HTML block, which markdown leaves alone.
+function rawBlock(el) {
+  const html = formatElement(bare(el));
+  // A blank line ends an HTML block. Inside a pre, &#10; is the same newline.
+  const unbroken = html.replace(/\n{2,}/g, (nl) => `\n${'&#10;'.repeat(nl.length - 1)}`);
+  // On one line, an HTML block must start with a block tag; on its own line, any tag will do.
+  const open = openTag(el);
+  const close = `</${el.localName}>`;
+  const ownLine = !unbroken.includes('\n') && unbroken.endsWith(close) ? `${open}\n${unbroken.slice(open.length, -close.length)}\n${close}` : unbroken;
+  return [html, unbroken, ownLine].find((md) => sameNodes([el], render(md))) ?? html;
+}
+
+// A list's - lines, or null if markdown can't say it. Markdown makes every item of a list
+// tight (phrasing in the item) or loose (paragraphs in the item), so the items must agree.
+// alt: the list follows one of its kind, so it takes the other marker, * or 1), and stays a
+// list of its own.
+function list(el, alt = false) {
+  const items = [...el.children];
+  if (items.some((li) => li.localName !== 'li' || hasAttrs(li))) return null;
   const loose = items.some(isLoose);
+  if (loose && !items.every(allBlocks)) return null;
+  if (loose && items.length === 1 && blockCount(items[0]) < 2) return null; // one paragraph alone reads as tight
+  const start = el.localName === 'ol' ? Number(el.getAttribute('start') ?? 1) : null;
   return items
     .map((li, i) => {
-      const marker = start === null ? '- ' : `${start + i}. `;
+      const marker = start === null ? (alt ? '* ' : '- ') : `${start + i}${alt ? ')' : '.'} `;
       return marker + indent(itemBody(li, loose), marker.length);
     })
     .join(loose ? '\n\n' : '\n');
@@ -179,71 +233,326 @@ function list(el, start) {
 // A loose list item holds paragraphs, so its blocks sit a blank line apart (C3).
 const isLoose = (li) => [...li.children].some((c) => c.localName === 'p');
 const itemBody = (li, loose) => (holdsBlocks(li) ? blocks(li.childNodes, loose ? '\n\n' : '\n') : inline(li.childNodes));
+const meaningful = (n) => n.nodeType === 1 || (n.nodeType === 3 && trimAscii(n.data) !== '');
+const allBlocks = (li) => [...li.childNodes].filter(meaningful).every((n) => n.nodeType === 1 && isBlock(n));
+const blockCount = (li) => [...li.childNodes].filter(meaningful).length;
 
 const indent = (text, n) => text.replace(/\n(?=.)/g, `\n${' '.repeat(n)}`);
 const quote = (text) => text.split('\n').map((l) => (l ? `> ${l}` : '>')).join('\n');
 
-function fence(pre) {
-  const text = pre.textContent.replace(/\n$/, '');
-  const ticks = text.includes('```') ? '````' : '```';
-  return `${ticks}\n${text}\n${ticks}`;
-}
-
-// A table markdown can say: a header row of th, every cell phrasing, no caption.
-function simpleTable(table) {
-  const rows = [...table.querySelectorAll('tr')];
+// A pre markdown can fence: text, in a code element whose only attribute is its language.
+// Picked alone, a pre of bare text fences too: saving puts the text back where it was.
+// A pre markdown can fence: bare text, or text in a code element whose only attribute is its
+// language. Picked alone, the pre's own attributes are the element's business.
+function fenceable(pre, alone) {
+  const kids = [...pre.childNodes].filter((n) => n.nodeType !== 8);
+  const textOnly = (el) => [...el.childNodes].every((n) => n.nodeType !== 1);
+  if (!alone && hasAttrs(pre)) return false;
+  if (textOnly(pre)) return true;
+  const [code] = kids;
   return (
-    rows.length > 0 &&
-    !table.querySelector('caption') &&
-    [...rows[0].children].every((c) => c.localName === 'th') &&
-    rows.every((r) => [...r.children].every((c) => !holdsBlocks(c) && !hasAttrs(c)))
+    kids.length === 1 &&
+    code.localName === 'code' &&
+    textOnly(code) &&
+    attrNames(code).every((a) => a === 'class') &&
+    /^(language-\S+)?$/.test(code.getAttribute('class') ?? '')
   );
 }
 
+// A fence of backticks is <pre><code>; a fence of tildes is a bare <pre>, as agents often write.
+function fence(pre) {
+  const code = pre.querySelector('code');
+  const language = (code?.getAttribute('class') ?? '').replace(/^language-/, '');
+  const text = pre.textContent;
+  const mark = code ? '`' : '~';
+  const longest = Math.max(2, ...(text.match(code ? /`+/g : /~+/g) ?? []).map((t) => t.length));
+  const fence = mark.repeat(longest + 1);
+  return `${fence}${language}\n${text}\n${fence}`;
+}
+
+// A table markdown can say: one header row of th, body rows of td, every cell one line of
+// phrasing, no caption. Anything else is null.
 function gfmTable(table) {
-  const rows = [...table.querySelectorAll('tr')].map((r) => [...r.children].map((c) => inline(c.childNodes).replace(/\|/g, '\\|')));
+  const sections = [...table.children];
+  const [head, body] = sections;
+  if (hasAttrs(table) || head?.localName !== 'thead' || head.children.length !== 1 || hasAttrs(head)) return null;
+  if (sections.length > 2 || (body && (body.localName !== 'tbody' || hasAttrs(body)))) return null;
+  const rows = [...head.children, ...(body?.children ?? [])];
+  const cellsOk = (row, tag) => !hasAttrs(row) && [...row.children].every((c) => c.localName === tag && !hasAttrs(c) && !holdsBlocks(c));
+  if (!cellsOk(rows[0], 'th') || !rows.slice(1).every((r) => r.localName === 'tr' && cellsOk(r, 'td'))) return null;
+  const md = rows.map((r) => [...r.children].map((c) => inline(c.childNodes).replace(/\|/g, '\\|')));
+  if (md.some((cells) => cells.some((c) => c.includes('\n')))) return null;
   const line = (cells) => `| ${cells.join(' | ')} |`;
-  return [line(rows[0]), line(rows[0].map(() => '---')), ...rows.slice(1).map(line)].join('\n');
+  return [line(md[0]), line(md[0].map(() => '---')), ...md.slice(1).map(line)].join('\n');
 }
 
 // Phrasing content in markdown. Markdown syntax only for elements with no attributes
-// (a: href and title; img: src and alt); the rest stays as HTML, which CommonMark allows inline.
+// (a: href and title; img: src and alt, the rest come back from the original, D2); the rest
+// stays as HTML, which CommonMark allows inline. If markdown-it wouldn't read the markdown
+// back the same (emphasis beside punctuation, say), the run's marks are written as HTML.
 function inline(nodes) {
-  const md = [...nodes].map(inlineNode).join('');
-  return md.split('\n').map(trimAscii).join('\n').replace(/^(#|[-+>]|\d+[.)])(?= |$)/gm, '\\$1').trim();
+  nodes = [...nodes];
+  const md = phrasing(nodes, false);
+  if (nodes.length === 0 || sameNodes(nodes, renderInline(md))) return md;
+  return phrasing(nodes, true);
 }
 
-const MARKS = { strong: '**', b: '**', em: '*', i: '*' };
+function phrasing(nodes, asHTML) {
+  const md = phrasingOf(nodes, asHTML);
+  return trimAscii(
+    md
+      .split('\n')
+      .map(trimAscii)
+      .join('\n')
+      .replace(/^([#>+=-])/gm, '\\$1')
+      .replace(/^(\d+)([.)])/gm, '$1\\$2'),
+  );
+}
 
-function inlineNode(n) {
-  if (n.nodeType === 3) return escapeMarkdown(n.data.replace(/[ \t\n\r\f]+/g, ' '));
-  if (n.nodeType !== 1 || HIDDEN.has(n.localName)) return '';
+const MARKS = { strong: '**', em: '*' };
+
+// linkedom splits text at each entity, so adjacent text nodes are escaped as one string:
+// "&" and "copy;" in two nodes still read as &copy; once they are side by side.
+function phrasingOf(nodes, asHTML) {
+  const pieces = [];
+  for (const n of nodes) {
+    if (n.nodeType === 3 && typeof pieces.at(-1) === 'string') pieces[pieces.length - 1] += n.data;
+    else pieces.push(n.nodeType === 3 ? n.data : n);
+  }
+  return pieces.map((p) => (typeof p === 'string' ? escapeMarkdown(collapse(p)) : inlineNode(p, asHTML))).join('');
+}
+
+function inlineNode(n, asHTML) {
+  if (n.nodeType !== 1) return '';
   const name = n.localName;
-  const plain = !hasAttrs(n);
-  const kids = () => [...n.childNodes].map(inlineNode).join('');
-  if (name === 'br') return '\n'; // A4: a newline, not a backslash. The conversion back makes it <br>.
-  if (name === 'img') return `![${n.getAttribute('alt') ?? ''}](${n.getAttribute('src') ?? ''})`; // D2: other attributes come back from the original
-  if (NONPROSE.has(name)) return `⟦${name}⟧`;
+  if (HIDDEN.has(name)) return `⟦${name}⟧`;
+  const plain = !hasAttrs(n) && !asHTML;
+  const kids = () => phrasingOf(n.childNodes, asHTML);
+  const html = () => (VOID.has(name) ? openTag(n) : `${openTag(n)}${kids()}</${name}>`);
+  if (name === 'br') return asHTML ? '<br>' : '\n'; // A4: a newline, not a backslash. The conversion back makes it <br>.
+  if (name === 'img' && !asHTML) return image(n) ?? html();
+  if (NONPROSE.has(name) && name !== 'img') return `⟦${name}⟧`;
   if (plain && name in MARKS) return MARKS[name] + kids() + MARKS[name];
-  if (plain && name === 'code' && n.children.length === 0) {
-    const fence = n.textContent.includes('`') ? '``' : '`';
-    return fence + n.textContent + fence;
+  if (plain && name === 'code' && n.children.length === 0) return codeSpan(collapse(n.textContent)) ?? html();
+  if (name === 'a' && !asHTML && attrNames(n).every((a) => a === 'href' || a === 'title') && n.hasAttribute('href')) {
+    const target = destination(n.getAttribute('href'), n.getAttribute('title'));
+    return target === null ? html() : `[${kids()}](${target})`;
   }
-  if (name === 'a' && attrNames(n).every((a) => a === 'href' || a === 'title')) {
-    const title = n.getAttribute('title');
-    return `[${kids()}](${n.getAttribute('href') ?? ''}${title ? ` "${title}"` : ''})`;
-  }
-  return `${openTag(n)}${kids()}</${name}>`;
+  return html();
 }
 
-const openTag = (el) => `<${el.localName}${attrNames(el).map((a) => ` ${a}="${el.getAttribute(a)}"`).join('')}>`;
+function image(img) {
+  const target = destination(img.getAttribute('src') ?? '', img.getAttribute('title'));
+  return target === null ? null : `![${escapeMarkdown(img.getAttribute('alt') ?? '')}](${target})`;
+}
 
-// Characters markdown would read as syntax. U+00A0 stays a plain character (A5).
+// A link's destination and title as markdown writes them, or null where it can't.
+function destination(href, title) {
+  const url = /[\s()\\<>]/.test(href) || href === '' ? (/[<>\n\\]/.test(href) ? null : `<${href}>`) : href;
+  if (url === null) return null;
+  const quoted = title === null ? '' : ` "${title.replace(/[\\"]/g, '\\$&')}"`;
+  return escapeEntities(url) + escapeEntities(quoted);
+}
+
+function codeSpan(text) {
+  if (text === '' || /^ +$/.test(text)) return null;
+  const longest = Math.max(0, ...(text.match(/`+/g) ?? []).map((t) => t.length));
+  const ticks = '`'.repeat(longest + 1);
+  const pad = text.startsWith('`') || text.endsWith('`') || (text.startsWith(' ') && text.endsWith(' ')) ? ' ' : '';
+  return `${ticks}${pad}${text}${pad}${ticks}`;
+}
+
+const openTag = (el) => `<${el.localName}${attrNames(el).map((a) => ` ${a}="${escapeAttr(el.getAttribute(a))}"`).join('')}>`;
+const escapeAttr = (s) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+const collapse = (s) => s.replace(/[ \t\n\r\f]+/g, ' ');
+
+// Characters markdown would read as syntax, and ⟦, which starts a stand-in. U+00A0 stays a
+// plain character (A5).
 function escapeMarkdown(text) {
-  return text
-    .replace(/[\\`*_[\]]/g, '\\$&')
-    .replace(/&(?=[a-zA-Z#][a-zA-Z0-9]*;)/g, '&amp;')
-    .replace(/</g, '&lt;');
+  return escapeEntities(text.replace(/[\\`*_[\]~⟦]/g, '\\$&')).replace(/</g, '&lt;');
+}
+const escapeEntities = (text) => text.replace(/&(?=[a-zA-Z#][a-zA-Z0-9]*;)/g, '&amp;');
+
+// ---- Markdown back to HTML ----------------------------------------------
+
+// The nodes that replace a scope's element when its markdown is saved. The prior element says
+// what shape the markdown has, the same way it did for scopeMarkdown: an item's content, a
+// list's lines, a paragraph's phrasing. Opening a scope and saving it unchanged gives back
+// the same HTML, IDs and directives aside (PLAN.html stage 5).
+export function scopeFromMarkdown(el, markdown) {
+  const nodes = restore([el], fromMarkdown(el, markdown));
+  if (holdsParagraphs(el) && nodes.length === 1) keepBareText(el, nodes[0]);
+  return nodes;
+}
+
+// A scope whose markdown is paragraphs and other blocks.
+const holdsParagraphs = (el) =>
+  holdsBlocks(el) && !['pre', 'li'].includes(el.localName) && !MARKDOWN_ITSELF.has(el.localName);
+
+// Text that sat bare beside blocks in the prior HTML comes back as a paragraph (C10). Where it
+// comes back unchanged, it goes back to bare text.
+function keepBareText(prior, el) {
+  const document = prior.ownerDocument;
+  const runs = [];
+  let run = [];
+  for (const n of [...prior.childNodes, null]) {
+    if (n === null || (n.nodeType === 1 && isBlock(n))) {
+      if (run.some(meaningful)) runs.push(canonicalHTML(document, run));
+      run = [];
+    } else if (n.nodeType === 1 || n.nodeType === 3) run.push(n);
+  }
+  for (const p of [...el.children]) {
+    if (p.localName !== 'p' || hasAttrs(p)) continue;
+    const at = runs.indexOf(canonicalHTML(document, [...p.childNodes]));
+    if (at < 0) continue;
+    runs.splice(at, 1);
+    p.replaceWith(...p.childNodes);
+  }
+}
+
+// Whether saving this markdown unchanged gives back the scope as it is.
+export const roundTrips = (el, markdown) =>
+  canonicalHTML(el.ownerDocument, [el]) === canonicalHTML(el.ownerDocument, scopeFromMarkdown(el, markdown));
+
+function fromMarkdown(el, markdown) {
+  const name = el.localName;
+  if (name === 'pre') return fenceable(el, true) ? [codeBlock(el, markdown)] : nodesOf(el, render(markdown));
+  if (INLINE_SCOPES.has(name) && !isBlock(el)) return nodesOf(el, renderInline(markdown));
+  if (MARKDOWN_ITSELF.has(name)) return adopt(el, nodesOf(el, render(markdown)));
+  if (name === 'li') return [shell(el, itemContent(el, markdown))];
+  if (holdsParagraphs(el)) return [shell(el, nodesOf(el, render(markdown)))];
+  return [shell(el, nodesOf(el, renderInline(markdown)))];
+}
+
+// A list or table picked alone keeps its own attributes; an ol takes its start from the markdown.
+function adopt(el, nodes) {
+  const [only] = nodes.filter(meaningful);
+  if (nodes.filter(meaningful).length !== 1 || only.localName !== el.localName) return nodes;
+  const copy = shell(el, [...only.childNodes]);
+  if (el.localName === 'ol') {
+    if (only.hasAttribute('start')) copy.setAttribute('start', only.getAttribute('start'));
+    else copy.removeAttribute('start');
+  }
+  return [copy];
+}
+
+// An item's markdown, rendered as the one item of a list, so markdown decides tight or loose.
+function itemContent(el, markdown) {
+  const [list] = nodesOf(el, render(`- ${indent(markdown, 2)}`));
+  return list?.firstElementChild ? [...list.firstElementChild.childNodes] : [];
+}
+
+// A pre picked alone keeps its attributes and takes the fence's content. Markdown that isn't
+// a fence any more is the pre's text.
+function codeBlock(el, markdown) {
+  const [rendered] = nodesOf(el, render(markdown)).filter(meaningful);
+  if (rendered?.localName === 'pre') return shell(el, [...rendered.childNodes]);
+  const pre = el.cloneNode(false);
+  pre.textContent = markdown;
+  return pre;
+}
+
+// What markdown holds as a stand-in comes back from the prior HTML, in order: ⟦svg⟧ is the
+// next svg, ⟦script⟧ the next script, and an image keeps the attributes markdown can't say (D2).
+// One that stood between blocks comes out of the paragraph markdown put it in.
+function restore(prior, nodes) {
+  const tokens = new Map();
+  const images = [];
+  const collect = (n) => {
+    if (n.nodeType !== 1) return;
+    if (n.localName === 'img') images.push(n);
+    else if (NONPROSE.has(n.localName) || HIDDEN.has(n.localName)) {
+      if (!tokens.has(n.localName)) tokens.set(n.localName, []);
+      tokens.get(n.localName).push(n);
+    } else [...n.childNodes].forEach(collect);
+  };
+  prior.forEach(collect);
+  const holder = prior[0].ownerDocument.createElement('div');
+  holder.append(...nodes);
+  const alone = new Set();
+  for (const mark of holder.querySelectorAll(STAND_IN)) {
+    const name = mark.getAttribute('name');
+    const original = tokens.get(name)?.shift();
+    if (!original) {
+      mark.replaceWith(`⟦${name}⟧`); // nothing it stood for: the text you typed
+      continue;
+    }
+    const copy = original.cloneNode(true);
+    if (standsAlone(original)) alone.add(copy);
+    mark.replaceWith(copy);
+  }
+  for (const img of holder.querySelectorAll('img')) {
+    const i = images.findIndex((o) => o.getAttribute('src') === img.getAttribute('src'));
+    if (i < 0) continue;
+    const [original] = images.splice(i, 1);
+    carryOver(original, img);
+    if (standsAlone(original)) alone.add(img);
+  }
+  for (const p of holder.querySelectorAll('p')) {
+    const kids = [...p.childNodes].filter(meaningful);
+    if (kids.length > 0 && kids.every((k) => alone.has(k)) && !hasAttrs(p)) p.replaceWith(...p.childNodes);
+  }
+  return [...holder.childNodes];
+}
+
+// Whether the element stood between blocks, outside any paragraph, maybe beside other stand-ins.
+const isStandIn = (n) => n.nodeType === 1 && (NONPROSE.has(n.localName) || HIDDEN.has(n.localName));
+function standsAlone(el) {
+  if (!holdsBlocks(el.parentNode)) return false;
+  const siblings = [...el.parentNode.childNodes].filter(meaningful);
+  const at = siblings.indexOf(el);
+  const next = (step) => {
+    let i = at + step;
+    while (siblings[i] && isStandIn(siblings[i]) && !isBlock(siblings[i])) i += step;
+    return siblings[i];
+  };
+  return [next(-1), next(1)].every((s) => !s || (s.nodeType === 1 && isBlock(s)));
+}
+
+function carryOver(original, img) {
+  const said = new Map([...img.attributes].map((a) => [a.name, a.value]));
+  const attrs = [];
+  for (const a of original.attributes) {
+    if (!['src', 'alt', 'title'].includes(a.name)) attrs.push([a.name, a.value]);
+    else if (said.has(a.name)) attrs.push([a.name, said.get(a.name)]);
+    said.delete(a.name);
+  }
+  if (said.get('alt') === '') said.delete('alt'); // markdown always writes an alt; the original had none
+  attrs.push(...said);
+  for (const a of [...img.attributes]) img.removeAttribute(a.name);
+  for (const [name, value] of attrs.reverse()) img.setAttribute(name, value); // linkedom puts a new attribute first
+}
+
+const shell = (el, nodes) => {
+  const copy = el.cloneNode(false);
+  copy.append(...nodes);
+  return copy;
+};
+
+function nodesOf(el, html) {
+  const holder = el.ownerDocument.createElement('div');
+  holder.innerHTML = html;
+  return [...holder.childNodes];
+}
+
+// Whether HTML from markdown is the same as the prior nodes, laid out by the formatter, with
+// stand-ins restored. Element IDs and directives aside: markdown doesn't carry them.
+function sameNodes(prior, html) {
+  const document = prior[0].ownerDocument;
+  return canonicalHTML(document, prior) === canonicalHTML(document, restore(prior, nodesOf(prior[0], html)));
+}
+
+export function canonicalHTML(document, nodes) {
+  const holder = document.createElement('div');
+  for (const n of nodes) holder.appendChild(bare(n));
+  return formatElement(holder);
+}
+
+// A copy without directives or the attributes the tool adds.
+function bare(node) {
+  const copy = node.cloneNode(true);
+  if (copy.nodeType === 1) stripForDisplay(copy);
+  return copy;
 }
 
 // The element's HTML as it sits in the file, minus directives and annotation, dedented.
@@ -279,8 +588,9 @@ export function coverage(scope) {
   if (scope.el.localName === 'text') return 'svg text: markdown inside the label';
   if (md.trim() === '') return 'nothing to edit';
   const notes = [];
-  if (/<[a-z]/.test(md)) notes.push('HTML');
-  if (/⟦/.test(md)) notes.push('⟦tokens⟧');
+  // Not HTML: a destination in angle brackets, ](<a b.png>), or a code span, `<tag>`.
+  if (/<[a-z]/.test(md.replace(/\]\(<[^<>]*>/g, '](').replace(/`[^`\n]*`/g, ''))) notes.push('HTML');
+  if (/(^|[^\\])⟦/.test(md)) notes.push('⟦tokens⟧');
   return notes.length ? `markdown with ${notes.join(' and ')}` : 'all markdown';
 }
 
@@ -359,6 +669,58 @@ const SCOPE_VIEW_CSS = `
   table.scope-report pre, details.scope-report pre { margin: 0; padding: 0.15rem 0.4rem; background: #f6f8fa; white-space: pre-wrap; }
   details.scope-report { font-size: 0.75rem; margin: 0.5rem 0; }
 `;
+
+// ======================================================================
+// Tier III: interface
+// ======================================================================
+
+// CommonMark with GFM tables. Raw HTML passes through, for what markdown can't say; a newline
+// is a <br> (A4). No linkify or typographer: what you type is what the file gets.
+const markdownIt = new MarkdownIt({ html: true, breaks: true });
+// Links go to the file as written: no percent-encoding, no refusing a scheme. The pages are Jess's.
+markdownIt.validateLink = () => true;
+markdownIt.normalizeLink = (url) => url;
+markdownIt.normalizeLinkText = (text) => text;
+// A <br> with no newline after it, as the formatter lays it out.
+markdownIt.renderer.rules.softbreak = () => '<br>';
+markdownIt.renderer.rules.hardbreak = () => '<br>';
+// A code block's text without the newline markdown-it adds, so the writer can say whether
+// the pre ended with one.
+const { escapeHtml, unescapeAll } = markdownIt.utils;
+const codeBlockHTML = (text, language) =>
+  `<pre><code${language ? ` class="language-${escapeHtml(language)}"` : ''}>${escapeHtml(text.replace(/\n$/, ''))}</code></pre>\n`;
+markdownIt.renderer.rules.fence = (tokens, i) => {
+  const { content, info, markup } = tokens[i];
+  if (markup.startsWith('~')) return `<pre>${escapeHtml(content.replace(/\n$/, ''))}</pre>\n`; // a bare pre
+  return codeBlockHTML(content, unescapeAll(info).trim().split(/\s+/)[0]);
+};
+markdownIt.renderer.rules.code_block = (tokens, i) => codeBlockHTML(tokens[i].content, '');
+// A stand-in, ⟦svg⟧, renders as a mark that restore swaps for the element; \⟦ is a plain ⟦.
+// markdown-it's text rule runs up to the next character some rule might start on, so it is
+// replaced with one that stops at ⟦ too.
+const STAND_IN = 'hrv-stand-in';
+const STOPS = new Set('\n!#$%&*+-:<=@[\\]^_`{}~⟦');
+markdownIt.inline.ruler.at('text', (state, silent) => {
+  let pos = state.pos;
+  while (pos < state.posMax && !STOPS.has(state.src[pos])) pos++;
+  if (pos === state.pos) return false;
+  if (!silent) state.pending += state.src.slice(state.pos, pos);
+  state.pos = pos;
+  return true;
+});
+markdownIt.inline.ruler.after('text', 'stand_in', (state, silent) => {
+  const rest = state.src.slice(state.pos, state.posMax);
+  const escaped = rest.startsWith('\\⟦');
+  const token = !escaped && rest.match(/^⟦([a-z][a-z0-9-]*)⟧/);
+  if (!escaped && !rest.startsWith('⟦')) return false;
+  if (!silent && token) state.push('stand_in', '', 0).meta = token[1];
+  else if (!silent) state.pending += '⟦';
+  state.pos += token ? token[0].length : escaped ? 2 : 1;
+  return true;
+});
+markdownIt.renderer.rules.stand_in = (tokens, i) => `<${STAND_IN} name="${tokens[i].meta}"></${STAND_IN}>`;
+const render = (markdown) => markdownIt.render(markdown);
+const renderInline = (markdown) => markdownIt.renderInline(markdown);
 
 // Run the CLI when this file is the entry point, not when imported.
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

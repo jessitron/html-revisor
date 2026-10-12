@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-hrv-next="193" lang="en">
+<html data-hrv-next="197" lang="en">
   <head>
     <meta charset="utf-8">
     <title>html-revisor — the path</title>
@@ -131,13 +131,13 @@
               <strong>Parser:</strong> markdown-it, vendored like linkedom. CommonMark with GFM tables; raw HTML passes through; a newline is <code>&lt;br&gt;</code> (A4). <strong>Writer:</strong> our own, in <code>scopes.mjs</code>: it carries the Decided rules, and turndown would need each one overridden. <span class="yak">6u05</span>
             </li>
             <li data-hrv="188">
-              The inverse, markdown to a scope's content, and a property test: scope → markdown → scope is identity, IDs aside. Seeded scopes in the shapes agents write, plus every scope in this repo's pages. Watch <code>* _ ` [</code> escaping. What it catches gets fixed in the writer. <span class="yak">s8s3</span>
+              Done: the inverse, <code>scopeFromMarkdown</code>, and the property test, <code>test/roundtrip.test.mjs</code>: every scope in this repo's pages, and seeded pages full of <code>* _ ` [ # &amp;</code>, round-trip, IDs and directives aside. The writer checks each block and run of phrasing against markdown-it and writes HTML where markdown wouldn't read back the same. <span class="yak">s8s3</span>
             </li>
             <li data-hrv="189">
               Done: canonical forms. The formatter rewrites <code>b</code>→<code>strong</code>, <code>i</code>→<code>em</code>, puts table rows in <code>thead</code>/<code>tbody</code>, and drops whitespace beside <code>&lt;br&gt;</code>, so what markdown writes back is what the file holds. Formatting, not a validation rule: no agent hears of it. <span class="yak">w3yn</span>
             </li>
             <li data-hrv="190">
-              What markdown holds as a stand-in: <code>⟦svg⟧</code> comes back as the original element, and a directive inside the scope rides with its element. <span class="yak">25ov</span>
+              Stand-ins done: <code>⟦svg⟧</code> and <code>⟦script⟧</code> come back as the original element, an image keeps its other attributes. Left: a directive inside the scope rides with its element. <span class="yak">25ov</span>
             </li>
             <li data-hrv="191">
               Reconcile against the prior HTML: elements a markdown edit leaves unchanged keep their IDs and the attributes markdown can't say (<code>data-hrv</code>, <code>img</code> width and height). New elements get fresh IDs. How to match is open. <span class="yak">eq9q</span>
@@ -311,12 +311,14 @@
           </tr>
           <tr>
             <td data-hrv="145">Code blocks</td>
-            <td data-hrv="146">A fenced block. Highlighting spans don't survive.</td>
+            <td data-hrv="146">
+              A fenced block: backticks for <code>&lt;pre&gt;&lt;code&gt;</code>, tildes for a bare <code>&lt;pre&gt;</code>. A pre holding markup (highlighting) is HTML, so its spans survive. Revised 2026-10-12.
+            </td>
           </tr>
           <tr>
             <td data-hrv="147">Text beside blocks</td>
             <td data-hrv="148">
-              Paragraphs in the enclosing scope's markdown: text, list, text edits as one.
+              Paragraphs in the enclosing scope's markdown: text, list, text edits as one. Text saved unchanged stays bare.
             </td>
           </tr>
           <tr>
@@ -328,7 +330,7 @@
           <tr>
             <td data-hrv="151">What markdown can't say</td>
             <td data-hrv="152">
-              Stays as inline HTML (<code>kbd</code>, <code>span class</code>, <code>a target</code>).
+              Stays as inline HTML (<code>kbd</code>, <code>span class</code>, <code>a target</code>). Inside a bigger scope, a block with attributes is HTML too, inner markup and all, since markdown isn't read inside an HTML block. <span class="yak">f6im</span>
             </td>
           </tr>
           <tr>
@@ -359,6 +361,18 @@
             <td data-hrv="161">Inline elements: hover and directives?</td>
             <td data-hrv="162">
               Per element. <code>a</code> and <code>img</code>: yes. <code>strong</code>: no, it belongs to its block.
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="193">Writing markdown</td>
+            <td data-hrv="194">
+              Rules make it readable; each block and run of phrasing is checked against the parser, and written as HTML where it wouldn't come back the same. The round-trip holds by construction. <span class="yak">8hlj</span>
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="195">What isn't text</td>
+            <td data-hrv="196">
+              A stand-in: <code>⟦svg⟧</code>, <code>⟦script⟧</code>, restored in order from the prior HTML. A literal ⟦ is <code>\⟦</code>. Revises "hidden elements never in the markdown": saving would have dropped them.
             </td>
           </tr>
           <tr>
