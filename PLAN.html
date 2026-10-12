@@ -28,11 +28,10 @@
   ul.yaks { margin: .25rem 0; padding-left: 1.2rem; }
   ul.yaks li { margin: .2rem 0; }
   .yak { font-family: ui-monospace, monospace; font-size: .75rem; color: var(--muted); }
-  .new { font-size: .75rem; font-weight: 600; color: var(--now); border: 1px solid var(--now); border-radius: 999px; padding: 0 .4rem; }
   .ships { margin-top: .5rem; font-size: .9rem; }
   .ships::before { content: "⇢ ships: "; font-weight: 600; color: var(--now); }
   .q { background: var(--qbg); border-left: 4px solid var(--q); border-radius: 4px; padding: .4rem .75rem; margin: .5rem 0; }
-  .q::before { content: "Blocker: "; font-weight: 700; color: var(--q); }
+  .q::before { content: "Open: "; font-weight: 700; color: var(--q); }
   .lane { display: grid; grid-template-columns: repeat(2, 1fr); gap: .75rem; }
   .lane .card { font-size: .9rem; }
   .later-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
@@ -44,42 +43,135 @@
   <body>
     <h1>html-revisor — the path</h1>
     <p class="sub">
-      From here to where we want to be. Deploy, then rename, then regroup and chart more.
+      Toward editing prose: click a paragraph, edit it as markdown, and the file gets the HTML. The formatter comes out first.
     </p>
     <section id="map">
       <h2>What we know</h2>
-      <svg viewBox="0 0 900 200" role="img" aria-label="Oct 7 copy, deploy script (done), rename, regroup; later stops sketched">
-        <line x1="60" y1="70" x2="560" y2="70" stroke="var(--line)" stroke-width="8" stroke-linecap="round"></line> <line x1="560" y1="70" x2="840" y2="70" stroke="var(--dir)" stroke-width="3" stroke-dasharray="6 6"></line> <circle cx="60" cy="70" r="14" fill="var(--now)"></circle> <text x="60" y="115" text-anchor="middle" font-size="14" font-weight="600">Oct 7</text> <text x="60" y="135" text-anchor="middle" font-size="12" class="muted">copy made,</text> <text x="60" y="150" text-anchor="middle" font-size="12" class="muted">drifted by hand</text> <circle cx="230" cy="70" r="14" fill="var(--now)" stroke="var(--accent)" stroke-width="3"></circle> <text x="230" y="75" text-anchor="middle" font-size="13" font-weight="700">1</text> <text x="230" y="115" text-anchor="middle" font-size="14" font-weight="600">Deploy script</text> <text x="230" y="135" text-anchor="middle" font-size="12" class="muted">done Oct 12: plain copy,</text> <text x="230" y="150" text-anchor="middle" font-size="12" class="muted">released v0.1.1</text> <circle cx="400" cy="70" r="14" fill="var(--now)" stroke="var(--accent)" stroke-width="3"></circle> <text x="400" y="75" text-anchor="middle" font-size="13" font-weight="700">2</text> <text x="400" y="115" text-anchor="middle" font-size="14" font-weight="600">html-revisor</text> <text x="400" y="135" text-anchor="middle" font-size="12" class="muted">done Oct 12: one name</text> <circle cx="560" cy="70" r="14" fill="var(--bg)" stroke="var(--ink)" stroke-width="3"></circle> <text x="560" y="75" text-anchor="middle" font-size="13" font-weight="700">?</text> <text x="560" y="115" text-anchor="middle" font-size="14" font-weight="600">Regroup</text> <text x="560" y="135" text-anchor="middle" font-size="12" class="muted">chart more</text> <text x="700" y="50" text-anchor="middle" font-size="13" class="dirtext">format stands alone</text> <text x="830" y="50" text-anchor="middle" font-size="13" class="dirtext">prose as markdown</text> <text x="760" y="115" text-anchor="middle" font-size="12" class="muted">sketched, not charted</text>
+      <svg viewBox="0 0 900 170" role="img" aria-label="Done: deploy and rename. Then formatter, prose chunks, markdown round-trip, edit in browser, undo. Later: lists and code blocks.">
+        <line x1="60" y1="70" x2="780" y2="70" stroke="var(--line)" stroke-width="8" stroke-linecap="round"></line> <line x1="780" y1="70" x2="880" y2="70" stroke="var(--dir)" stroke-width="3" stroke-dasharray="6 6"></line> <circle cx="60" cy="70" r="14" fill="var(--now)"></circle> <text x="60" y="115" text-anchor="middle" font-size="14" font-weight="600">Done</text> <text x="60" y="135" text-anchor="middle" font-size="12" class="muted">deploy, rename</text> <circle cx="200" cy="70" r="14" fill="var(--bg)" stroke="var(--accent)" stroke-width="3"></circle> <text x="200" y="75" text-anchor="middle" font-size="13" font-weight="700">1</text> <text x="200" y="115" text-anchor="middle" font-size="14" font-weight="600">Formatter</text> <text x="200" y="135" text-anchor="middle" font-size="12" class="muted">its own module,</text> <text x="200" y="150" text-anchor="middle" font-size="12" class="muted">runs alone</text> <circle cx="345" cy="70" r="14" fill="var(--bg)" stroke="var(--accent)" stroke-width="3"></circle> <text x="345" y="75" text-anchor="middle" font-size="13" font-weight="700">2</text> <text x="345" y="115" text-anchor="middle" font-size="14" font-weight="600">Prose chunks</text> <text x="345" y="135" text-anchor="middle" font-size="12" class="muted">the editing unit</text> <circle cx="490" cy="70" r="14" fill="var(--bg)" stroke="var(--accent)" stroke-width="3"></circle> <text x="490" y="75" text-anchor="middle" font-size="13" font-weight="700">3</text> <text x="490" y="115" text-anchor="middle" font-size="14" font-weight="600">Round-trip</text> <text x="490" y="135" text-anchor="middle" font-size="12" class="muted">HTML ⇄ markdown,</text> <text x="490" y="150" text-anchor="middle" font-size="12" class="muted">no change on open</text> <circle cx="635" cy="70" r="14" fill="var(--bg)" stroke="var(--accent)" stroke-width="3"></circle> <text x="635" y="75" text-anchor="middle" font-size="13" font-weight="700">4</text> <text x="635" y="115" text-anchor="middle" font-size="14" font-weight="600">Edit in browser</text> <text x="635" y="135" text-anchor="middle" font-size="12" class="muted">markdown field</text> <text x="635" y="150" text-anchor="middle" font-size="12" class="muted">in the box</text> <circle cx="780" cy="70" r="14" fill="var(--bg)" stroke="var(--accent)" stroke-width="3"></circle> <text x="780" y="75" text-anchor="middle" font-size="13" font-weight="700">5</text> <text x="780" y="115" text-anchor="middle" font-size="14" font-weight="600">Undo</text> <text x="780" y="135" text-anchor="middle" font-size="12" class="muted">for text edits</text> <text x="850" y="50" text-anchor="middle" font-size="13" class="dirtext">lists, code</text> <text x="850" y="115" text-anchor="middle" font-size="12" class="muted">sketched</text>
       </svg>
     </section>
-    <section id="layout">
-      <h2>Where the code lives</h2>
-      <table>
-        <tr>
-          <th></th>
-          <th>here: <code>html-revisor/</code></th>
-          <th>there: <code>iterate-on-docs/html-revisor/</code></th>
-        </tr>
-        <tr>
-          <td>role</td>
-          <td>the code; development, yaks, tests, OVERVIEW</td>
-          <td>built output, vendored; what you run</td>
-        </tr>
-        <tr>
-          <td>version</td>
-          <td>HEAD</td>
-          <td>the last deployed commit, in VENDORED.md</td>
-        </tr>
-        <tr>
-          <td>local changes</td>
-          <td colspan="2">none: <code>./deploy</code> is a plain copy</td>
-        </tr>
-      </table>
+    <section id="stages">
+      <h2>Now</h2>
+      <div class="stage">
+        <div class="num">1</div>
+        <div class="card">
+          <h3>The formatter stands alone</h3>
+          <p class="why">
+            Today it is a section of <code>server.mjs</code>. On its own, it runs without the server and can take validation steps, which the round-trip in stage 3 will need.
+          </p>
+          <ul class="yaks">
+            <li>
+              Move parse, skeleton, serialize, and layout into <code>formatter.mjs</code>, Tier II. The server imports it. <span class="yak">stez</span>
+            </li>
+            <li>
+              A CLI: <code>node formatter.mjs &lt;file&gt;</code> rewrites the file in place, or reports what it can't fix and exits nonzero <span class="yak">yp92</span>, merges into stez
+            </li>
+            <li>Validation rules: none until a stage asks for one.</li>
+          </ul>
+          <div class="q">
+            Is the CLI part of the contract? If the skill runs it before handing a page to Jess, yes, and the skill changes with it. If only we run it, no.
+          </div>
+          <div class="ships">a second file in the deploy; nothing visible</div>
+        </div>
+      </div>
+      <div class="stage">
+        <div class="num">2</div>
+        <div class="card">
+          <h3>Prose chunks</h3>
+          <p class="why">
+            The editing unit: an element whose children are all phrasing content (text, <code>b</code>, <code>em</code>, <code>a</code>, <code>code</code>, <code>br</code>…), the spec's list. Today's “text element” is the plain-text case of it.
+          </p>
+          <ul class="yaks">
+            <li>
+              <code>isProseChunk(el)</code> replaces <code>isTextElement</code>; the client marks chunks editable
+            </li>
+            <li>
+              Element identity: <code>data-n</code> per element, stamped on GET and stripped on save. IDs stay out of the file. <span class="yak">a17m</span>
+            </li>
+          </ul>
+          <div class="q">
+            A list: one chunk, as the overview mock shows, or one chunk per <code>&lt;li&gt;</code>? Per item fits the phrasing rule; the whole list waits for “Later”.
+          </div>
+        </div>
+      </div>
+      <div class="stage">
+        <div class="num">3</div>
+        <div class="card">
+          <h3>HTML ⇄ markdown round-trip</h3>
+          <p class="why">
+            CommonMark passes raw inline HTML through, so any chunk can be markdown. Opening a chunk and saving it unchanged must leave the file unchanged.
+          </p>
+          <ul class="yaks">
+            <li>
+              Canonical tags: the formatter rewrites <code>b</code>→<code>strong</code>, <code>i</code>→<code>em</code>, so markdown's one syntax maps back to one tag. The first validation rule.
+            </li>
+            <li>A property test: chunk → markdown → chunk is identity. Watch <code>* _ ` [</code> escaping.</li>
+            <li>Libraries: a markdown parser and an HTML-to-markdown writer, vendored like linkedom</li>
+          </ul>
+          <div class="q">
+            Where does conversion run: server or client? Server keeps the client small and the PUT keyed by <code>data-n</code>; client gives a live preview.
+          </div>
+        </div>
+      </div>
+      <div class="stage">
+        <div class="num">4</div>
+        <div class="card">
+          <h3>Edit in the browser</h3>
+          <p class="why">
+            Click a paragraph with bold or a link; the box shows a markdown field above the directive. Replaces the text field. <span class="yak">ttqe</span>
+          </p>
+          <ul class="yaks">
+            <li>The field grows with the text</li>
+            <li>A directive on an element inside the chunk, a <code>&lt;b&gt;</code> say, is lost on re-render</li>
+          </ul>
+          <div class="q">
+            Inner directives: lift them to the chunk on save, or refuse the edit until they're gone?
+          </div>
+          <div class="ships">editable prose; the PUT body changes, the contract doesn't</div>
+        </div>
+      </div>
+      <div class="stage">
+        <div class="num">5</div>
+        <div class="card">
+          <h3>Undo for text edits</h3>
+          <p class="why">Once prose edits rewrite markup, a mistake costs more. <span class="yak">x8yp</span></p>
+        </div>
+      </div>
+    </section>
+    <section id="later">
+      <h2>Later, sketched</h2>
+      <div class="later-grid">
+        <div class="card later">
+          <h3>Containers as markdown</h3>
+          <p class="why">
+            Lists and code blocks are flow content, not phrasing. Editing a whole list as markdown is a second pass, after chunks work.
+          </p>
+        </div>
+        <div class="card later">
+          <h3>Formatter for agents</h3>
+          <p class="why">
+            If the CLI earns its keep, agents that generate pages run it before Jess sees them.
+          </p>
+        </div>
+      </div>
+    </section>
+    <section id="polish">
+      <h2>Polish lane</h2>
+      <p class="sub">Any time; each ships with the next deploy.</p>
+      <div class="lane">
+        <div class="card">
+          <strong>Movable box</strong><br>see the element behind it <span class="yak">a8t2</span>
+        </div>
+        <div class="card">
+          <strong>Client style guide</strong><br>box, marker, toast, hover; mocks follow it. Before stage 4 adds a field to the box, ideally. <span class="yak">vrc3</span>
+        </div>
+      </div>
     </section>
     <section id="contract">
       <h2>The contract</h2>
       <p class="sub">
-        What iterate-on-docs code relies on. Everything else is inside the output, ours to change.
+        What iterate-on-docs relies on; the README's “Contract” table is the source. A change here travels with a matching edit there.
       </p>
       <table>
         <tr>
@@ -109,124 +201,6 @@
           <td>fetch before each commit</td>
         </tr>
       </table>
-      <div class="card">
-        <strong>Decided: deploy from here, into the output folder only.</strong>
-        <ul class="yaks">
-          <li>
-            <code>iterate-on-docs/html-revisor/</code> is ours: deploy overwrites it and writes the commit hash into VENDORED.md. The PUT body change rides along; nothing in iterate-on-docs notices.
-          </li>
-          <li>
-            A change to the contract is not a deploy. It needs a matching edit to the skill, made on purpose in the same session. The grep fix and the rename are contract changes.
-          </li>
-          <li>
-            Our README has a “Contract” section listing the rows above. That replaces a changelog: the only changes iterate-on-docs has to hear about are changes to that list.
-          </li>
-        </ul>
-      </div>
-    </section>
-    <section id="stages">
-      <h2>Now</h2>
-      <div class="stage">
-        <div class="num">1</div>
-        <div class="card">
-          <h3>Deploy script</h3>
-          <p class="why">
-            Nothing we build reaches you until it's copied, and today the copy means re-applying local changes by hand. Remove the local changes, and <code>deploy</code> becomes a plain copy of the same files as today, no npm install.
-          </p>
-          <p class="why">
-            <strong>Done.</strong> <code>./deploy</code> copies into the local iterate-on-docs checkout and commits there; no PR. iterate-on-docs got <code>./release</code>, which bumps the plugin version and tags, and pushes only with <code>--push</code>.
-          </p>
-          <ul class="yaks">
-            <li>
-              Default author to <code>@AI</code> here <span class="yak">default-author-to-ai…5x8n</span>
-            </li>
-            <li>
-              The copy has no CLAUDE.md, so its README carries two sections from ours: “Files it serves” (we own these pages; rewriting them is fine) and “Gotchas for maintainers” (linkedom, GET rewrites the file). Put them in our README so deploy copies it unchanged
-            </li>
-            <li>
-              Grep for <code>'&lt;!-- *@AI:'</code> in the README and in the iterate-on-a-document skill <span class="yak">grep-for-notes…qse3</span>
-            </li>
-            <li>Write <code>deploy</code> <span class="yak">…copy-the-built-output…omfn</span></li>
-            <li>
-              On the way, list every place the rename touches, in both projects <span class="yak">rename…udqv</span>
-            </li>
-          </ul>
-          <div class="ships">directives rename, <code>@AI</code> default, the grep fix</div>
-        </div>
-      </div>
-      <div class="stage">
-        <div class="num">2</div>
-        <div class="card">
-          <h3>One name: html-revisor</h3>
-          <p class="why">Urgent. Uses the list from stage 1.</p>
-          <p class="why">
-            <strong>Done.</strong> The code, startup line, and plugin folder say html-revisor; the page prefix is <code>hrv-</code>. Left for Jess: this repo's directory and its GitHub repo.
-          </p>
-          <ul class="yaks">
-            <li>
-              Rename this project and its output <span class="yak">rename…html-revisor-udqv</span>
-            </li>
-            <li>
-              Carry “directive” into iterate-on-docs's README and skills <span class="yak">standardize-the-name…ly1y</span>
-            </li>
-            <li>
-              The startup line says <code>html-revisor:</code>, and the skill reads it. Changed both together.
-            </li>
-          </ul>
-          <div class="ships">
-            the plugin folder becomes <code>html-revisor/</code>; the skill's path to the server changes
-          </div>
-        </div>
-      </div>
-      <div class="stage">
-        <div class="num">?</div>
-        <div class="card">
-          <h3>Regroup</h3>
-          <p class="why">
-            Chart the next stretch here, from what deploy and the rename taught us.
-          </p>
-        </div>
-      </div>
-    </section>
-    <section id="later">
-      <h2>Later, sketched</h2>
-      <div class="later-grid">
-        <div class="card later">
-          <h3>Format stands alone</h3>
-          <p class="why">
-            First, because it lets us add validation steps, which prose-as-markdown will likely need. Validation rules: none until implementation calls for one.
-          </p>
-          <ul class="yaks">
-            <li>Split out the formatter and make it validate <span class="yak">stez</span></li>
-            <li>
-              Break out the parser so it can be run separately <span class="yak">yp92</span>, likely the same yak
-            </li>
-          </ul>
-        </div>
-        <div class="card later">
-          <h3>Prose as markdown</h3>
-          <p class="why">
-            Click a paragraph with bold or a link, edit all of it as markdown. Design notes in commit <code>8683442</code>. IDs stay out of the file unless implementation finds a use.
-          </p>
-          <ul class="yaks">
-            <li>One ID per prose chunk <span class="yak">a17m</span></li>
-            <li>Edit text of elements with inline markup <span class="yak">ttqe</span></li>
-            <li>Undo for text edits <span class="yak">x8yp</span></li>
-          </ul>
-        </div>
-      </div>
-    </section>
-    <section id="polish">
-      <h2>Polish lane</h2>
-      <p class="sub">Each ships with the next deploy.</p>
-      <div class="lane">
-        <div class="card">
-          <strong>Movable box</strong><br>see the element behind it; any time <span class="yak">a8t2</span>
-        </div>
-        <div class="card">
-          <strong>Client style guide</strong><br>box, marker, toast, hover; mocks follow it. Started: <a href="DESIGN.html">DESIGN.html</a>. In parallel, separate from other work <span class="yak">vrc3</span>
-        </div>
-      </div>
     </section>
     <section id="decided">
       <h2>Decided</h2>
@@ -234,20 +208,6 @@
         <tr>
           <th>question</th>
           <th>answer</th>
-        </tr>
-        <tr>
-          <td>Who copies the output over?</td>
-          <td>
-            <code>./deploy</code> here: local copy, commits in iterate-on-docs, no PR. <code>./release</code> there publishes.
-          </td>
-        </tr>
-        <tr>
-          <td>Built output</td>
-          <td>Same as today: several files, no npm install.</td>
-        </tr>
-        <tr>
-          <td>Rename before or after the script?</td>
-          <td>After. Writing the script lists the rename places.</td>
         </tr>
         <tr>
           <td>Format or prose first?</td>
@@ -262,12 +222,16 @@
           <td>No, unless implementation finds a use.</td>
         </tr>
         <tr>
-          <td>SVG commenting</td>
-          <td>Stays as is. Yak done.</td>
+          <td>Editing notation</td>
+          <td>Markdown, not contenteditable. Research in commit <code>8683442</code>.</td>
         </tr>
         <tr>
-          <td>Overview's “Where it's headed”</td>
-          <td>This page replaces it; the overview links here.</td>
+          <td>Shipping</td>
+          <td><code>./deploy</code> here copies into iterate-on-docs; <code>./release</code> there publishes.</td>
+        </tr>
+        <tr>
+          <td>SVG commenting</td>
+          <td>Stays as is.</td>
         </tr>
       </table>
     </section>
