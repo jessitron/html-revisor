@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>html-notes — the path</title>
+    <style>
+  :root { --ink: #1f2328; --muted: #656d76; --line: #d0d7de; --bg: #ffffff; --card: #f6f8fa;
+    --now: #1a7f37; --dir: #8250df; --warn: #bc4c00; --accent: #0969da; --q: #9a6700; --qbg: #fff8c5; }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink: #e6edf3; --muted: #9198a1; --line: #3d444d; --bg: #0d1117; --card: #151b23;
+      --now: #3fb950; --dir: #ab7df8; --warn: #f0883e; --accent: #4493f8; --q: #d29922; --qbg: #2b2111; }
+  }
+  body { font: 16px/1.5 system-ui, sans-serif; color: var(--ink); background: var(--bg); max-width: 960px; margin: 2rem auto; padding: 0 1rem; }
+  h1 { margin-bottom: 0; }
+  h2 { border-bottom: 1px solid var(--line); padding-bottom: .25rem; margin-top: 2.5rem; }
+  h3 { margin: 0 0 .25rem; font-size: 1.05rem; }
+  .sub { color: var(--muted); margin-top: .25rem; }
+  svg { width: 100%; height: auto; display: block; }
+  svg text { fill: var(--ink); font-family: system-ui, sans-serif; }
+  svg .muted { fill: var(--muted); }
+  code { font-family: ui-monospace, monospace; font-size: .9em; }
+  .stage { display: grid; grid-template-columns: 3rem 1fr; gap: 1rem; margin: 1.25rem 0; }
+  .num { width: 2.5rem; height: 2.5rem; border-radius: 50%; border: 2px solid var(--accent); color: var(--accent); font-weight: 700; text-align: center; line-height: 2.3rem; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: .75rem 1rem; }
+  .why { color: var(--muted); margin: .1rem 0 .5rem; }
+  ul.yaks { margin: .25rem 0; padding-left: 1.2rem; }
+  ul.yaks li { margin: .2rem 0; }
+  .yak { font-family: ui-monospace, monospace; font-size: .75rem; color: var(--muted); }
+  .new { font-size: .75rem; font-weight: 600; color: var(--now); border: 1px solid var(--now); border-radius: 999px; padding: 0 .4rem; }
+  .ships { margin-top: .5rem; font-size: .9rem; }
+  .ships::before { content: "⇢ ships: "; font-weight: 600; color: var(--now); }
+  .q { background: var(--qbg); border-left: 4px solid var(--q); border-radius: 4px; padding: .4rem .75rem; margin: .5rem 0; }
+  .q::before { content: "Question: "; font-weight: 700; color: var(--q); }
+  .lane { display: grid; grid-template-columns: repeat(3, 1fr); gap: .75rem; }
+  .lane .card { font-size: .9rem; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+  th, td { text-align: left; border-bottom: 1px solid var(--line); padding: .35rem .5rem; vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; }
+</style>
+  </head>
+  <body>
+    <h1>html-notes — the path</h1>
+    <p class="sub">
+      From here to where we want to be. Every stage ends with a copy into iterate-on-docs, because that copy is the one you run.
+    </p>
+    <section id="map">
+      <h2>The map</h2>
+      <svg viewBox="0 0 900 230" role="img" aria-label="Five stages from today to the safe harbor">
+        <line x1="60" y1="90" x2="840" y2="90" stroke="var(--line)" stroke-width="8" stroke-linecap="round"></line> <circle cx="60" cy="90" r="14" fill="var(--now)"></circle> <text x="60" y="135" text-anchor="middle" font-size="14" font-weight="600">Today</text> <text x="60" y="155" text-anchor="middle" font-size="12" class="muted">copy is from Oct 7,</text> <text x="60" y="170" text-anchor="middle" font-size="12" class="muted">drifted by hand</text> <circle cx="215" cy="90" r="14" fill="var(--bg)" stroke="var(--accent)" stroke-width="3"></circle> <text x="215" y="95" text-anchor="middle" font-size="13" font-weight="700">1</text> <text x="215" y="135" text-anchor="middle" font-size="14" font-weight="600">Cheap copy</text> <text x="215" y="155" text-anchor="middle" font-size="12" class="muted">no local changes</text> <circle cx="370" cy="90" r="14" fill="var(--bg)" stroke="var(--accent)" stroke-width="3"></circle> <text x="370" y="95" text-anchor="middle" font-size="13" font-weight="700">2</text> <text x="370" y="135" text-anchor="middle" font-size="14" font-weight="600">html-revisor</text> <text x="370" y="155" text-anchor="middle" font-size="12" class="muted">one name</text> <circle cx="525" cy="90" r="14" fill="var(--bg)" stroke="var(--accent)" stroke-width="3"></circle> <text x="525" y="95" text-anchor="middle" font-size="13" font-weight="700">3</text> <text x="525" y="135" text-anchor="middle" font-size="14" font-weight="600">Format stands alone</text> <text x="525" y="155" text-anchor="middle" font-size="12" class="muted">agent checks its page</text> <circle cx="680" cy="90" r="14" fill="var(--bg)" stroke="var(--accent)" stroke-width="3"></circle> <text x="680" y="95" text-anchor="middle" font-size="13" font-weight="700">4</text> <text x="680" y="135" text-anchor="middle" font-size="14" font-weight="600">Prose as markdown</text> <text x="680" y="155" text-anchor="middle" font-size="12" class="muted">IDs per chunk, then editing</text> <text x="840" y="100" text-anchor="middle" font-size="28">⚓</text> <text x="840" y="135" text-anchor="middle" font-size="14" font-weight="600">Safe harbor</text> <text x="840" y="155" text-anchor="middle" font-size="12" class="muted">edit any paragraph,</text> <text x="840" y="170" text-anchor="middle" font-size="12" class="muted">in the plugin you run</text> <text x="450" y="30" text-anchor="middle" font-size="13" class="muted">Polish lane runs alongside: box, undo, style guide, SVG</text>
+      </svg>
+    </section>
+    <section id="layout">
+      <h2>Where the code lives</h2>
+      <table>
+        <tr>
+          <th></th>
+          <th>here: <code>html-with-comments/</code></th>
+          <th>there: <code>iterate-on-docs/html-with-comments/</code></th>
+        </tr>
+        <tr>
+          <td>role</td>
+          <td>the code; development, yaks, tests, OVERVIEW</td>
+          <td>built output, vendored; what you run</td>
+        </tr>
+        <tr>
+          <td>version</td>
+          <td>HEAD</td>
+          <td><code>cff7fce</code> + local changes (VENDORED.md)</td>
+        </tr>
+        <tr>
+          <td>author default</td>
+          <td><code>jess</code></td>
+          <td><code>@AI</code></td>
+        </tr>
+        <tr>
+          <td>PUT body</td>
+          <td><code>{directives, texts, version}</code></td>
+          <td><code>{notes, texts, version}</code></td>
+        </tr>
+      </table>
+      <div class="q">
+        Whose job is the copy? Options: a <code>npm run ship</code> here that writes into iterate-on-docs and commits there; a pull script in iterate-on-docs; or a step in our end-session routine. I lean toward <code>ship</code> here, since this repo knows what the build is.
+      </div>
+    </section>
+    <section id="stages">
+      <h2>Stages</h2>
+      <div class="stage">
+        <div class="num">1</div>
+        <div class="card">
+          <h3>Cheap copy</h3>
+          <p class="why">
+            Nothing we build reaches you until it's copied, and today the copy means re-applying local changes by hand. Remove the local changes and the copy becomes a script.
+          </p>
+          <ul class="yaks">
+            <li>
+              Default author to <code>@AI</code> here <span class="yak">default-author-to-ai…5x8n</span>
+            </li>
+            <li>
+              Bring the copy's README additions (“Files it serves”, “Gotchas for maintainers”) back here <span class="new">new</span>
+            </li>
+            <li>
+              Grep for <code>'&lt;!-- *@AI:'</code> in the README and in the iterate-on-a-document skill <span class="yak">grep-for-notes…qse3</span>
+            </li>
+            <li>Define the built output: which files go over <span class="new">new</span></li>
+            <li>The copy script, whoever runs it <span class="yak">decide-whose-job…omfn</span></li>
+          </ul>
+          <div class="q">
+            Is “built output” a copy of the files minus dev ones, or one bundled <code>html-revisor.mjs</code> (server plus linkedom)? One file is simpler to vendor; we already run esbuild for <code>npm run vendor</code>.
+          </div>
+          <div class="ships">directives rename, <code>@AI</code> default, the grep fix</div>
+        </div>
+      </div>
+      <div class="stage">
+        <div class="num">2</div>
+        <div class="card">
+          <h3>One name: html-revisor</h3>
+          <p class="why">
+            Do it while the copy is fresh and before more docs pile up on the old names.
+          </p>
+          <ul class="yaks">
+            <li>
+              Rename this project and its output <span class="yak">rename…html-revisor-udqv</span>
+            </li>
+            <li>
+              Carry “directive” into iterate-on-docs's README and skills; talk with Arlo <span class="yak">standardize-the-name…ly1y</span>
+            </li>
+          </ul>
+          <div class="q">
+            Rename before the first scripted copy, so iterate-on-docs changes folder names once? That folds stages 1 and 2 into one ship.
+          </div>
+          <div class="ships">
+            the plugin folder becomes <code>html-revisor/</code>; the skill's path to the server changes
+          </div>
+        </div>
+      </div>
+      <div class="stage">
+        <div class="num">3</div>
+        <div class="card">
+          <h3>Format stands alone</h3>
+          <p class="why">
+            The agent runs the formatter after writing a page and fixes what it reports, before you open it. GET keeps running the same code.
+          </p>
+          <ul class="yaks">
+            <li>
+              Split out the formatter and make it validate <span class="yak">split-out-the-formatter…stez</span>
+            </li>
+            <li>
+              Break out the parser so it can be run separately <span class="yak">break-out-the-parser…yp92</span> — I read these two as one yak
+            </li>
+            <li>
+              Add the format step to the iterate-on-a-document skill <span class="new">new</span>
+            </li>
+          </ul>
+          <div class="q">
+            Which validation rules first? Candidates: phrasing-only content in <code>&lt;p&gt;</code>; no directive inside an SVG on one line; no unknown author prefixes.
+          </div>
+          <div class="ships"><code>html-revisor format FILE</code></div>
+        </div>
+      </div>
+      <div class="stage">
+        <div class="num">4</div>
+        <div class="card">
+          <h3>Prose as markdown</h3>
+          <p class="why">
+            The big one. Click a paragraph with bold or a link, edit all of it as markdown. The design notes are in commit <code>8683442</code>: phrasing content is the unit, CommonMark keeps raw inline HTML, and a round-trip property test guards “open, save unchanged, same bytes”.
+          </p>
+          <ul class="yaks">
+            <li>
+              Redesign element IDing: one ID per prose chunk <span class="yak">redesign-element-iding-a17m</span>
+            </li>
+            <li>
+              Edit text of elements with inline markup <span class="yak">edit-text-of-elements…ttqe</span>
+            </li>
+            <li>
+              Undo for text edits <span class="yak">undo-for-text-edits-x8yp</span> — more needed once edits get bigger
+            </li>
+          </ul>
+          <div class="q">
+            Write the IDs into the file? Then the agent sees the IDs the browser uses, at the cost of a longer file.
+          </div>
+          <div class="ships">markdown editing of paragraphs, list items, headings</div>
+        </div>
+      </div>
+    </section>
+    <section id="polish">
+      <h2>Polish lane</h2>
+      <p class="sub">Any time, between stages. Each ships with the next copy.</p>
+      <div class="lane">
+        <div class="card">
+          <strong>Movable box</strong><br>see the element behind it <span class="yak">a8t2</span>
+        </div>
+        <div class="card">
+          <strong>Client style guide</strong><br>box, marker, toast, hover; mocks follow it <span class="yak">vrc3</span>
+        </div>
+        <div class="card">
+          <strong>SVG</strong><br>on hold: commenting inside SVG works and you like it <span class="yak">66nv</span>
+        </div>
+      </div>
+    </section>
+    <section id="questions">
+      <h2>Open questions</h2>
+      <table>
+        <tr>
+          <th>question</th>
+          <th>blocks</th>
+        </tr>
+        <tr>
+          <td>Whose job is the copy?</td>
+          <td>stage 1</td>
+        </tr>
+        <tr>
+          <td>Built output: files, or one bundled file?</td>
+          <td>stage 1</td>
+        </tr>
+        <tr>
+          <td>Rename before the first scripted copy?</td>
+          <td>order of 1 and 2</td>
+        </tr>
+        <tr>
+          <td>Format before prose, or prose first? The overview says order is loose.</td>
+          <td>order of 3 and 4</td>
+        </tr>
+        <tr>
+          <td>Which validation rules?</td>
+          <td>stage 3</td>
+        </tr>
+        <tr>
+          <td>IDs written into the file?</td>
+          <td>stage 4</td>
+        </tr>
+        <tr>
+          <td>
+            Does this page replace the overview's “Where it's headed” diagram? <span class="yak">rethink…24kr</span>
+          </td>
+          <td>nothing</td>
+        </tr>
+      </table>
+    </section>
+  </body>
+</html>
