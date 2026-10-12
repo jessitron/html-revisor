@@ -20,6 +20,21 @@
   a.tile { display: block; border: 1px solid #ccc; border-radius: 8px; padding: 0.5rem 1rem; color: inherit; text-decoration: none; }
   .row { display: flex; gap: 0.5rem; align-items: center; }
 </style>
+    <style id="chunk-view">
+  [data-chunk] { outline-offset: 2px; }
+  [data-chunk="prose"], .chunk-prose { outline: 2px solid #1a7f37; }
+  [data-chunk="blank"], .chunk-blank { outline: 2px dashed #1a7f37; min-height: 0.5em; }
+  [data-chunk="code"], .chunk-code { outline: 2px solid #0969da; }
+  [data-chunk="nonprose"], .chunk-nonprose { outline: 2px dashed #6e7781; }
+  [data-chunk="container"], .chunk-container { outline: 1px dotted #8250df; }
+  .chunk-run { background: #fff1e5; }
+  p.chunk-report span { padding: 0 0.25rem; outline-offset: 1px; }
+  table.chunk-report { font-size: 0.75rem; margin: 0.5rem 0; width: 100%; }
+  table.chunk-report tr { outline: none; }
+  table.chunk-report td, table.chunk-report th { vertical-align: top; padding: 0.15rem 0.5rem; }
+  table.chunk-report td:first-child { font-family: ui-monospace, monospace; white-space: pre; }
+  table.chunk-report pre { margin: 0; padding: 0.15rem 0.4rem; background: #f6f8fa; white-space: pre-wrap; }
+</style>
   </head>
   <body>
     <h1>Project overview</h1>
@@ -71,15 +86,32 @@
     <section id="chunks">
       <h2>What is a prose chunk?</h2>
       <p>
-        Cases for PLAN.html stage 2. Each one asks where a chunk starts and ends, or what can sit inside one. The dashed box holds the example.
+        Cases for PLAN.html stage 2. A chunk is the unit of editing and directives: you click it, leave a directive on it, and edit its text as markdown. Each case has the same four parts: its name, the question it asks in grey, the example HTML in a dashed box, and a table of the chunks the example would make. Disagree with a row? Leave a directive on it.
+      </p>
+      <p class="chunk-report">
+        Under each example, <code>chunks.mjs</code> proposes its chunks: one row per chunk, nested rows inside a container. The third column is the markdown the edit box would show. Outlines: <span class="chunk-prose">prose</span>, <span class="chunk-blank">blank</span>, <span class="chunk-code">code</span>, <span class="chunk-nonprose">nonprose</span>, <span class="chunk-container">container</span>, <span class="chunk-run">run (no outline: no element)</span>. ⟦svg⟧ marks nonprose riding inside prose.
       </p>
       <h3>A. Clear prose</h3>
       <div class="case">
         <h4>A1. Plain paragraph</h4>
         <p class="ask">The baseline: one chunk, edits as plain text.</p>
         <div class="ex">
-          <p>The formatter moves out of the server and runs on its own.</p>
+          <p data-chunk="prose">The formatter moves out of the server and runs on its own.</p>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&lt;p&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>The formatter moves out of the server and runs on its own.</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <div class="case">
         <h4>A2. Paragraph with markdown-able markup</h4>
@@ -87,10 +119,24 @@
           One chunk. Markdown: <code>**bold**</code>, <code>*em*</code>, <code>`code`</code>, <code>[link](…)</code>.
         </p>
         <div class="ex">
-          <p>
+          <p data-chunk="prose">
             Run <code>npm test</code>, then read <strong>every</strong> failure, <em>especially</em> the <a href="#chunks">first one</a>.
           </p>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&lt;p&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>Run `npm test`, then read **every** failure, *especially* the [first one](#chunks).</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <div class="case">
         <h4>A3. Heading with inline markup</h4>
@@ -98,8 +144,22 @@
           A heading is its own chunk. Does the markdown include the <code>#</code>, or is that the element's business?
         </p>
         <div class="ex">
-          <h3>Moving <code>normalize</code> into <em>formatter.mjs</em></h3>
+          <h3 data-chunk="prose">Moving <code>normalize</code> into <em>formatter.mjs</em></h3>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&lt;h3&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>Moving `normalize` into *formatter.mjs*</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <div class="case">
         <h4>A4. Line breaks</h4>
@@ -107,8 +167,24 @@
           A <code>&lt;br&gt;</code> becomes a trailing backslash or two spaces in markdown. Which round-trips?
         </p>
         <div class="ex">
-          <p>Jess Kerr<br>html-revisor<br>October 2026</p>
+          <p data-chunk="prose">Jess Kerr<br>html-revisor<br>October 2026</p>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&lt;p&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>Jess Kerr\
+html-revisor\
+October 2026</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <div class="case">
         <h4>A5. Entities and non-breaking spaces</h4>
@@ -116,8 +192,24 @@
           Markdown has no <code>&amp;nbsp;</code>. Does the field show a real U+00A0, or the entity?
         </p>
         <div class="ex">
-          <p>Fish &amp; chips cost&nbsp;$5 &lt;each&gt; — “quoted” and 5&nbsp;×&nbsp;3.</p>
+          <p data-chunk="prose">
+            Fish &amp; chips cost&nbsp;$5 &lt;each&gt; — “quoted” and 5&nbsp;×&nbsp;3.
+          </p>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&lt;p&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>Fish &amp; chips cost&amp;nbsp;$5 &amp;lt;each&gt; — “quoted” and 5&amp;nbsp;×&amp;nbsp;3.</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <h3>B. Inline markup markdown can't say</h3>
       <div class="case">
@@ -126,10 +218,24 @@
           These pass through as raw HTML in the markdown. Is that readable enough to edit?
         </p>
         <div class="ex">
-          <p>
+          <p data-chunk="prose">
             Press <kbd>⌘</kbd>+<kbd>↵</kbd> to save. H<sub>2</sub>O, x<sup>2</sup>, <mark>highlighted</mark>, <del>removed</del> <ins>added</ins>, <s>struck</s>, <abbr title="Domain-Driven Design">DDD</abbr>, <q>a quote</q>, <time datetime="2026-10-12">today</time>, <small>fine print</small>, <u>underlined</u>.
           </p>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&lt;p&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>Press &lt;kbd&gt;⌘&lt;/kbd&gt;+&lt;kbd&gt;↵&lt;/kbd&gt; to save. H&lt;sub&gt;2&lt;/sub&gt;O, x&lt;sup&gt;2&lt;/sup&gt;, &lt;mark&gt;highlighted&lt;/mark&gt;, &lt;del&gt;removed&lt;/del&gt; &lt;ins&gt;added&lt;/ins&gt;, &lt;s&gt;struck&lt;/s&gt;, &lt;abbr title="Domain-Driven Design"&gt;DDD&lt;/abbr&gt;, &lt;q&gt;a quote&lt;/q&gt;, &lt;time datetime="2026-10-12"&gt;today&lt;/time&gt;, &lt;small&gt;fine print&lt;/small&gt;, &lt;u&gt;underlined&lt;/u&gt;.</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <div class="case">
         <h4>B2. Attributes on inline elements</h4>
@@ -137,10 +243,24 @@
           Markdown links carry href and title only. Where do <code>class</code>, <code>target</code>, <code>style</code> go?
         </p>
         <div class="ex">
-          <p>
+          <p data-chunk="prose">
             See <a href="#chunks" title="this section" target="_blank" class="ref">the section</a> and a <span style="color: #bc4c00">warning-colored</span> word.
           </p>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&lt;p&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>See &lt;a href="#chunks" title="this section" target="_blank" class="ref"&gt;the section&lt;/a&gt; and a &lt;span style="color: #bc4c00"&gt;warning-colored&lt;/span&gt; word.</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <div class="case">
         <h4>B3. Styled span as a component</h4>
@@ -148,10 +268,24 @@
           PLAN.html does this with yak ids. Raw HTML in the markdown, or a token the editor protects?
         </p>
         <div class="ex">
-          <p>
+          <p data-chunk="prose">
             Split out the formatter <span class="pill">stez</span>, then decide chunks <span class="pill">a17m</span>.
           </p>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&lt;p&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>Split out the formatter &lt;span class="pill"&gt;stez&lt;/span&gt;, then decide chunks &lt;span class="pill"&gt;a17m&lt;/span&gt;.</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <div class="case">
         <h4>B4. b vs strong, i vs em</h4>
@@ -159,8 +293,22 @@
           Markdown has one syntax for each pair. The formatter makes them canonical; does anyone mind?
         </p>
         <div class="ex">
-          <p><b>b</b> and <strong>strong</strong>; <i>i</i> and <em>em</em>.</p>
+          <p data-chunk="prose"><b>b</b> and <strong>strong</strong>; <i>i</i> and <em>em</em>.</p>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&lt;p&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>**b** and **strong**; *i* and *em*.</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <div class="case">
         <h4>B5. Footnote reference</h4>
@@ -168,8 +316,22 @@
           A <code>sup</code> around a link: two nested raw tags, or one markdown link inside raw <code>sup</code>?
         </p>
         <div class="ex">
-          <p>Linkedom skips the skeleton.<sup><a href="#fn1">1</a></sup></p>
+          <p data-chunk="prose">Linkedom skips the skeleton.<sup><a href="#fn1">1</a></sup></p>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&lt;p&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>Linkedom skips the skeleton.&lt;sup&gt;[1](#fn1)&lt;/sup&gt;</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <h3>C. Containers: one chunk or many?</h3>
       <div class="case">
@@ -178,12 +340,45 @@
           One chunk (edit as <code>- item</code> lines, add and remove items) or one per <code>&lt;li&gt;</code>?
         </p>
         <div class="ex">
-          <ul>
-            <li>Formatter</li>
-            <li>Chunks with <strong>bold</strong></li>
-            <li>Round-trip</li>
+          <ul data-chunk="container">
+            <li data-chunk="prose">Formatter</li>
+            <li data-chunk="prose">Chunks with <strong>bold</strong></li>
+            <li data-chunk="prose">Round-trip</li>
           </ul>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-container">
+            <td>&lt;ul&gt;</td>
+            <td>container: directives only; holds the chunks below it</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&lt;li&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>Formatter</pre>
+            </td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&lt;li&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>Chunks with **bold**</pre>
+            </td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&lt;li&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>Round-trip</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <div class="case">
         <h4>C2. Nested list</h4>
@@ -191,17 +386,67 @@
           The inner list sits inside the first item's text. Where's the boundary?
         </p>
         <div class="ex">
-          <ul>
-            <li>
+          <ul data-chunk="container">
+            <li data-chunk="container">
               Stage 1
-              <ul>
-                <li>move the code</li>
-                <li>add a CLI</li>
+              <ul data-chunk="container">
+                <li data-chunk="prose">move the code</li>
+                <li data-chunk="prose">add a CLI</li>
               </ul>
             </li>
-            <li>Stage 2</li>
+            <li data-chunk="prose">Stage 2</li>
           </ul>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-container">
+            <td>&lt;ul&gt;</td>
+            <td>container: directives only; holds the chunks below it</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-container">
+            <td>&nbsp;&nbsp;&lt;li&gt;</td>
+            <td>container: directives only; holds the chunks below it</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-run">
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;(no element)</td>
+            <td>run: bare text with no element; no directive, no edit</td>
+            <td>
+              <pre>Stage 1</pre>
+            </td>
+          </tr>
+          <tr class="chunk-container">
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;&lt;ul&gt;</td>
+            <td>container: directives only; holds the chunks below it</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;li&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>move the code</pre>
+            </td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;li&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>add a CLI</pre>
+            </td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&lt;li&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>Stage 2</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <div class="case">
         <h4>C3. List item with paragraphs</h4>
@@ -209,16 +454,59 @@
           A loose list: the <code>li</code> holds blocks, not phrasing. Chunks are the <code>p</code>s, then?
         </p>
         <div class="ex">
-          <ol start="3">
-            <li>
-              <p>Round-trip.</p>
-              <p>Opening and saving must change nothing.</p>
+          <ol data-chunk="container" start="3">
+            <li data-chunk="container">
+              <p data-chunk="prose">Round-trip.</p>
+              <p data-chunk="prose">Opening and saving must change nothing.</p>
             </li>
-            <li>
-              <p>Markdown in the box.</p>
+            <li data-chunk="container">
+              <p data-chunk="prose">Markdown in the box.</p>
             </li>
           </ol>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-container">
+            <td>&lt;ol&gt;</td>
+            <td>container: directives only; holds the chunks below it</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-container">
+            <td>&nbsp;&nbsp;&lt;li&gt;</td>
+            <td>container: directives only; holds the chunks below it</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;&lt;p&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>Round-trip.</pre>
+            </td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;&lt;p&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>Opening and saving must change nothing.</pre>
+            </td>
+          </tr>
+          <tr class="chunk-container">
+            <td>&nbsp;&nbsp;&lt;li&gt;</td>
+            <td>container: directives only; holds the chunks below it</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;&lt;p&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>Markdown in the box.</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <div class="case">
         <h4>C4. Definition list</h4>
@@ -226,13 +514,53 @@
           Markdown has no <code>dl</code>. Each <code>dt</code> and <code>dd</code> its own chunk?
         </p>
         <div class="ex">
-          <dl>
-            <dt>directive</dt>
-            <dd>An <code>@AI</code> request, stored as an HTML comment.</dd>
-            <dt>chunk</dt>
-            <dd>The unit of editing and directives.</dd>
+          <dl data-chunk="container">
+            <dt data-chunk="prose">directive</dt>
+            <dd data-chunk="prose">An <code>@AI</code> request, stored as an HTML comment.</dd>
+            <dt data-chunk="prose">chunk</dt>
+            <dd data-chunk="prose">The unit of editing and directives.</dd>
           </dl>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-container">
+            <td>&lt;dl&gt;</td>
+            <td>container: directives only; holds the chunks below it</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&lt;dt&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>directive</pre>
+            </td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&lt;dd&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>An `@AI` request, stored as an HTML comment.</pre>
+            </td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&lt;dt&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>chunk</pre>
+            </td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&lt;dd&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>The unit of editing and directives.</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <div class="case">
         <h4>C5. Blockquote</h4>
@@ -240,38 +568,164 @@
           With paragraphs inside, the paragraphs are chunks. With bare text, the blockquote is.
         </p>
         <div class="ex">
-          <blockquote>
-            <p>The curious mind over the inventive mind.</p>
-            <p>— Clausewitz</p>
+          <blockquote data-chunk="container">
+            <p data-chunk="prose">The curious mind over the inventive mind.</p>
+            <p data-chunk="prose">— Clausewitz</p>
           </blockquote>
-          <blockquote>A blockquote holding text directly.</blockquote>
+          <blockquote data-chunk="prose">A blockquote holding text directly.</blockquote>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-container">
+            <td>&lt;blockquote&gt;</td>
+            <td>container: directives only; holds the chunks below it</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&lt;p&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>The curious mind over the inventive mind.</pre>
+            </td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&lt;p&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>— Clausewitz</pre>
+            </td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&lt;blockquote&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>A blockquote holding text directly.</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <div class="case">
         <h4>C6. Table cells</h4>
         <p class="ask">Each cell a chunk? The header row too? A cell holding a list?</p>
         <div class="ex">
-          <table>
-            <caption>Stages</caption>
-            <tr>
-              <th>stage</th>
-              <th>status</th>
+          <table data-chunk="container">
+            <caption data-chunk="prose">Stages</caption>
+            <tr data-chunk="container">
+              <th data-chunk="prose">stage</th>
+              <th data-chunk="prose">status</th>
             </tr>
-            <tr>
-              <td>Formatter</td>
-              <td><strong>in progress</strong>, see <a href="#chunks">PLAN</a></td>
+            <tr data-chunk="container">
+              <td data-chunk="prose">Formatter</td>
+              <td data-chunk="prose"><strong>in progress</strong>, see <a href="#chunks">PLAN</a></td>
             </tr>
-            <tr>
-              <td>Chunks</td>
-              <td>
-                <ul>
-                  <li>decide</li>
-                  <li>build</li>
+            <tr data-chunk="container">
+              <td data-chunk="prose">Chunks</td>
+              <td data-chunk="container">
+                <ul data-chunk="container">
+                  <li data-chunk="prose">decide</li>
+                  <li data-chunk="prose">build</li>
                 </ul>
               </td>
             </tr>
           </table>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-container">
+            <td>&lt;table&gt;</td>
+            <td>container: directives only; holds the chunks below it</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&lt;caption&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>Stages</pre>
+            </td>
+          </tr>
+          <tr class="chunk-container">
+            <td>&nbsp;&nbsp;&lt;tr&gt;</td>
+            <td>container: directives only; holds the chunks below it</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;&lt;th&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>stage</pre>
+            </td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;&lt;th&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>status</pre>
+            </td>
+          </tr>
+          <tr class="chunk-container">
+            <td>&nbsp;&nbsp;&lt;tr&gt;</td>
+            <td>container: directives only; holds the chunks below it</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>Formatter</pre>
+            </td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>**in progress**, see [PLAN](#chunks)</pre>
+            </td>
+          </tr>
+          <tr class="chunk-container">
+            <td>&nbsp;&nbsp;&lt;tr&gt;</td>
+            <td>container: directives only; holds the chunks below it</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>Chunks</pre>
+            </td>
+          </tr>
+          <tr class="chunk-container">
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;</td>
+            <td>container: directives only; holds the chunks below it</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-container">
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;ul&gt;</td>
+            <td>container: directives only; holds the chunks below it</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;li&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>decide</pre>
+            </td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;li&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>build</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <div class="case">
         <h4>C7. Figure with caption</h4>
@@ -279,23 +733,73 @@
           The caption is prose; the figure is a container; the image is nonprose.
         </p>
         <div class="ex">
-          <figure>
-            <svg viewBox="0 0 120 40" width="120">
+          <figure data-chunk="container">
+            <svg data-chunk="nonprose" viewBox="0 0 120 40" width="120">
               <rect x="1" y="1" width="118" height="38" rx="6" fill="none" stroke="#8250df"></rect><text x="60" y="25" text-anchor="middle" font-size="12">diagram</text>
             </svg>
-            <figcaption>The <em>path</em>, as of today.</figcaption>
+            <figcaption data-chunk="prose">The <em>path</em>, as of today.</figcaption>
           </figure>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-container">
+            <td>&lt;figure&gt;</td>
+            <td>container: directives only; holds the chunks below it</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-nonprose">
+            <td>&nbsp;&nbsp;&lt;svg&gt;</td>
+            <td>nonprose: directives only</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&lt;figcaption&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>The *path*, as of today.</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <div class="case">
         <h4>C8. Details and summary</h4>
         <p class="ask">Summary is phrasing; the body is flow. Two chunks?</p>
         <div class="ex">
-          <details open>
-            <summary>Why <strong>formatter</strong> first?</summary>
-            <p>It can take validation steps.</p>
+          <details data-chunk="container" open>
+            <summary data-chunk="prose">Why <strong>formatter</strong> first?</summary>
+            <p data-chunk="prose">It can take validation steps.</p>
           </details>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-container">
+            <td>&lt;details&gt;</td>
+            <td>container: directives only; holds the chunks below it</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&lt;summary&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>Why **formatter** first?</pre>
+            </td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&lt;p&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>It can take validation steps.</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <div class="case">
         <h4>C9. Div holding text directly</h4>
@@ -303,8 +807,22 @@
           No <code>p</code>, but it reads as a paragraph. Same as a <code>p</code>?
         </p>
         <div class="ex">
-          <div>A div with <em>text</em> and no paragraph element.</div>
+          <div data-chunk="prose">A div with <em>text</em> and no paragraph element.</div>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&lt;div&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>A div with *text* and no paragraph element.</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <div class="case">
         <h4>C10. Text and blocks mixed in one container</h4>
@@ -312,14 +830,52 @@
           Bare text, then a block, then more bare text. Each text run an anonymous chunk? Or does the formatter wrap them in <code>p</code>?
         </p>
         <div class="ex">
-          <div>
+          <div data-chunk="container">
             Text before the list, <strong>with bold</strong>.
-            <ul>
-              <li>an item</li>
+            <ul data-chunk="container">
+              <li data-chunk="prose">an item</li>
             </ul>
             Text after the list.
           </div>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-container">
+            <td>&lt;div&gt;</td>
+            <td>container: directives only; holds the chunks below it</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-run">
+            <td>&nbsp;&nbsp;(no element)</td>
+            <td>run: bare text with no element; no directive, no edit</td>
+            <td>
+              <pre>Text before the list, **with bold**.</pre>
+            </td>
+          </tr>
+          <tr class="chunk-container">
+            <td>&nbsp;&nbsp;&lt;ul&gt;</td>
+            <td>container: directives only; holds the chunks below it</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;&lt;li&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>an item</pre>
+            </td>
+          </tr>
+          <tr class="chunk-run">
+            <td>&nbsp;&nbsp;(no element)</td>
+            <td>run: bare text with no element; no directive, no edit</td>
+            <td>
+              <pre>Text after the list.</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <div class="case">
         <h4>C11. Code block</h4>
@@ -327,10 +883,36 @@
           A chunk edited as a fenced block? Spans from syntax highlighting can't survive markdown.
         </p>
         <div class="ex">
-          <pre><code>node formatter.mjs PLAN.html
+          <pre data-chunk="code"><code>node formatter.mjs PLAN.html
 echo $?</code></pre>
-          <pre><code><span class="kw">const</span> x = <span class="num">1</span>;</code></pre>
+          <pre data-chunk="code"><code><span class="kw">const</span> x = <span class="num">1</span>;</code></pre>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-code">
+            <td>&lt;pre&gt;</td>
+            <td>code: edit as a fenced block</td>
+            <td>
+              <pre>```
+node formatter.mjs PLAN.html
+echo $?
+```</pre>
+            </td>
+          </tr>
+          <tr class="chunk-code">
+            <td>&lt;pre&gt;</td>
+            <td>code: edit as a fenced block</td>
+            <td>
+              <pre>```
+const x = 1;
+```</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <h3>D. Nonprose inside prose</h3>
       <div class="case">
@@ -339,7 +921,7 @@ echo $?</code></pre>
           An <code>svg</code> inside a sentence. A token in the markdown? Raw SVG would swamp the text.
         </p>
         <div class="ex">
-          <p>
+          <p data-chunk="prose">
             Click the
             <svg viewBox="0 0 16 16" width="14" height="14">
               <circle cx="8" cy="8" r="6" fill="#d6336c"></circle>
@@ -347,49 +929,184 @@ echo $?</code></pre>
             marker to open the directive box.
           </p>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&lt;p&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>Click the ⟦svg⟧ marker to open the directive box.</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <div class="case">
         <h4>D2. Inline image</h4>
         <p class="ask">Markdown has <code>![alt](src)</code>, but not width or class.</p>
         <div class="ex">
-          <p>
+          <p data-chunk="prose">
             The armadillo <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='12'%3E%3Cellipse cx='10' cy='6' rx='9' ry='5' fill='%23998'/%3E%3C/svg%3E" alt="armadillo" width="20"> lives in DESIGN.html.
           </p>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&lt;p&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>The armadillo ⟦img⟧ lives in DESIGN.html.</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <div class="case">
         <h4>D3. Code block in a list item</h4>
         <p class="ask">Prose, then nonprose, then prose, all in one <code>li</code>.</p>
         <div class="ex">
-          <ul>
-            <li>
+          <ul data-chunk="container">
+            <li data-chunk="container">
               Run the formatter:
-              <pre><code>node formatter.mjs try-me.html</code></pre>
+              <pre data-chunk="code"><code>node formatter.mjs try-me.html</code></pre>
               then reload the page.
             </li>
           </ul>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-container">
+            <td>&lt;ul&gt;</td>
+            <td>container: directives only; holds the chunks below it</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-container">
+            <td>&nbsp;&nbsp;&lt;li&gt;</td>
+            <td>container: directives only; holds the chunks below it</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-run">
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;(no element)</td>
+            <td>run: bare text with no element; no directive, no edit</td>
+            <td>
+              <pre>Run the formatter:</pre>
+            </td>
+          </tr>
+          <tr class="chunk-code">
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;&lt;pre&gt;</td>
+            <td>code: edit as a fenced block</td>
+            <td>
+              <pre>```
+node formatter.mjs try-me.html
+```</pre>
+            </td>
+          </tr>
+          <tr class="chunk-run">
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;(no element)</td>
+            <td>run: bare text with no element; no directive, no edit</td>
+            <td>
+              <pre>then reload the page.</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <div class="case">
         <h4>D4. Table in a list item</h4>
         <p class="ask">Same shape as D3, with a bigger nonprose piece.</p>
         <div class="ex">
-          <ul>
-            <li>
+          <ul data-chunk="container">
+            <li data-chunk="container">
               Exit codes:
-              <table>
-                <tr>
-                  <td>0</td>
-                  <td>formatted</td>
+              <table data-chunk="container">
+                <tr data-chunk="container">
+                  <td data-chunk="prose">0</td>
+                  <td data-chunk="prose">formatted</td>
                 </tr>
-                <tr>
-                  <td>1</td>
-                  <td>can't fix</td>
+                <tr data-chunk="container">
+                  <td data-chunk="prose">1</td>
+                  <td data-chunk="prose">can't fix</td>
                 </tr>
               </table>
             </li>
           </ul>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-container">
+            <td>&lt;ul&gt;</td>
+            <td>container: directives only; holds the chunks below it</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-container">
+            <td>&nbsp;&nbsp;&lt;li&gt;</td>
+            <td>container: directives only; holds the chunks below it</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-run">
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;(no element)</td>
+            <td>run: bare text with no element; no directive, no edit</td>
+            <td>
+              <pre>Exit codes:</pre>
+            </td>
+          </tr>
+          <tr class="chunk-container">
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;&lt;table&gt;</td>
+            <td>container: directives only; holds the chunks below it</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-container">
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;tr&gt;</td>
+            <td>container: directives only; holds the chunks below it</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>0</pre>
+            </td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>formatted</pre>
+            </td>
+          </tr>
+          <tr class="chunk-container">
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;tr&gt;</td>
+            <td>container: directives only; holds the chunks below it</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>1</pre>
+            </td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>can't fix</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <div class="case">
         <h4>D5. A diagram in a paragraph</h4>
@@ -397,7 +1114,7 @@ echo $?</code></pre>
           A big <code>svg</code> between sentences. Does it split the paragraph into two chunks?
         </p>
         <div class="ex">
-          <p>
+          <p data-chunk="prose">
             Here is the path.
             <svg viewBox="0 0 200 30" width="200">
               <line x1="10" y1="15" x2="190" y2="15" stroke="#ccc" stroke-width="4"></line><circle cx="10" cy="15" r="6" fill="#1a7f37"></circle><circle cx="100" cy="15" r="6" fill="#0969da"></circle><circle cx="190" cy="15" r="6" fill="#0969da"></circle>
@@ -405,6 +1122,20 @@ echo $?</code></pre>
             It has six stages.
           </p>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&lt;p&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>Here is the path. ⟦svg⟧ It has six stages.</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <div class="case">
         <h4>D6. Text inside an SVG</h4>
@@ -412,17 +1143,45 @@ echo $?</code></pre>
           SVG <code>text</code> takes directives today. Is it a prose chunk too, editable as markdown?
         </p>
         <div class="ex">
-          <svg viewBox="0 0 240 40" width="240">
+          <svg data-chunk="nonprose" viewBox="0 0 240 40" width="240">
             <text x="10" y="25" font-size="14">Formatter <tspan font-weight="700">alone</tspan></text>
           </svg>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-nonprose">
+            <td>&lt;svg&gt;</td>
+            <td>nonprose: directives only</td>
+            <td></td>
+          </tr>
+        </table>
       </div>
       <div class="case">
         <h4>D7. Form controls in text</h4>
         <p class="ask">Unlikely in an overview page, but phrasing content. Nonprose token?</p>
         <div class="ex">
-          <p>Show <input type="checkbox" checked> done stages, or <button>reset</button>.</p>
+          <p data-chunk="prose">
+            Show <input type="checkbox" checked> done stages, or <button>reset</button>.
+          </p>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&lt;p&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>Show ⟦input⟧ done stages, or ⟦button⟧.</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <h3>E. Phrasing that isn't prose</h3>
       <div class="case">
@@ -431,20 +1190,62 @@ echo $?</code></pre>
           All spans, so phrasing by the spec. But it's layout. Chunks per tile, per span, or none?
         </p>
         <div class="ex">
-          <div class="stats">
-            <div class="stat"><span class="big">6</span><span>stages</span></div>
-            <div class="stat"><span class="big">1</span><span>in progress</span></div>
+          <div data-chunk="container" class="stats">
+            <div data-chunk="prose" class="stat"><span class="big">6</span><span>stages</span></div>
+            <div data-chunk="prose" class="stat">
+              <span class="big">1</span><span>in progress</span>
+            </div>
           </div>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-container">
+            <td>&lt;div.stats&gt;</td>
+            <td>container: directives only; holds the chunks below it</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&lt;div.stat&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>&lt;span class="big"&gt;6&lt;/span&gt;&lt;span&gt;stages&lt;/span&gt;</pre>
+            </td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&lt;div.stat&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>&lt;span class="big"&gt;1&lt;/span&gt;&lt;span&gt;in progress&lt;/span&gt;</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <div class="case">
         <h4>E2. A label row</h4>
         <p class="ask">Spans side by side in a flex row. One sentence, or three labels?</p>
         <div class="ex">
-          <div class="row">
+          <div data-chunk="prose" class="row">
             <span class="pill">stage 1</span><span>Formatter</span><span>→ done</span>
           </div>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&lt;div.row&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>&lt;span class="pill"&gt;stage 1&lt;/span&gt;&lt;span&gt;Formatter&lt;/span&gt;&lt;span&gt;→ done&lt;/span&gt;</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <div class="case">
         <h4>E3. A link wrapping blocks</h4>
@@ -452,28 +1253,92 @@ echo $?</code></pre>
           A card that's one big link. The link is the container; its heading and paragraph are chunks?
         </p>
         <div class="ex">
-          <a class="tile" href="#chunks">
-            <h4>DESIGN.html</h4>
-            <p>Everything the tool adds to a page.</p>
+          <a data-chunk="container" class="tile" href="#chunks">
+            <h4 data-chunk="prose">DESIGN.html</h4>
+            <p data-chunk="prose">Everything the tool adds to a page.</p>
           </a>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-container">
+            <td>&lt;a.tile&gt;</td>
+            <td>container: directives only; holds the chunks below it</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&lt;h4&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>DESIGN.html</pre>
+            </td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&lt;p&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>Everything the tool adds to a page.</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <div class="case">
         <h4>E4. Paragraph that is all link</h4>
         <p class="ask">Edit the link text, or the paragraph? Same chunk either way?</p>
         <div class="ex">
-          <p><a href="#chunks">Back to the top of the cases</a></p>
+          <p data-chunk="prose"><a href="#chunks">Back to the top of the cases</a></p>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&lt;p&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>[Back to the top of the cases](#chunks)</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <h3>F. Odd shapes</h3>
       <div class="case">
         <h4>F1. Empty and blank paragraphs</h4>
         <p class="ask">Chunks with nothing to edit. Skip them, or let you type into them?</p>
         <div class="ex">
-          <p></p>
-          <p>&nbsp;</p>
-          <p>Between two empties.</p>
+          <p data-chunk="blank"></p>
+          <p data-chunk="blank">&nbsp;</p>
+          <p data-chunk="prose">Between two empties.</p>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-blank">
+            <td>&lt;p&gt;</td>
+            <td>blank: no text to edit</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-blank">
+            <td>&lt;p&gt;</td>
+            <td>blank: no text to edit</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&lt;p&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>Between two empties.</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <div class="case">
         <h4>F2. Sibling chunks with no wrapper</h4>
@@ -481,14 +1346,59 @@ echo $?</code></pre>
           A heading and paragraphs straight in a section. Each its own chunk, or the section as one markdown doc?
         </p>
         <div class="ex">
-          <section>
-            <h4>A section</h4>
-            <p>First paragraph.</p>
-            <p>Second paragraph.</p>
-            <hr>
-            <p>After a rule.</p>
+          <section data-chunk="container">
+            <h4 data-chunk="prose">A section</h4>
+            <p data-chunk="prose">First paragraph.</p>
+            <p data-chunk="prose">Second paragraph.</p>
+            <hr data-chunk="nonprose">
+            <p data-chunk="prose">After a rule.</p>
           </section>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-container">
+            <td>&lt;section&gt;</td>
+            <td>container: directives only; holds the chunks below it</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&lt;h4&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>A section</pre>
+            </td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&lt;p&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>First paragraph.</pre>
+            </td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&lt;p&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>Second paragraph.</pre>
+            </td>
+          </tr>
+          <tr class="chunk-nonprose">
+            <td>&nbsp;&nbsp;&lt;hr&gt;</td>
+            <td>nonprose: directives only</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&lt;p&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>After a rule.</pre>
+            </td>
+          </tr>
+        </table>
       </div>
       <div class="case">
         <h4>F3. A list inside a paragraph</h4>
@@ -496,13 +1406,51 @@ echo $?</code></pre>
           Written as <code>&lt;p&gt;Before the list&lt;ul&gt;…&lt;/ul&gt;after the list&lt;/p&gt;</code>. The formatter does what a browser does: it closes the <code>p</code> at the <code>ul</code>, leaves the trailing text bare (C10), and turns the stray <code>&lt;/p&gt;</code> into an empty <code>p</code> (F1). Leave it, or should the formatter wrap the bare text?
         </p>
         <div class="ex">
-          <p>Before the list</p>
-          <ul>
-            <li>inside</li>
+          <p data-chunk="prose">Before the list</p>
+          <ul data-chunk="container">
+            <li data-chunk="prose">inside</li>
           </ul>
           after the list
-          <p></p>
+          <p data-chunk="blank"></p>
         </div>
+        <table class="chunk-report">
+          <tr>
+            <th>chunk</th>
+            <th>what it is</th>
+            <th>what you would edit</th>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&lt;p&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>Before the list</pre>
+            </td>
+          </tr>
+          <tr class="chunk-container">
+            <td>&lt;ul&gt;</td>
+            <td>container: directives only; holds the chunks below it</td>
+            <td></td>
+          </tr>
+          <tr class="chunk-prose">
+            <td>&nbsp;&nbsp;&lt;li&gt;</td>
+            <td>prose: edit as markdown</td>
+            <td>
+              <pre>inside</pre>
+            </td>
+          </tr>
+          <tr class="chunk-run">
+            <td>(no element)</td>
+            <td>run: bare text with no element; no directive, no edit</td>
+            <td>
+              <pre>after the list</pre>
+            </td>
+          </tr>
+          <tr class="chunk-blank">
+            <td>&lt;p&gt;</td>
+            <td>blank: no text to edit</td>
+            <td></td>
+          </tr>
+        </table>
       </div>
     </section>
   </body>

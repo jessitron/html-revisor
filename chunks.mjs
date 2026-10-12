@@ -14,7 +14,7 @@
 //   Tier III interface: the filesystem, through fs in the CLI; parse/serialize from formatter.mjs
 import fs from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
-import { parse, serialize, trimAscii, escapeText } from './formatter.mjs';
+import { parse, serialize, trimAscii } from './formatter.mjs';
 
 // ======================================================================
 // Tier I: orchestration
@@ -146,58 +146,129 @@ function tokensOf(el) {
   return tokensIn(el);
 }
 
+// ---- Markdown preview ---------------------------------------------------
+
+// What the box would show for a chunk. A first pass, for looking at the cases; stage 4 owns
+// the real round-trip. Markdown syntax only for elements with no attributes (a: href and
+// title); everything else passes through as raw HTML, which CommonMark allows inline.
+export function markdownOf(chunk) {
+  if (chunk.kind === 'code') return '```\n' + chunk.el.textContent.replace(/\n$/, '') + '\n```';
+  if (chunk.kind !== 'prose' && chunk.kind !== 'run') return '';
+  const md = inlineMarkdown(chunk.el ? [...chunk.el.childNodes] : chunk.nodes);
+  return md.split('\n').map(trimAscii).join('\n').replace(/^(#|[-+>]|\d+[.)])(?= |$)/gm, '\\$1');
+}
+
+function inlineMarkdown(nodes) {
+  return nodes.map(markdownNode).join('');
+}
+
+const attrNames = (el) => [...el.attributes].map((a) => a.name);
+const MARKS = { strong: '**', b: '**', em: '*', i: '*' };
+
+function markdownNode(n) {
+  if (n.nodeType === 3) return escapeMarkdown(n.data.replace(/[ \t\n\r\f]+/g, ' '));
+  if (n.nodeType !== 1) return '';
+  const name = n.localName;
+  const plain = attrNames(n).length === 0;
+  if (name === 'br') return '\\\n';
+  if (NONPROSE.has(name)) return `⟦${name}⟧`;
+  if (plain && name in MARKS) return MARKS[name] + inlineMarkdown([...n.childNodes]) + MARKS[name];
+  if (plain && name === 'code' && n.children.length === 0) {
+    const fence = n.textContent.includes('`') ? '``' : '`';
+    return fence + n.textContent + fence;
+  }
+  if (name === 'a' && attrNames(n).every((a) => a === 'href' || a === 'title')) {
+    const title = n.getAttribute('title');
+    return `[${inlineMarkdown([...n.childNodes])}](${n.getAttribute('href') ?? ''}${title ? ` "${title}"` : ''})`;
+  }
+  return `<${name}${attrNames(n).map((a) => ` ${a}="${n.getAttribute(a)}"`).join('')}>${inlineMarkdown([...n.childNodes])}</${name}>`;
+}
+
+// Characters markdown would read as syntax. U+00A0 shows as &nbsp; so you can see it (A5).
+function escapeMarkdown(text) {
+  return text
+    .replace(/[\\`*_[\]]/g, '\\$&')
+    .replace(/&(?=[a-zA-Z#][a-zA-Z0-9]*;)/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/ /g, '&nbsp;');
+}
+
 // ---- Report -------------------------------------------------------------
 
-// One line per chunk, indented by nesting. Prose shows its content as inline HTML with
-// nonprose tokens shortened to ⟦name⟧, so the question "what would I edit" has an answer.
+// What each kind means for the person editing.
+const KIND_MEANING = {
+  prose: 'prose: edit as markdown',
+  blank: 'blank: no text to edit',
+  code: 'code: edit as a fenced block',
+  nonprose: 'nonprose: directives only',
+  container: 'container: directives only; holds the chunks below it',
+  run: 'run: bare text with no element; no directive, no edit',
+};
+
+const label = (chunk) => (chunk.el ? `<${chunk.el.localName}${classSuffix(chunk.el)}>` : '(no element)');
+const classSuffix = (el) => (el.getAttribute('class') ? `.${el.getAttribute('class').split(/\s+/).join('.')}` : '');
+
+// One line per chunk, indented by nesting: kind, element, and the markdown on one line (⏎ for newlines).
 export function report(chunk, depth = 0) {
-  const lines = [];
-  const label = chunk.el ? `<${chunk.el.localName}${classSuffix(chunk.el)}>` : '(no element)';
-  let line = `${'  '.repeat(depth)}${chunk.kind.padEnd(9)} ${label}`;
-  if (chunk.kind === 'prose' || chunk.kind === 'run') line += `  ${preview(chunk.el ? [...chunk.el.childNodes] : chunk.nodes)}`;
-  if (chunk.kind === 'code') line += `  ${preview([...chunk.el.childNodes], true)}`;
-  lines.push(line);
+  const md = markdownOf(chunk).replace(/\n/g, '⏎');
+  const lines = [`${'  '.repeat(depth)}${chunk.kind.padEnd(9)} ${label(chunk)}${md ? `  ${md}` : ''}`];
   for (const child of chunk.children ?? []) lines.push(report(child, depth + 1));
   return lines.join('\n');
 }
 
-const classSuffix = (el) => (el.getAttribute('class') ? `.${el.getAttribute('class').split(/\s+/).join('.')}` : '');
-
-const PREVIEW_LIMIT = 110;
-function preview(nodes, keepSpace = false) {
-  const html = nodes.map((n) => previewNode(n)).join('');
-  const text = keepSpace ? html.replace(/\n/g, '⏎') : trimAscii(html.replace(/[ \t\n\r\f]+/g, ' '));
-  return text.length > PREVIEW_LIMIT ? `${text.slice(0, PREVIEW_LIMIT - 1)}…` : text;
-}
-function previewNode(n) {
-  if (n.nodeType === 3) return escapeText(n.data);
-  if (n.nodeType !== 1) return '';
-  const name = n.localName;
-  if (name === 'br') return '<br>';
-  if (NONPROSE.has(name)) return `⟦${name}⟧`;
-  return `<${name}${classSuffix(n)}>${[...n.childNodes].map(previewNode).join('')}</${name}>`;
+// The same, as table rows for the annotated page.
+function reportRows(document, chunk, depth = 0) {
+  const tr = document.createElement('tr');
+  tr.setAttribute('class', `chunk-${chunk.kind}`);
+  const cells = [`${'  '.repeat(depth)}${label(chunk)}`, KIND_MEANING[chunk.kind]];
+  for (const text of cells) {
+    const td = document.createElement('td');
+    td.textContent = text;
+    tr.appendChild(td);
+  }
+  const td = document.createElement('td');
+  const md = markdownOf(chunk);
+  if (md) {
+    const pre = document.createElement('pre');
+    pre.textContent = md;
+    td.appendChild(pre);
+  }
+  tr.appendChild(td);
+  return [tr, ...(chunk.children ?? []).flatMap((c) => reportRows(document, c, depth + 1))];
 }
 
 // ---- Annotation ---------------------------------------------------------
 
 // Marks the chunks of each .ex example: data-chunk on each chunk's element, and a
-// <pre class="chunk-report"> after the example. Annotating again replaces the old marks,
+// table.chunk-report after the example. Annotating again replaces the old marks,
 // leaving everything else (directives included) where it was.
 export function annotate(document) {
   clearAnnotations(document);
   for (const ex of document.querySelectorAll('.ex')) {
     const chunks = chunksIn(ex);
     for (const chunk of chunks) mark(chunk);
-    const pre = document.createElement('pre');
-    pre.setAttribute('class', 'chunk-report');
-    pre.textContent = chunks.map((c) => report(c)).join('\n');
-    ex.after(pre);
+    const table = document.createElement('table');
+    table.setAttribute('class', 'chunk-report');
+    table.innerHTML = '<tr><th>chunk</th><th>what it is</th><th>what you would edit</th></tr>';
+    for (const row of chunks.flatMap((c) => reportRows(document, c))) table.appendChild(row);
+    ex.after(table);
   }
+  const legend = document.createElement('p');
+  legend.setAttribute('class', 'chunk-report');
+  legend.innerHTML = LEGEND;
+  document.querySelector('#chunks > p')?.after(legend);
   const style = document.createElement('style');
   style.setAttribute('id', 'chunk-view');
   style.textContent = CHUNK_VIEW_CSS;
   document.querySelector('head').appendChild(style);
 }
+
+const LEGEND = `Under each example, <code>chunks.mjs</code> proposes its chunks: one row per chunk, nested
+  rows inside a container. The third column is the markdown the edit box would show. Outlines:
+  <span class="chunk-prose">prose</span>, <span class="chunk-blank">blank</span>,
+  <span class="chunk-code">code</span>, <span class="chunk-nonprose">nonprose</span>,
+  <span class="chunk-container">container</span>, <span class="chunk-run">run (no outline: no element)</span>.
+  ⟦svg⟧ marks nonprose riding inside prose.`;
 
 function mark(chunk) {
   chunk.el?.setAttribute('data-chunk', chunk.kind);
@@ -211,12 +282,18 @@ function clearAnnotations(document) {
 
 const CHUNK_VIEW_CSS = `
   [data-chunk] { outline-offset: 2px; }
-  [data-chunk="prose"] { outline: 2px solid #1a7f37; }
-  [data-chunk="blank"] { outline: 2px dashed #1a7f37; min-height: 0.5em; }
-  [data-chunk="code"] { outline: 2px solid #0969da; }
-  [data-chunk="nonprose"] { outline: 2px dashed #6e7781; }
-  [data-chunk="container"] { outline: 1px dotted #8250df; }
-  .chunk-report { font-size: 0.75rem; background: #f6f8fa; border-left: 3px solid #1a7f37; white-space: pre-wrap; margin: 0.5rem 0; }
+  [data-chunk="prose"], .chunk-prose { outline: 2px solid #1a7f37; }
+  [data-chunk="blank"], .chunk-blank { outline: 2px dashed #1a7f37; min-height: 0.5em; }
+  [data-chunk="code"], .chunk-code { outline: 2px solid #0969da; }
+  [data-chunk="nonprose"], .chunk-nonprose { outline: 2px dashed #6e7781; }
+  [data-chunk="container"], .chunk-container { outline: 1px dotted #8250df; }
+  .chunk-run { background: #fff1e5; }
+  p.chunk-report span { padding: 0 0.25rem; outline-offset: 1px; }
+  table.chunk-report { font-size: 0.75rem; margin: 0.5rem 0; width: 100%; }
+  table.chunk-report tr { outline: none; }
+  table.chunk-report td, table.chunk-report th { vertical-align: top; padding: 0.15rem 0.5rem; }
+  table.chunk-report td:first-child { font-family: ui-monospace, monospace; white-space: pre; }
+  table.chunk-report pre { margin: 0; padding: 0.15rem 0.4rem; background: #f6f8fa; white-space: pre-wrap; }
 `;
 
 // Run the CLI when this file is the entry point, not when imported.

@@ -10,7 +10,7 @@ const chunksOf = (body) => {
 };
 
 test('a paragraph with inline markup is one prose chunk', () => {
-  assert.equal(chunksOf('<p>Run <code>x</code>, <strong>now</strong>.</p>'), 'prose     <p>  Run <code>x</code>, <strong>now</strong>.');
+  assert.equal(chunksOf('<p>Run <code>x</code>, <strong>now</strong>.</p>'), 'prose     <p>  Run `x`, **now**.');
 });
 
 test('a list is a container of prose items', () => {
@@ -26,7 +26,7 @@ test('an svg inside a sentence is a token, not a boundary', () => {
 });
 
 test('a pre is a code chunk', () => {
-  assert.match(chunksOf('<pre><code>a\nb</code></pre>'), /^code {6}<pre> {2}<code>a⏎b<\/code>$/);
+  assert.match(chunksOf('<pre><code>a\nb</code></pre>'), /^code {6}<pre> {2}```⏎a⏎b⏎```$/);
 });
 
 test('a paragraph of only nbsp is blank', () => {
@@ -44,5 +44,5 @@ test('annotating twice gives the same page', () => {
   annotate(document);
   assert.equal(serialize(document), once);
   assert.match(once, /<p data-chunk="prose">a<\/p>/);
-  assert.match(once, /<pre class="chunk-report">prose/);
+  assert.match(once, /<table class="chunk-report">[\s\S]*prose: edit as markdown/);
 });
