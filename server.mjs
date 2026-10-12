@@ -456,6 +456,13 @@ const CLIENT_JS = `// html-revisor client. Directives live in the file on disk; 
     return rect.width === 0 && rect.height === 0;
   }
 
+  // The html-revisor icon, for every UI element the tool adds.
+  function icon() {
+    var span = document.createElement('span');
+    span.className = 'hrv-icon';
+    return span;
+  }
+
   // ---- crop marks ----
 
   // How far outside the element's box its crop marks sit, from client.css.
@@ -566,7 +573,6 @@ const CLIENT_JS = `// html-revisor client. Directives live in the file on disk; 
       if (!marker) {
         marker = document.createElement('div');
         marker.className = 'hrv-marker';
-        marker.textContent = '✎';
         marker.addEventListener('click', function (e) {
           e.preventDefault();
           e.stopPropagation();
@@ -590,7 +596,9 @@ const CLIENT_JS = `// html-revisor client. Directives live in the file on disk; 
   // ---- saving ----
 
   function showToast(text, isError, sticky) {
-    toast.textContent = text;
+    toast.textContent = '';
+    toast.appendChild(icon());
+    toast.appendChild(document.createTextNode(text));
     toast.className = 'hrv-toast hrv-show' + (isError ? ' hrv-error' : '');
     clearTimeout(toastTimer);
     if (sticky) return;

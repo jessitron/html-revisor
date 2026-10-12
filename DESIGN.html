@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-hrv-next="232" lang="en">
+<html data-hrv-next="209" lang="en">
   <head>
     <meta charset="utf-8">
     <title>html-revisor: design</title>
@@ -64,12 +64,14 @@
             <strong>The tool draws over the page and never styles it.</strong> Hover, selection, and directive marks are elements in the layer, placed over their target. Page elements get no classes. The one rule that reaches them is the copy cursor.
           </li>
           <li data-hrv="17">
-            <strong>One material for every component:</strong> near-black surface, 1px light ring, shadow, square corners, the same in light and dark mode. Agent-made pages round their corners; square ones read as not from this page. (direction)
+            <strong>One material for every component:</strong> near-black surface, 1px light ring, shadow, square corners, the same in light and dark mode. Agent-made pages round their corners; square ones read as not from this page.
           </li>
           <li data-hrv="18">
             <strong>The accent is magenta,</strong> the revisor's red pencil. It colors the icon, the marks, and the main action.
           </li>
-          <li data-hrv="19">An icon appears in every UI element html-revisor adds. (direction)</li>
+          <li data-hrv="19">
+            <strong>The icon is a magenta pencil</strong> whose tip faces right: it sits on the left and points at what it addresses. It appears in every UI element html-revisor adds. The marker is the icon on a tile of the material.
+          </li>
           <li data-hrv="20">
             <strong>Crop marks</strong> show hover and selection: four corners with the halo, thin on hover, heavier while the element's box is open. Square corners. They never touch the text.
           </li>
@@ -100,322 +102,297 @@
           Everything below this section is today's prototype. Where it disagrees with Decided, Decided wins.
         </p>
         <ul data-hrv="31">
-          <li data-hrv="32">What the icon looks like.</li>
-          <li data-hrv="33">
+          <li data-hrv="32">
             <!-- @AI: if I type -->
             The rules that place the box and the markers.
           </li>
-          <li data-hrv="34">Fonts, sizes, and spacing inside the box.</li>
+          <li data-hrv="33">Fonts, sizes, and spacing inside the box.</li>
         </ul>
       </div>
     </div>
-    <h2 data-hrv="35">Stress test: any page</h2>
-    <p data-hrv="36" class="note">
+    <h2 data-hrv="34">Stress test: any page</h2>
+    <p data-hrv="35" class="note">
       Imperative 1. Color alone can't be distinct from every page: some page uses our pink. So every mark gets a halo, a white ring and a dark shadow: a light edge and a dark edge whatever the page.
     </p>
-    <div data-hrv="37" class="grounds">
-      <div data-hrv="38">
-        <div data-hrv="39" class="tile" style="background: #fff; color: #222;">
-          <p data-hrv="40">Has a directive</p>
-          <p data-hrv="41" data-mark="hover">Hovered</p>
-          <p data-hrv="42" data-mark="selected">Box open</p>
-          <div data-hrv="43" class="hrv-layer">
-            <div data-hrv="44" class="hrv-marker" style="left: 3px; top: 3px;">✎</div>
+    <div data-hrv="36" class="grounds">
+      <div data-hrv="37">
+        <div data-hrv="38" class="tile" style="background: #fff; color: #222;">
+          <p data-hrv="39">Has a directive</p>
+          <p data-hrv="40" data-mark="hover">Hovered</p>
+          <p data-hrv="41" data-mark="selected">Box open</p>
+          <div data-hrv="42" class="hrv-layer">
+            <div data-hrv="43" class="hrv-marker" style="left: 3px; top: 3px;"></div>
           </div>
         </div>
-        <p data-hrv="45" class="note">white</p>
+        <p data-hrv="44" class="note">white</p>
       </div>
-      <div data-hrv="46">
-        <div data-hrv="47" class="tile" style="background: #18191c; color: #eee;">
-          <p data-hrv="48">Has a directive</p>
-          <p data-hrv="49" data-mark="hover">Hovered</p>
-          <p data-hrv="50" data-mark="selected">Box open</p>
-          <div data-hrv="51" class="hrv-layer">
-            <div data-hrv="52" class="hrv-marker" style="left: 3px; top: 3px;">✎</div>
+      <div data-hrv="45">
+        <div data-hrv="46" class="tile" style="background: #18191c; color: #eee;">
+          <p data-hrv="47">Has a directive</p>
+          <p data-hrv="48" data-mark="hover">Hovered</p>
+          <p data-hrv="49" data-mark="selected">Box open</p>
+          <div data-hrv="50" class="hrv-layer">
+            <div data-hrv="51" class="hrv-marker" style="left: 3px; top: 3px;"></div>
           </div>
         </div>
-        <p data-hrv="53" class="note">near-black</p>
+        <p data-hrv="52" class="note">near-black</p>
       </div>
-      <div data-hrv="54">
-        <div data-hrv="55" class="tile" style="background: #d6336c; color: #fff;">
-          <p data-hrv="56">Has a directive</p>
-          <p data-hrv="57" data-mark="hover">Hovered</p>
-          <p data-hrv="58" data-mark="selected">Box open</p>
-          <div data-hrv="59" class="hrv-layer">
-            <div data-hrv="60" class="hrv-marker" style="left: 3px; top: 3px;">✎</div>
+      <div data-hrv="53">
+        <div data-hrv="54" class="tile" style="background: #d6336c; color: #fff;">
+          <p data-hrv="55">Has a directive</p>
+          <p data-hrv="56" data-mark="hover">Hovered</p>
+          <p data-hrv="57" data-mark="selected">Box open</p>
+          <div data-hrv="58" class="hrv-layer">
+            <div data-hrv="59" class="hrv-marker" style="left: 3px; top: 3px;"></div>
           </div>
         </div>
-        <p data-hrv="61" class="note">our pink</p>
+        <p data-hrv="60" class="note">our pink</p>
       </div>
-      <div data-hrv="62">
-        <div data-hrv="63" class="tile" style="background: #c92a2a; color: #fff;">
-          <p data-hrv="64">Has a directive</p>
-          <p data-hrv="65" data-mark="hover">Hovered</p>
-          <p data-hrv="66" data-mark="selected">Box open</p>
-          <div data-hrv="67" class="hrv-layer">
-            <div data-hrv="68" class="hrv-marker" style="left: 3px; top: 3px;">✎</div>
+      <div data-hrv="61">
+        <div data-hrv="62" class="tile" style="background: #c92a2a; color: #fff;">
+          <p data-hrv="63">Has a directive</p>
+          <p data-hrv="64" data-mark="hover">Hovered</p>
+          <p data-hrv="65" data-mark="selected">Box open</p>
+          <div data-hrv="66" class="hrv-layer">
+            <div data-hrv="67" class="hrv-marker" style="left: 3px; top: 3px;"></div>
           </div>
         </div>
-        <p data-hrv="69" class="note">red</p>
+        <p data-hrv="68" class="note">red</p>
       </div>
-      <div data-hrv="70">
-        <div data-hrv="71" class="tile" style="background: repeating-linear-gradient(45deg, #d6336c 0 8px, #12b886 8px 16px); color: #fff;">
-          <p data-hrv="72">Has a directive</p>
-          <p data-hrv="73" data-mark="hover">Hovered</p>
-          <p data-hrv="74" data-mark="selected">Box open</p>
-          <div data-hrv="75" class="hrv-layer">
-            <div data-hrv="76" class="hrv-marker" style="left: 3px; top: 3px;">✎</div>
+      <div data-hrv="69">
+        <div data-hrv="70" class="tile" style="background: repeating-linear-gradient(45deg, #d6336c 0 8px, #12b886 8px 16px); color: #fff;">
+          <p data-hrv="71">Has a directive</p>
+          <p data-hrv="72" data-mark="hover">Hovered</p>
+          <p data-hrv="73" data-mark="selected">Box open</p>
+          <div data-hrv="74" class="hrv-layer">
+            <div data-hrv="75" class="hrv-marker" style="left: 3px; top: 3px;"></div>
           </div>
         </div>
-        <p data-hrv="77" class="note">stripes</p>
+        <p data-hrv="76" class="note">stripes</p>
       </div>
-      <div data-hrv="78">
-        <div data-hrv="79" class="tile" style="background: #fff; color: #222; border-left: 3px solid #d6336c;">
-          <p data-hrv="80">Has a directive</p>
-          <p data-hrv="81" data-mark="hover">Hovered</p>
-          <p data-hrv="82" data-mark="selected">Box open</p>
-          <div data-hrv="83" class="hrv-layer">
-            <div data-hrv="84" class="hrv-marker" style="left: 3px; top: 3px;">✎</div>
+      <div data-hrv="77">
+        <div data-hrv="78" class="tile" style="background: #fff; color: #222; border-left: 3px solid #d6336c;">
+          <p data-hrv="79">Has a directive</p>
+          <p data-hrv="80" data-mark="hover">Hovered</p>
+          <p data-hrv="81" data-mark="selected">Box open</p>
+          <div data-hrv="82" class="hrv-layer">
+            <div data-hrv="83" class="hrv-marker" style="left: 3px; top: 3px;"></div>
           </div>
         </div>
-        <p data-hrv="85" class="note">pink border</p>
+        <p data-hrv="84" class="note">pink border</p>
       </div>
-      <div data-hrv="86">
-        <div data-hrv="87" class="tile" style="background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNjAgOTAiIHByZXNlcnZlQXNwZWN0UmF0aW89InhNaWRZTWlkIHNsaWNlIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9InMiIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmZmUzZWMiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNkNjMzNmMiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTYwIiBoZWlnaHQ9IjkwIiBmaWxsPSJ1cmwoI3MpIi8+PGNpcmNsZSBjeD0iMTE4IiBjeT0iMjYiIHI9IjE1IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTAgNjIgUTQwIDM4IDgwIDU4IFQxNjAgNDggVjkwIEgwWiIgZmlsbD0iIzJiMmQ0MiIvPjxwYXRoIGQ9Ik0wIDc4IFE1MCA2MiAxMDAgNzggVDE2MCA3MiBWOTAgSDBaIiBmaWxsPSIjMTJiODg2Ii8+PC9zdmc+) center / cover; color: #fff; text-shadow: 0 1px 2px #000;">
-          <p data-hrv="88">Has a directive</p>
-          <p data-hrv="89" data-mark="hover">Hovered</p>
-          <p data-hrv="90" data-mark="selected">Box open</p>
-          <div data-hrv="91" class="hrv-layer">
-            <div data-hrv="92" class="hrv-marker" style="left: 3px; top: 3px;">✎</div>
+      <div data-hrv="85">
+        <div data-hrv="86" class="tile" style="background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNjAgOTAiIHByZXNlcnZlQXNwZWN0UmF0aW89InhNaWRZTWlkIHNsaWNlIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9InMiIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmZmUzZWMiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNkNjMzNmMiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTYwIiBoZWlnaHQ9IjkwIiBmaWxsPSJ1cmwoI3MpIi8+PGNpcmNsZSBjeD0iMTE4IiBjeT0iMjYiIHI9IjE1IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTAgNjIgUTQwIDM4IDgwIDU4IFQxNjAgNDggVjkwIEgwWiIgZmlsbD0iIzJiMmQ0MiIvPjxwYXRoIGQ9Ik0wIDc4IFE1MCA2MiAxMDAgNzggVDE2MCA3MiBWOTAgSDBaIiBmaWxsPSIjMTJiODg2Ii8+PC9zdmc+) center / cover; color: #fff; text-shadow: 0 1px 2px #000;">
+          <p data-hrv="87">Has a directive</p>
+          <p data-hrv="88" data-mark="hover">Hovered</p>
+          <p data-hrv="89" data-mark="selected">Box open</p>
+          <div data-hrv="90" class="hrv-layer">
+            <div data-hrv="91" class="hrv-marker" style="left: 3px; top: 3px;"></div>
           </div>
         </div>
-        <p data-hrv="93" class="note">photo behind text</p>
+        <p data-hrv="92" class="note">photo behind text</p>
       </div>
-      <div data-hrv="94">
-        <div data-hrv="95" class="tile" style="padding: 12px 0 0 12px;">
-          <img data-hrv="96" data-mark="hover" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNjAgOTAiIHByZXNlcnZlQXNwZWN0UmF0aW89InhNaWRZTWlkIHNsaWNlIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9InMiIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmZmUzZWMiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNkNjMzNmMiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTYwIiBoZWlnaHQ9IjkwIiBmaWxsPSJ1cmwoI3MpIi8+PGNpcmNsZSBjeD0iMTE4IiBjeT0iMjYiIHI9IjE1IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTAgNjIgUTQwIDM4IDgwIDU4IFQxNjAgNDggVjkwIEgwWiIgZmlsbD0iIzJiMmQ0MiIvPjxwYXRoIGQ9Ik0wIDc4IFE1MCA2MiAxMDAgNzggVDE2MCA3MiBWOTAgSDBaIiBmaWxsPSIjMTJiODg2Ii8+PC9zdmc+" alt="hills under a pink sky" width="112" height="63">
-          <div data-hrv="97" class="hrv-layer">
-            <div data-hrv="98" class="hrv-marker" style="left: 3px; top: 3px;">✎</div>
+      <div data-hrv="93">
+        <div data-hrv="94" class="tile" style="padding: 12px 0 0 12px;">
+          <img data-hrv="95" data-mark="hover" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNjAgOTAiIHByZXNlcnZlQXNwZWN0UmF0aW89InhNaWRZTWlkIHNsaWNlIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9InMiIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmZmUzZWMiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNkNjMzNmMiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTYwIiBoZWlnaHQ9IjkwIiBmaWxsPSJ1cmwoI3MpIi8+PGNpcmNsZSBjeD0iMTE4IiBjeT0iMjYiIHI9IjE1IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTAgNjIgUTQwIDM4IDgwIDU4IFQxNjAgNDggVjkwIEgwWiIgZmlsbD0iIzJiMmQ0MiIvPjxwYXRoIGQ9Ik0wIDc4IFE1MCA2MiAxMDAgNzggVDE2MCA3MiBWOTAgSDBaIiBmaWxsPSIjMTJiODg2Ii8+PC9zdmc+" alt="hills under a pink sky" width="112" height="63">
+          <div data-hrv="96" class="hrv-layer">
+            <div data-hrv="97" class="hrv-marker" style="left: 3px; top: 3px;"></div>
           </div>
         </div>
-        <p data-hrv="99" class="note">img: hovered, has a directive</p>
+        <p data-hrv="98" class="note">img: hovered, has a directive</p>
       </div>
-      <div data-hrv="100">
-        <div data-hrv="101" class="tile" style="background: url(design/armadillo.jpg) center / cover; color: #fff; text-shadow: 0 1px 2px #000;">
-          <p data-hrv="102">Has a directive</p>
-          <p data-hrv="103" data-mark="hover">Hovered</p>
-          <p data-hrv="104" data-mark="selected">Box open</p>
-          <div data-hrv="105" class="hrv-layer">
-            <div data-hrv="106" class="hrv-marker" style="left: 3px; top: 3px;">✎</div>
+      <div data-hrv="99">
+        <div data-hrv="100" class="tile" style="background: url(design/armadillo.jpg) center / cover; color: #fff; text-shadow: 0 1px 2px #000;">
+          <p data-hrv="101">Has a directive</p>
+          <p data-hrv="102" data-mark="hover">Hovered</p>
+          <p data-hrv="103" data-mark="selected">Box open</p>
+          <div data-hrv="104" class="hrv-layer">
+            <div data-hrv="105" class="hrv-marker" style="left: 3px; top: 3px;"></div>
           </div>
         </div>
-        <p data-hrv="107" class="note">armadillo behind text</p>
+        <p data-hrv="106" class="note">armadillo behind text</p>
       </div>
-      <div data-hrv="108">
-        <div data-hrv="109" class="tile" style="padding: 12px 0 0 12px;">
-          <img data-hrv="110" data-mark="hover" src="design/armadillo.jpg" alt="nine-banded armadillo in leaf litter" width="112" height="90">
-          <div data-hrv="111" class="hrv-layer">
-            <div data-hrv="112" class="hrv-marker" style="left: 3px; top: 3px;">✎</div>
+      <div data-hrv="107">
+        <div data-hrv="108" class="tile" style="padding: 12px 0 0 12px;">
+          <img data-hrv="109" data-mark="hover" src="design/armadillo.jpg" alt="nine-banded armadillo in leaf litter" width="112" height="90">
+          <div data-hrv="110" class="hrv-layer">
+            <div data-hrv="111" class="hrv-marker" style="left: 3px; top: 3px;"></div>
           </div>
         </div>
-        <p data-hrv="113" class="note">armadillo img: hovered</p>
+        <p data-hrv="112" class="note">armadillo img: hovered</p>
       </div>
-      <div data-hrv="114">
-        <div data-hrv="115" class="tile" style="padding: 12px 0 0 12px;">
-          <img data-hrv="116" data-mark="selected" src="design/armadillo.jpg" alt="nine-banded armadillo in leaf litter" width="112" height="90">
-          <div data-hrv="117" class="hrv-layer">
-            <div data-hrv="118" class="hrv-marker" style="left: 3px; top: 3px;">✎</div>
+      <div data-hrv="113">
+        <div data-hrv="114" class="tile" style="padding: 12px 0 0 12px;">
+          <img data-hrv="115" data-mark="selected" src="design/armadillo.jpg" alt="nine-banded armadillo in leaf litter" width="112" height="90">
+          <div data-hrv="116" class="hrv-layer">
+            <div data-hrv="117" class="hrv-marker" style="left: 3px; top: 3px;"></div>
           </div>
         </div>
-        <p data-hrv="119" class="note">armadillo img: box open</p>
+        <p data-hrv="118" class="note">armadillo img: box open</p>
       </div>
     </div>
-    <p data-hrv="120" class="note">
-      <strong>What it shows.</strong> The halo keeps the marker and the crop marks visible on every ground. On our pink, the white edge carries the corners; on the armadillo, the dark edge keeps them off the pale scales. The page element is never restyled, so the tile looks the same with or without the marks. The stripe failed here before it was dropped: it drew over the first letter, disappeared on pink, couldn't show on an image, and next to a page's own pink border it read as part of the page. The marker already says "this element has a directive". Still open: the marker covers the top-left crop mark.
+    <p data-hrv="119" class="note">
+      <strong>What it shows.</strong> The halo keeps the crop marks visible on every ground, and the marker carries its own light ring and dark tile. On our pink, the white edge carries the corners; on the armadillo, the dark edge keeps them off the pale scales. The page element is never restyled, so the tile looks the same with or without the marks. The stripe failed here before it was dropped: it drew over the first letter, disappeared on pink, couldn't show on an image, and next to a page's own pink border it read as part of the page. The marker already says "this element has a directive". Still open: the marker covers the top-left crop mark.
     </p>
-    <h2 data-hrv="121">Palette</h2>
-    <p data-hrv="122" class="note">
-      Custom properties on <code>:root</code>. Dark mode redefines the neutrals and keeps the accent. Values are read from the stylesheet when the page loads.
+    <h2 data-hrv="120">Palette</h2>
+    <p data-hrv="121" class="note">
+      Custom properties on <code>:root</code>, the same in light and dark mode: the material doesn't follow the page. Values are read from the stylesheet when the page loads.
     </p>
-    <div data-hrv="123" class="swatches">
-      <div data-hrv="124" class="swatch" data-var="--hrv-accent">
-        <div data-hrv="125" class="chip"></div>
-        <div data-hrv="126">accent: crop marks, marker, Save, focus</div>
+    <div data-hrv="122" class="swatches">
+      <div data-hrv="123" class="swatch" data-var="--hrv-accent">
+        <div data-hrv="124" class="chip"></div>
+        <div data-hrv="125">accent: icon, crop marks, main action, focus</div>
       </div>
-      <div data-hrv="127" class="swatch" data-var="--hrv-accent-strong">
-        <div data-hrv="128" class="chip"></div>
-        <div data-hrv="129">accent-strong: hover on marker and Save</div>
+      <div data-hrv="126" class="swatch" data-var="--hrv-accent-strong">
+        <div data-hrv="127" class="chip"></div>
+        <div data-hrv="128">accent-strong: hover on the marker and the main action</div>
       </div>
-      <div data-hrv="130" class="swatch" data-var="--hrv-error">
-        <div data-hrv="131" class="chip"></div>
-        <div data-hrv="132">error: failed or stale save</div>
+      <div data-hrv="129" class="swatch" data-var="--hrv-error">
+        <div data-hrv="130" class="chip"></div>
+        <div data-hrv="131">error: failed or stale save</div>
       </div>
-      <div data-hrv="133" class="swatch" data-var="--hrv-surface">
-        <div data-hrv="134" class="chip"></div>
-        <div data-hrv="135">surface: the directive box</div>
+      <div data-hrv="132" class="swatch" data-var="--hrv-surface">
+        <div data-hrv="133" class="chip"></div>
+        <div data-hrv="134">surface: every component</div>
       </div>
-      <div data-hrv="136" class="swatch" data-var="--hrv-field">
-        <div data-hrv="137" class="chip"></div>
-        <div data-hrv="138">field: textareas</div>
+      <div data-hrv="135" class="swatch" data-var="--hrv-ring">
+        <div data-hrv="136" class="chip"></div>
+        <div data-hrv="137">ring: the 1px edge around every component</div>
       </div>
-      <div data-hrv="139" class="swatch" data-var="--hrv-button">
-        <div data-hrv="140" class="chip"></div>
-        <div data-hrv="141">button: Delete</div>
+      <div data-hrv="138" class="swatch" data-var="--hrv-field">
+        <div data-hrv="139" class="chip"></div>
+        <div data-hrv="140">field: textareas</div>
       </div>
-      <div data-hrv="142" class="swatch" data-var="--hrv-halo">
-        <div data-hrv="143" class="chip"></div>
-        <div data-hrv="144">halo: ring around every mark over the page</div>
+      <div data-hrv="141" class="swatch" data-var="--hrv-button">
+        <div data-hrv="142" class="chip"></div>
+        <div data-hrv="143">button: secondary actions</div>
       </div>
-      <div data-hrv="145" class="swatch" data-var="--hrv-line">
-        <div data-hrv="146" class="chip"></div>
-        <div data-hrv="147">line: borders</div>
+      <div data-hrv="144" class="swatch" data-var="--hrv-line">
+        <div data-hrv="145" class="chip"></div>
+        <div data-hrv="146">line: borders inside a component</div>
       </div>
-      <div data-hrv="148" class="swatch" data-var="--hrv-text">
-        <div data-hrv="149" class="chip"></div>
-        <div data-hrv="150">text</div>
+      <div data-hrv="147" class="swatch" data-var="--hrv-text">
+        <div data-hrv="148" class="chip"></div>
+        <div data-hrv="149">text</div>
       </div>
-      <div data-hrv="151" class="swatch" data-var="--hrv-muted">
-        <div data-hrv="152" class="chip"></div>
-        <div data-hrv="153">muted: labels, hint</div>
+      <div data-hrv="150" class="swatch" data-var="--hrv-muted">
+        <div data-hrv="151" class="chip"></div>
+        <div data-hrv="152">muted: labels, hint, placeholder</div>
       </div>
-      <div data-hrv="154" class="swatch" data-var="--hrv-toast">
-        <div data-hrv="155" class="chip"></div>
-        <div data-hrv="156">toast</div>
+      <div data-hrv="153" class="swatch" data-var="--hrv-halo">
+        <div data-hrv="154" class="chip"></div>
+        <div data-hrv="155">halo: light edge on crop marks</div>
       </div>
     </div>
-    <h2 data-hrv="157">On the page</h2>
-    <p data-hrv="158" class="note">
+    <h2 data-hrv="156">On the page</h2>
+    <p data-hrv="157" class="note">
       The tool draws in its own layer above the page and puts no classes on page elements.
     </p>
-    <div data-hrv="159" class="row">
-      <div data-hrv="160">
-        <div data-hrv="161" class="stage">
-          <p data-hrv="162" data-mark="hover">
+    <div data-hrv="158" class="row">
+      <div data-hrv="159">
+        <div data-hrv="160" class="stage">
+          <p data-hrv="161" data-mark="hover">
             Hovering an element puts crop marks at its corners, and the cursor becomes a copy cursor: click to leave a directive or to edit the text.
           </p>
-          <div data-hrv="163" class="hrv-layer"></div>
+          <div data-hrv="162" class="hrv-layer"></div>
         </div>
-        <p data-hrv="164" class="note">
+        <p data-hrv="163" class="note">
           <code>.hrv-crop</code>: four 10px corners, 2px thick, <code>--hrv-crop-gap</code> (4px) outside the element's box, with the halo. Each arm is at most 30% of its side, so a small SVG label still shows four corners. <code>.hrv-selected</code>, while the box is open: 16px corners, 3px thick, and a 1px outline.
         </p>
       </div>
-      <div data-hrv="165">
-        <div data-hrv="166" class="stage">
-          <p data-hrv="167">
+      <div data-hrv="164">
+        <div data-hrv="165" class="stage">
+          <p data-hrv="166">
             This paragraph has a directive. It gets a marker at its top-left corner.
           </p>
-          <div data-hrv="168" class="hrv-layer">
-            <div data-hrv="169" class="hrv-marker" style="left: 15px; top: 15px;" title="Say this in fewer words">
-              ✎
+          <div data-hrv="167" class="hrv-layer">
+            <div data-hrv="168" class="hrv-marker" style="left: 15px; top: 15px;" title="Say this in fewer words">
+              
             </div>
           </div>
         </div>
-        <p data-hrv="170" class="note">
-          <code>.hrv-marker</code>: 18px with a 2px halo and a shadow, 9px up and left of the element; its tooltip is the directive.
+        <p data-hrv="169" class="note">
+          <code>.hrv-marker</code>: the icon on a 20px tile of the material, 9px up and left of the element; its tooltip is the directive.
         </p>
       </div>
     </div>
-    <h2 data-hrv="171">Directive box</h2>
-    <p data-hrv="172" class="note">
+    <h2 data-hrv="170">Directive box</h2>
+    <p data-hrv="171" class="note">
       Opens 20px below the element's top, 320px wide or the viewport less 16px. Saves 0.4 s after typing stops; Save and ⌘↵ close it.
     </p>
-    <div data-hrv="173" class="row">
-      <div data-hrv="174">
-        <div data-hrv="175" class="stage" style="height: 200px;">
-          <div data-hrv="176" class="hrv-layer">
-            <div data-hrv="177" class="hrv-box" style="left: 24px; top: 24px;">
+    <div data-hrv="172" class="row">
+      <div data-hrv="173">
+        <div data-hrv="174" class="stage" style="height: 200px;">
+          <div data-hrv="175" class="hrv-layer">
+            <div data-hrv="176" class="hrv-box" style="left: 24px; top: 24px;">
               <textarea class="hrv-directive" placeholder="Directive for this element">Add a diagram of the PUT flow here</textarea>
-              <div data-hrv="178" class="hrv-row">
+              <div data-hrv="177" class="hrv-row">
                 <span class="hrv-icon"></span>
-                <div data-hrv="179" class="hrv-hint">⌘↵ to save · esc to close</div>
-                <div data-hrv="180" class="hrv-btn" title="Delete the directive">Delete</div>
-                <div data-hrv="181" class="hrv-btn hrv-save">Save</div>
+                <div data-hrv="178" class="hrv-hint">⌘↵ to save · esc to close</div>
+                <div data-hrv="179" class="hrv-btn" title="Delete the directive">Delete</div>
+                <div data-hrv="180" class="hrv-btn hrv-save">Save</div>
               </div>
             </div>
           </div>
         </div>
-        <p data-hrv="182" class="note">Any element.</p>
+        <p data-hrv="181" class="note">Any element.</p>
       </div>
-      <div data-hrv="183">
-        <div data-hrv="184" class="stage" style="height: 260px;">
-          <div data-hrv="185" class="hrv-layer">
-            <div data-hrv="186" class="hrv-box" style="left: 24px; top: 24px;">
-              <div data-hrv="187" class="hrv-label">Text</div>
+      <div data-hrv="182">
+        <div data-hrv="183" class="stage" style="height: 260px;">
+          <div data-hrv="184" class="hrv-layer">
+            <div data-hrv="185" class="hrv-box" style="left: 24px; top: 24px;">
+              <div data-hrv="186" class="hrv-label">Text</div>
               <textarea class="hrv-text">Where it's headed</textarea>
-              <div data-hrv="188" class="hrv-label">Directive</div>
+              <div data-hrv="187" class="hrv-label">Directive</div>
               <textarea class="hrv-directive" placeholder="Directive for this element"></textarea>
-              <div data-hrv="189" class="hrv-row">
-                <div data-hrv="190" class="hrv-hint">⌘↵ to save · esc to close</div>
-                <div data-hrv="191" class="hrv-btn" title="Delete the directive">Delete</div>
-                <div data-hrv="192" class="hrv-btn hrv-save">Save</div>
+              <div data-hrv="188" class="hrv-row">
+                <div data-hrv="189" class="hrv-hint">⌘↵ to save · esc to close</div>
+                <div data-hrv="190" class="hrv-btn" title="Delete the directive">Delete</div>
+                <div data-hrv="191" class="hrv-btn hrv-save">Save</div>
               </div>
             </div>
           </div>
         </div>
-        <p data-hrv="193" class="note">
+        <p data-hrv="192" class="note">
           A directive box with editor, for a text element: one whose content is only text.
         </p>
       </div>
     </div>
-    <h2 data-hrv="194">Icon</h2>
-    <p data-hrv="195" class="note">
-      Marks everything html-revisor adds to a page. Recommendation: B, and make the marker the same icon, so a pink circle with a pencil always means html-revisor. Pick one; the placements below use B, the <code>.hrv-icon</code> in <code>client.css</code>.
+    <h2 data-hrv="193">Icon</h2>
+    <p data-hrv="194" class="note">
+      <code>.hrv-icon</code>: a magenta pencil, drawn as a mask from <code>--hrv-pencil</code> so it takes the accent. The tip faces right: the icon sits on the left of what it marks and points at it. The marker is the same pencil on a tile of the material.
     </p>
-    <div data-hrv="196" class="icons">
-      <div data-hrv="197">
-        <svg data-hrv="198" width="36" height="36" viewBox="0 0 16 16">
-          <circle data-hrv="199" cx="8" cy="8" r="8" style="fill: var(--hrv-accent)"></circle><text data-hrv="200" x="8" y="11.5" text-anchor="middle" font-size="10" fill="white">✎</text>
-        </svg>
-        <svg data-hrv="201" width="18" height="18" viewBox="0 0 16 16">
-          <circle data-hrv="202" cx="8" cy="8" r="8" style="fill: var(--hrv-accent)"></circle><text data-hrv="203" x="8" y="11.5" text-anchor="middle" font-size="10" fill="white">✎</text>
-        </svg>
-        <p data-hrv="204" class="note">
-          <strong>A</strong>, today's marker: the ✎ glyph. Its shape depends on the font on each machine.
-        </p>
-      </div>
-      <div data-hrv="205">
-        <svg data-hrv="206" width="36" height="36" viewBox="0 0 16 16">
-          <circle data-hrv="207" cx="8" cy="8" r="8" style="fill: var(--hrv-accent)"></circle><g data-hrv="208" transform="translate(3 3) scale(0.625)"><path data-hrv="209" d="M11.2 2.3l2.5 2.5-8.2 8.2-3.3.8.8-3.3z" fill="white"></path></g>
-        </svg>
-        <svg data-hrv="210" width="18" height="18" viewBox="0 0 16 16">
-          <circle data-hrv="211" cx="8" cy="8" r="8" style="fill: var(--hrv-accent)"></circle><g data-hrv="212" transform="translate(3 3) scale(0.625)"><path data-hrv="213" d="M11.2 2.3l2.5 2.5-8.2 8.2-3.3.8.8-3.3z" fill="white"></path></g>
-        </svg>
-        <p data-hrv="214" class="note">
-          <strong>B</strong>, an SVG pencil. Same everywhere; reads as "edit".
-        </p>
-      </div>
-      <div data-hrv="215">
-        <svg data-hrv="216" width="36" height="36" viewBox="0 0 16 16">
-          <circle data-hrv="217" cx="8" cy="8" r="8" style="fill: var(--hrv-accent)"></circle><path data-hrv="218" d="M4.5 10.5 8 5.5l3.5 5" stroke="white" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
-        </svg>
-        <svg data-hrv="219" width="18" height="18" viewBox="0 0 16 16">
-          <circle data-hrv="220" cx="8" cy="8" r="8" style="fill: var(--hrv-accent)"></circle><path data-hrv="221" d="M4.5 10.5 8 5.5l3.5 5" stroke="white" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
-        </svg>
-        <p data-hrv="222" class="note">
-          <strong>C</strong>, the proofreader's caret, ‸ "insert here": a revisor's mark. Risk: in a circle it looks like a scroll-to-top button.
-        </p>
+    <div data-hrv="195" class="stage" style="height: 90px;">
+      <div data-hrv="196" class="hrv-layer">
+        <div data-hrv="197" class="hrv-marker" style="left: 24px; top: 24px;"></div>
+        <div data-hrv="198" class="hrv-marker" style="left: 60px; top: 24px; transform: scale(2); transform-origin: top left;">
+          
+        </div>
+        <div data-hrv="199" class="hrv-toast hrv-show" style="position: absolute; right: auto; left: 120px; bottom: auto; top: 28px;">
+          <span class="hrv-icon"></span>icon, in a component
+        </div>
       </div>
     </div>
-    <h2 data-hrv="223">Toast</h2>
-    <p data-hrv="224" class="note">
+    <h2 data-hrv="200">Toast</h2>
+    <p data-hrv="201" class="note">
       Bottom right of the window. Fades in; leaves after 1.5 s, or 4 s for an error. The stale-file toast stays.
     </p>
-    <div data-hrv="225" class="stage" style="height: 150px;">
-      <div data-hrv="226" class="hrv-layer">
-        <div data-hrv="227" class="hrv-toast hrv-show" style="position: absolute; right: auto; left: 24px; bottom: auto; top: 24px;">
+    <div data-hrv="202" class="stage" style="height: 150px;">
+      <div data-hrv="203" class="hrv-layer">
+        <div data-hrv="204" class="hrv-toast hrv-show" style="position: absolute; right: auto; left: 24px; bottom: auto; top: 24px;">
           <span class="hrv-icon"></span>saved · 3 directives
         </div>
-        <div data-hrv="228" class="hrv-toast hrv-show hrv-error" style="position: absolute; right: auto; left: 24px; bottom: auto; top: 64px;">
+        <div data-hrv="205" class="hrv-toast hrv-show hrv-error" style="position: absolute; right: auto; left: 24px; bottom: auto; top: 64px;">
           <span class="hrv-icon"></span>save failed: Failed to fetch
         </div>
-        <div data-hrv="229" class="hrv-toast hrv-show hrv-error" style="position: absolute; right: auto; left: 24px; bottom: auto; top: 104px;">
+        <div data-hrv="206" class="hrv-toast hrv-show hrv-error" style="position: absolute; right: auto; left: 24px; bottom: auto; top: 104px;">
           <span class="hrv-icon"></span>file changed on disk — reload to see it (your unsaved text is in the box)
         </div>
       </div>
     </div>
-    <h2 data-hrv="230">Type</h2>
-    <p data-hrv="231" class="note">
-      Everything in the layer: <code>--hrv-font</code>, 13px system-ui at line height 1.4. Labels and the hint: <code>--hrv-small</code>, 11px, muted.
+    <h2 data-hrv="207">Type</h2>
+    <p data-hrv="208" class="note">
+      Everything in the layer: <code>--hrv-font</code>, 13px system-ui at line height 1.4. The directive field: <code>--hrv-mono</code>, 12px monospace, since a directive is an instruction headed into an HTML comment. Labels and the hint: <code>--hrv-small</code>, 11px, muted.
     </p>
     <script>
   for (const s of document.querySelectorAll('.swatch')) {
