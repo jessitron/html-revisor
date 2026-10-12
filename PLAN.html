@@ -18,10 +18,12 @@
   svg { width: 100%; height: auto; display: block; }
   svg text { fill: var(--ink); font-family: system-ui, sans-serif; }
   svg .muted { fill: var(--muted); }
+  svg .dirtext { fill: var(--dir); }
   code { font-family: ui-monospace, monospace; font-size: .9em; }
   .stage { display: grid; grid-template-columns: 3rem 1fr; gap: 1rem; margin: 1.25rem 0; }
   .num { width: 2.5rem; height: 2.5rem; border-radius: 50%; border: 2px solid var(--accent); color: var(--accent); font-weight: 700; text-align: center; line-height: 2.3rem; }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: .75rem 1rem; }
+  .card.later { border: 1px dashed var(--dir); }
   .why { color: var(--muted); margin: .1rem 0 .5rem; }
   ul.yaks { margin: .25rem 0; padding-left: 1.2rem; }
   ul.yaks li { margin: .2rem 0; }
@@ -30,9 +32,10 @@
   .ships { margin-top: .5rem; font-size: .9rem; }
   .ships::before { content: "⇢ ships: "; font-weight: 600; color: var(--now); }
   .q { background: var(--qbg); border-left: 4px solid var(--q); border-radius: 4px; padding: .4rem .75rem; margin: .5rem 0; }
-  .q::before { content: "Question: "; font-weight: 700; color: var(--q); }
-  .lane { display: grid; grid-template-columns: repeat(3, 1fr); gap: .75rem; }
+  .q::before { content: "Blocker: "; font-weight: 700; color: var(--q); }
+  .lane { display: grid; grid-template-columns: repeat(2, 1fr); gap: .75rem; }
   .lane .card { font-size: .9rem; }
+  .later-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
   table { border-collapse: collapse; width: 100%; font-size: .9rem; }
   th, td { text-align: left; border-bottom: 1px solid var(--line); padding: .35rem .5rem; vertical-align: top; }
   th { color: var(--muted); font-weight: 600; }
@@ -41,12 +44,12 @@
   <body>
     <h1>html-notes — the path</h1>
     <p class="sub">
-      From here to where we want to be. Every stage ends with a copy into iterate-on-docs, because that copy is the one you run.
+      From here to where we want to be. Deploy, then rename, then regroup and chart more.
     </p>
     <section id="map">
-      <h2>The map</h2>
-      <svg viewBox="0 0 900 230" role="img" aria-label="Five stages from today to the safe harbor">
-        <line x1="60" y1="90" x2="840" y2="90" stroke="var(--line)" stroke-width="8" stroke-linecap="round"></line> <circle cx="60" cy="90" r="14" fill="var(--now)"></circle> <text x="60" y="135" text-anchor="middle" font-size="14" font-weight="600">Today</text> <text x="60" y="155" text-anchor="middle" font-size="12" class="muted">copy is from Oct 7,</text> <text x="60" y="170" text-anchor="middle" font-size="12" class="muted">drifted by hand</text> <circle cx="215" cy="90" r="14" fill="var(--bg)" stroke="var(--accent)" stroke-width="3"></circle> <text x="215" y="95" text-anchor="middle" font-size="13" font-weight="700">1</text> <text x="215" y="135" text-anchor="middle" font-size="14" font-weight="600">Cheap copy</text> <text x="215" y="155" text-anchor="middle" font-size="12" class="muted">no local changes</text> <circle cx="370" cy="90" r="14" fill="var(--bg)" stroke="var(--accent)" stroke-width="3"></circle> <text x="370" y="95" text-anchor="middle" font-size="13" font-weight="700">2</text> <text x="370" y="135" text-anchor="middle" font-size="14" font-weight="600">html-revisor</text> <text x="370" y="155" text-anchor="middle" font-size="12" class="muted">one name</text> <circle cx="525" cy="90" r="14" fill="var(--bg)" stroke="var(--accent)" stroke-width="3"></circle> <text x="525" y="95" text-anchor="middle" font-size="13" font-weight="700">3</text> <text x="525" y="135" text-anchor="middle" font-size="14" font-weight="600">Format stands alone</text> <text x="525" y="155" text-anchor="middle" font-size="12" class="muted">agent checks its page</text> <circle cx="680" cy="90" r="14" fill="var(--bg)" stroke="var(--accent)" stroke-width="3"></circle> <text x="680" y="95" text-anchor="middle" font-size="13" font-weight="700">4</text> <text x="680" y="135" text-anchor="middle" font-size="14" font-weight="600">Prose as markdown</text> <text x="680" y="155" text-anchor="middle" font-size="12" class="muted">IDs per chunk, then editing</text> <text x="840" y="100" text-anchor="middle" font-size="28">⚓</text> <text x="840" y="135" text-anchor="middle" font-size="14" font-weight="600">Safe harbor</text> <text x="840" y="155" text-anchor="middle" font-size="12" class="muted">edit any paragraph,</text> <text x="840" y="170" text-anchor="middle" font-size="12" class="muted">in the plugin you run</text> <text x="450" y="30" text-anchor="middle" font-size="13" class="muted">Polish lane runs alongside: box, undo, style guide, SVG</text>
+      <h2>What we know</h2>
+      <svg viewBox="0 0 900 200" role="img" aria-label="Today, deploy script, rename, regroup; later stops sketched">
+        <line x1="60" y1="70" x2="560" y2="70" stroke="var(--line)" stroke-width="8" stroke-linecap="round"></line> <line x1="560" y1="70" x2="840" y2="70" stroke="var(--dir)" stroke-width="3" stroke-dasharray="6 6"></line> <circle cx="60" cy="70" r="14" fill="var(--now)"></circle> <text x="60" y="115" text-anchor="middle" font-size="14" font-weight="600">Today</text> <text x="60" y="135" text-anchor="middle" font-size="12" class="muted">copy from Oct 7,</text> <text x="60" y="150" text-anchor="middle" font-size="12" class="muted">drifted by hand</text> <circle cx="230" cy="70" r="14" fill="var(--bg)" stroke="var(--accent)" stroke-width="3"></circle> <text x="230" y="75" text-anchor="middle" font-size="13" font-weight="700">1</text> <text x="230" y="115" text-anchor="middle" font-size="14" font-weight="600">Deploy script</text> <text x="230" y="135" text-anchor="middle" font-size="12" class="muted">plain copy, no local changes;</text> <text x="230" y="150" text-anchor="middle" font-size="12" class="muted">list rename places on the way</text> <circle cx="400" cy="70" r="14" fill="var(--bg)" stroke="var(--accent)" stroke-width="3"></circle> <text x="400" y="75" text-anchor="middle" font-size="13" font-weight="700">2</text> <text x="400" y="115" text-anchor="middle" font-size="14" font-weight="600">html-revisor</text> <text x="400" y="135" text-anchor="middle" font-size="12" class="muted">one name, both projects</text> <circle cx="560" cy="70" r="14" fill="var(--bg)" stroke="var(--ink)" stroke-width="3"></circle> <text x="560" y="75" text-anchor="middle" font-size="13" font-weight="700">?</text> <text x="560" y="115" text-anchor="middle" font-size="14" font-weight="600">Regroup</text> <text x="560" y="135" text-anchor="middle" font-size="12" class="muted">chart more</text> <text x="700" y="50" text-anchor="middle" font-size="13" class="dirtext">format stands alone</text> <text x="830" y="50" text-anchor="middle" font-size="13" class="dirtext">prose as markdown</text> <text x="760" y="115" text-anchor="middle" font-size="12" class="muted">sketched, not charted</text>
       </svg>
     </section>
     <section id="layout">
@@ -55,9 +58,7 @@
         <tr>
           <th></th>
           <th>here: <code>html-with-comments/</code></th>
-          <th>
-            there: <code><!-- @AI: pre-rename. yeah the rename is pretty urgent. While we write the deploy, we can accumulate context on where all the rename has to happen in both projects -->iterate-on-docs/html-with-comments/</code>
-          </th>
+          <th>there, pre-rename: <code>iterate-on-docs/html-with-comments/</code></th>
         </tr>
         <tr>
           <td>role</td>
@@ -80,38 +81,34 @@
           <td><code>{notes, texts, version}</code></td>
         </tr>
       </table>
-      <div class="q">
-        <!-- @AI: ok. Good idea. Let's call it 'deploy' because that's my standard name for this. In this project a deploy is a little odd... hmm shall we just copy it over locally, or do a PR? 
-... that's out of scope for this discussion. Let's make a yak for it (if it isn't already) and this becomes a prereq for proceeding -->
-        Whose job is the copy? Options: a <code>npm run ship</code> here that writes into iterate-on-docs and commits there; a pull script in iterate-on-docs; or a step in our end-session routine. I lean toward <code>ship</code> here, since this repo knows what the build is.
-      </div>
     </section>
     <section id="stages">
-      <h2>Stages</h2>
+      <h2>Now</h2>
       <div class="stage">
         <div class="num">1</div>
         <div class="card">
-          <h3>Cheap copy</h3>
+          <h3>Deploy script</h3>
           <p class="why">
-            Nothing we build reaches you until it's copied, and today the copy means re-applying local changes by hand. Remove the local changes and the copy becomes a script.
+            Nothing we build reaches you until it's copied, and today the copy means re-applying local changes by hand. Remove the local changes, and <code>deploy</code> becomes a plain copy of the same files as today, no npm install.
           </p>
+          <div class="q">
+            Does deploy copy into the local iterate-on-docs checkout, or open a PR there? <span class="yak">decide-whether-deploy…mebf</span>
+          </div>
           <ul class="yaks">
             <li>
               Default author to <code>@AI</code> here <span class="yak">default-author-to-ai…5x8n</span>
             </li>
             <li>
-              <!-- @AI: hmm I am not familiar with this -->
-              Bring the copy's README additions (“Files it serves”, “Gotchas for maintainers”) back here <span class="new">new</span>
+              The copy has no CLAUDE.md, so its README carries two sections from ours: “Files it serves” (we own these pages; rewriting them is fine) and “Gotchas for maintainers” (linkedom, GET rewrites the file). Put them in our README so deploy copies it unchanged <span class="new">new</span>
             </li>
             <li>
               Grep for <code>'&lt;!-- *@AI:'</code> in the README and in the iterate-on-a-document skill <span class="yak">grep-for-notes…qse3</span>
             </li>
-            <li>Define the built output: which files go over <span class="new">new</span></li>
-            <li>The copy script, whoever runs it <span class="yak">decide-whose-job…omfn</span></li>
+            <li>Write <code>deploy</code> <span class="yak">…copy-the-built-output…omfn</span></li>
+            <li>
+              On the way, list every place the rename touches, in both projects <span class="yak">rename…udqv</span>
+            </li>
           </ul>
-          <div class="q">
-            Is “built output” a copy of the files minus dev ones, or one bundled <code>html-revisor.mjs</code> (server plus linkedom)? One file is simpler to vendor; we already run esbuild for <code>npm run vendor</code>.
-          </div>
           <div class="ships">directives rename, <code>@AI</code> default, the grep fix</div>
         </div>
       </div>
@@ -119,9 +116,7 @@
         <div class="num">2</div>
         <div class="card">
           <h3>One name: html-revisor</h3>
-          <p class="why">
-            Do it while the copy is fresh and before more docs pile up on the old names.
-          </p>
+          <p class="why">Urgent. Uses the list from stage 1.</p>
           <ul class="yaks">
             <li>
               Rename this project and its output <span class="yak">rename…html-revisor-udqv</span>
@@ -130,66 +125,52 @@
               Carry “directive” into iterate-on-docs's README and skills; talk with Arlo <span class="yak">standardize-the-name…ly1y</span>
             </li>
           </ul>
-          <div class="q">
-            Rename before the first scripted copy, so iterate-on-docs changes folder names once? That folds stages 1 and 2 into one ship.
-          </div>
           <div class="ships">
             the plugin folder becomes <code>html-revisor/</code>; the skill's path to the server changes
           </div>
         </div>
       </div>
       <div class="stage">
-        <div class="num">3</div>
+        <div class="num">?</div>
         <div class="card">
-          <h3>Format stands alone</h3>
+          <h3>Regroup</h3>
           <p class="why">
-            The agent runs the formatter after writing a page and fixes what it reports, before you open it. GET keeps running the same code.
+            Chart the next stretch here, from what deploy and the rename taught us.
           </p>
-          <ul class="yaks">
-            <li>
-              Split out the formatter and make it validate <span class="yak">split-out-the-formatter…stez</span>
-            </li>
-            <li>
-              Break out the parser so it can be run separately <span class="yak">break-out-the-parser…yp92</span> — I read these two as one yak
-            </li>
-            <li>
-              Add the format step to the iterate-on-a-document skill <span class="new">new</span>
-            </li>
-          </ul>
-          <div class="q">
-            Which validation rules first? Candidates: phrasing-only content in <code>&lt;p&gt;</code>; no directive inside an SVG on one line; no unknown author prefixes.
-          </div>
-          <div class="ships"><code>html-revisor format FILE</code></div>
         </div>
       </div>
-      <div class="stage">
-        <div class="num">4</div>
-        <div class="card">
-          <h3>Prose as markdown</h3>
+    </section>
+    <section id="later">
+      <h2>Later, sketched</h2>
+      <div class="later-grid">
+        <div class="card later">
+          <h3>Format stands alone</h3>
           <p class="why">
-            The big one. Click a paragraph with bold or a link, edit all of it as markdown. The design notes are in commit <code>8683442</code>: phrasing content is the unit, CommonMark keeps raw inline HTML, and a round-trip property test guards “open, save unchanged, same bytes”.
+            First, because it lets us add validation steps, which prose-as-markdown will likely need. Validation rules: none until implementation calls for one.
           </p>
           <ul class="yaks">
+            <li>Split out the formatter and make it validate <span class="yak">stez</span></li>
             <li>
-              Redesign element IDing: one ID per prose chunk <span class="yak">redesign-element-iding-a17m</span>
-            </li>
-            <li>
-              Edit text of elements with inline markup <span class="yak">edit-text-of-elements…ttqe</span>
-            </li>
-            <li>
-              Undo for text edits <span class="yak">undo-for-text-edits-x8yp</span> — more needed once edits get bigger
+              Break out the parser so it can be run separately <span class="yak">yp92</span>, likely the same yak
             </li>
           </ul>
-          <div class="q">
-            Write the IDs into the file? Then the agent sees the IDs the browser uses, at the cost of a longer file.
-          </div>
-          <div class="ships">markdown editing of paragraphs, list items, headings</div>
+        </div>
+        <div class="card later">
+          <h3>Prose as markdown</h3>
+          <p class="why">
+            Click a paragraph with bold or a link, edit all of it as markdown. Design notes in commit <code>8683442</code>. IDs stay out of the file unless implementation finds a use.
+          </p>
+          <ul class="yaks">
+            <li>One ID per prose chunk <span class="yak">a17m</span></li>
+            <li>Edit text of elements with inline markup <span class="yak">ttqe</span></li>
+            <li>Undo for text edits <span class="yak">x8yp</span></li>
+          </ul>
         </div>
       </div>
     </section>
     <section id="polish">
       <h2>Polish lane</h2>
-      <p class="sub">Any time, between stages. Each ships with the next copy.</p>
+      <p class="sub">Any time. Each ships with the next deploy.</p>
       <div class="lane">
         <div class="card">
           <strong>Movable box</strong><br>see the element behind it <span class="yak">a8t2</span>
@@ -197,65 +178,46 @@
         <div class="card">
           <strong>Client style guide</strong><br>box, marker, toast, hover; mocks follow it <span class="yak">vrc3</span>
         </div>
-        <div class="card">
-          <!-- @AI: yeah we can delete this, I'm super happy with where it is now -->
-          <strong>SVG</strong><br>on hold: commenting inside SVG works and you like it <span class="yak">66nv</span>
-        </div>
       </div>
     </section>
-    <section id="questions">
-      <h2>Open questions</h2>
+    <section id="decided">
+      <h2>Decided</h2>
       <table>
         <tr>
           <th>question</th>
-          <th>blocks</th>
+          <th>answer</th>
         </tr>
         <tr>
-          <td>Whose job is the copy?</td>
-          <td>stage 1</td>
+          <td>Who copies the output over?</td>
+          <td>A <code>deploy</code> script here. Local copy or PR: open, blocks deploy.</td>
         </tr>
         <tr>
-          <td>
-            <!-- @AI: the same way it works now. Multiple files but no npm-install required, see iterate-on-docs -->
-            Built output: files, or one bundled file?
-          </td>
-          <td>stage 1</td>
+          <td>Built output</td>
+          <td>Same as today: several files, no npm install.</td>
         </tr>
         <tr>
-          <td>
-            <!-- @AI: let's script and then rename, using the script exercise to list rename places -->
-            Rename before the first scripted copy?
-          </td>
-          <td>order of 1 and 2</td>
+          <td>Rename before or after the script?</td>
+          <td>After. Writing the script lists the rename places.</td>
         </tr>
         <tr>
-          <td>
-            <!-- @AI: breaking out formatting is first because it lets us add validation steps. Which I suspect we'll need for prose-markdown -->
-            Format before prose, or prose first? The overview says order is loose.
-          </td>
-          <td>order of 3 and 4</td>
+          <td>Format or prose first?</td>
+          <td>Format, for its validation steps.</td>
         </tr>
         <tr>
-          <td>
-            <!-- @AI: this falls out of implementation - so none until needed -->
-            Which validation rules?
-          </td>
-          <td>stage 3</td>
+          <td>Validation rules</td>
+          <td>None until needed.</td>
         </tr>
         <tr>
-          <td>
-            <!-- @AI: no unless we find a use for that in implementation -->
-            IDs written into the file?
-          </td>
-          <td>stage 4</td>
+          <td>Element IDs in the file?</td>
+          <td>No, unless implementation finds a use.</td>
         </tr>
         <tr>
-          <td>
-            <!-- @AI: yes, yes it does. Have the overview link here.
-Put a diagram at the top that shows what we know: right now we want to do the script and then the rename; then we'll regroup and chart more. -->
-            Does this page replace the overview's “Where it's headed” diagram? <span class="yak">rethink…24kr</span>
-          </td>
-          <td>nothing</td>
+          <td>SVG commenting</td>
+          <td>Stays as is. Yak done.</td>
+        </tr>
+        <tr>
+          <td>Overview's “Where it's headed”</td>
+          <td>This page replaces it; the overview links here.</td>
         </tr>
       </table>
     </section>
