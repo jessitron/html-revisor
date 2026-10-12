@@ -135,7 +135,7 @@ export function canonicalize(document) {
 
 function rename(el, name) {
   const copy = el.ownerDocument.createElement(name);
-  for (const a of [...el.attributes]) copy.setAttribute(a.name, a.value);
+  for (const a of [...el.attributes].reverse()) copy.setAttribute(a.name, a.value); // linkedom puts a new attribute first
   copy.append(...el.childNodes);
   el.replaceWith(copy);
 }

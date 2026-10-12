@@ -45,8 +45,8 @@ test('whitespace between inline siblings survives', () => {
 });
 
 test('b is strong and i is em, attributes kept', () => {
-  const out = layout('<body><p><b class="k">x</b> <i>y <b>z</b></i></p></body>');
-  assert.match(out, /<p><strong class="k">x<\/strong> <em>y <strong>z<\/strong><\/em><\/p>/);
+  const out = layout('<body><p><b class="k" id="j">x</b> <i>y <b>z</b></i></p></body>');
+  assert.match(out, /<p><strong class="k" id="j">x<\/strong> <em>y <strong>z<\/strong><\/em><\/p>/);
 });
 
 test('whitespace beside br goes', () => {

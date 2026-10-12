@@ -25,6 +25,7 @@ The files this tool serves are project-overview documents that Jess's agents gen
 
 - linkedom doesn't create a missing `<html>`/`<head>`/`<body>`. It makes the first element the root, and reading `document.head` or `document.body` silently creates empty ones inside that root. Go through `parse()` in `formatter.mjs`, never `parseHTML` directly.
 - After editing an HTML file here by hand (OVERVIEW.html, PLAN.html), run `node formatter.mjs <file>` so it is committed in canonical form and the next page load doesn't rewrite it.
+- linkedom's `setAttribute` puts a new attribute first, not last. The formatter writes attributes in DOM order, so copying them one by one reverses them. Set them in reverse.
 - `normalize` and `format` add element IDs (`data-hrv`). A test about layout alone compares `serialize(parse(html))`, as `test/normalize.test.mjs` does; ID behavior is in `test/ids.test.mjs`.
 - `vendor/linkedom.mjs` (480 KB) and `vendor/markdown-it.mjs` (200 KB) are generated bundles. Don't edit them, and leave `vendor/` out of searches. To read their source, `npm install` and look in `node_modules/`. After changing either version, run `npm run vendor`.
 - GET normalizes the file in place. To try the server by hand, serve a temp copy of `test/fixtures`, not the directory itself. `try-me.html` at the root is Jess's page for hand-testing; she may have uncommitted edits in it, so don't commit or reset it.
