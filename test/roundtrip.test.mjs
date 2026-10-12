@@ -7,7 +7,7 @@
 // edited, moved, or left alone keeps its ID, and one you added has none.
 //
 // Directives ride along (stage 7): every element gets one, and after a save each is on the
-// element it was on, or, if the edit removed that element, on the one that held it.
+// element it was on, or is gone with it, if the edit removed that element.
 //
 // Two sources of scopes: frozen copies of this repo's pages, and pages generated from a seed in the shapes
 // agents write, with text full of characters markdown reads as syntax. No property-testing
@@ -19,7 +19,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { normalize, parse } from '../formatter.mjs';
 import { scopeElements, scopeMarkdown, scopeFromMarkdown, canonicalHTML } from '../scopes.mjs';
-import { allComments, attachComments, directiveOwner, placeDirective } from '../directives.mjs';
+import { allComments, directiveOwner, placeDirective } from '../directives.mjs';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -256,11 +256,8 @@ const EDITS = {
     });
     if (candidates.length === 0) return null;
     const at = r.pick(candidates);
-    // Its directives, and those of everything in it, go to the element that held it.
-    const owned = allComments(at.parentNode).filter((c) => within(directiveOwner(c), at));
-    owned.forEach((c) => c.remove());
-    attachComments(at.parentNode, owned);
-    at.remove();
+    // Its directives, and those of everything in it, go with it: a pre's sits before it.
+    withDirective(at).forEach((n) => n.remove());
     return `<${at.localName} data-hrv="${at.getAttribute('data-hrv')}"> removed`;
   },
   swap(r, el) {

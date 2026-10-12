@@ -212,10 +212,10 @@ test('a directive before an image in a sentence rides with the image', () => {
   assert.equal(back, '<p>see <!-- @AI: bigger --><img src="a.png" alt="a"> there</p>');
 });
 
-test('a directive whose element the edit deleted moves to the nearest element that came back', () => {
-  assert.match(htmlAfter('<ul><li>x</li><li><!-- @AI: gone? -->y</li></ul>', '- x'), /^<ul><!-- @AI: gone\? --> ?<li>x<\/li> ?<\/ul>/);
+test('a directive whose element the edit deleted goes with it; the scope keeps its own', () => {
+  assert.match(htmlAfter('<ul><!-- @AI: mine --><li>x</li><li><!-- @AI: gone? -->y</li></ul>', '- x'), /^<ul><!-- @AI: mine --> ?<li>x<\/li> ?<\/ul>$/);
   const nested = '<section><ul><li>x</li><li><!-- @AI: gone? -->y</li></ul></section>';
-  assert.match(htmlAfter(nested, '- x'), /<ul><!-- @AI: gone\? --> ?<li>x<\/li> ?<\/ul>/);
+  assert.doesNotMatch(htmlAfter(nested, '- x'), /gone/);
 });
 
 test('directives inside a stand-in come back once, on their elements', () => {

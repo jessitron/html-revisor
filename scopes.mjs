@@ -565,15 +565,16 @@ function reconcile(prior, nodes) {
 }
 
 // Directives ride with their element: markdown doesn't show them, so each comment in the prior
-// scope goes onto its element's partner. One whose element the edit deleted goes to the nearest
-// enclosing element that came back, up to the scope; with nothing left, it goes where the scope was.
+// scope goes onto its element's partner. One whose element the edit deleted goes with it (Jess,
+// 2026-10-12). The scope's own stay; if the scope came back as something else, they go on its
+// first element, or where it was.
 function carryDirectives(el, nodes, partners) {
   const holder = el.ownerDocument.createElement('div');
   holder.append(...nodes);
   const moving = new Map(); // partner → comments, in order
   for (const comment of allComments(el)) {
-    let owner = directiveOwner(comment);
-    while (owner !== el && !partners.has(owner)) owner = owner.parentNode;
+    const owner = directiveOwner(comment);
+    if (owner !== el && !partners.has(owner)) continue;
     const target = partners.get(owner) ?? holder.firstElementChild ?? holder;
     if (!moving.has(target)) moving.set(target, []);
     moving.get(target).push(comment.cloneNode());
