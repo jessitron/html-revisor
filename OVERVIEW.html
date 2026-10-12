@@ -61,7 +61,10 @@
       </svg>
     </section>
     <section id="direction">
-      <h2>Where it's headed</h2>
+      <h2>
+        <!-- @AI: I'm super iffy on this diagram as a whole. Let's come back to it after we're happy with the rest -->
+        Where it's headed
+      </h2>
       <svg viewBox="0 0 900 250" role="img" aria-label="Journey from today to the safe harbor">
         <path d="M40 170 C160 170 160 80 300 80 S460 170 580 150 S720 70 800 110" fill="none" stroke="var(--line)" stroke-width="10" stroke-linecap="round"></path> <a href="#architecture-now"> <circle cx="40" cy="170" r="12" fill="var(--now)"></circle> <text x="40" y="205" text-anchor="start" font-size="14" font-weight="600">Today</text> <text x="20" y="222" font-size="12" class="muted">comment on anything,</text> <text x="20" y="238" font-size="12" class="muted">edit text-only elements</text> </a> <a href="#d-format"> <circle cx="250" cy="86" r="10" fill="var(--bg)" stroke="var(--dir)" stroke-width="3"></circle> <text x="250" y="28" text-anchor="middle" font-size="14" font-weight="600">Format stands alone</text> <text x="250" y="45" text-anchor="middle" font-size="12" class="muted">the agent runs it and fixes</text> <text x="250" y="61" text-anchor="middle" font-size="12" class="muted">errors before you open the page</text> </a> <a href="#d-prose"> <circle cx="440" cy="150" r="10" fill="var(--bg)" stroke="var(--dir)" stroke-width="3"></circle> <text x="440" y="190" text-anchor="middle" font-size="14" font-weight="600">Prose edits as markdown</text> <text x="440" y="207" text-anchor="middle" font-size="12" class="muted">click a paragraph with bold or a link,</text> <text x="440" y="223" text-anchor="middle" font-size="12" class="muted">edit all of it at once</text> </a> <a href="#d-ids"> <circle cx="640" cy="120" r="10" fill="var(--bg)" stroke="var(--dir)" stroke-width="3"></circle> <text x="640" y="63" text-anchor="middle" font-size="14" font-weight="600">New element IDs</text> <text x="640" y="80" text-anchor="middle" font-size="12" class="muted">an ID per chunk, not per tag;</text> <text x="640" y="96" text-anchor="middle" font-size="12" class="muted">maybe written into the file</text> </a> <text x="830" y="100" text-anchor="middle" font-size="40">⚓</text> <text x="830" y="140" text-anchor="middle" font-size="14" font-weight="600">Safe harbor</text> <text x="830" y="157" text-anchor="middle" font-size="12" class="muted">it works, and it's</text> <text x="830" y="172" text-anchor="middle" font-size="12" class="muted">copied into</text> <text x="830" y="187" text-anchor="middle" font-size="12" class="muted mono">iterate-on-docs</text>
       </svg>
@@ -83,8 +86,15 @@
       </svg>
     </section>
     <section id="details">
-      <h2>Step by step</h2>
+      <h2>
+        <!-- @AI: The sections in here are just a list, let's put them in context. Can there be a column on the left that matches the architecture diagram above, so that I can see where each one fits?
+
+Then the GET steps and the PUT steps will be separated and it'll be clear what goes with what.
+The diagram above becomes a short version of a tall one down here. (If that works) -->
+        Step by step
+      </h2>
       <div class="detail" id="d-normalize">
+        <!-- @AI: this is so good! -->
         <h3>parse, normalize</h3>
         <p>
           Parse with linkedom, then rewrite into one canonical shape: add <code>html/head/body</code> if missing, one block per line, inline runs on one line, whitespace collapsed, two-space indent. Idempotent. GET writes the result to disk when it differs.
@@ -116,6 +126,7 @@ first.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;one&lt;/li&gt;&lt;li&gt;two&lt;/li&gt;&lt;/u
         </div>
       </div>
       <div class="detail" id="d-stamp">
+        <!-- @AI: note that this one is "served" - I like how you distinguish between that and on disl -->
         <h3>stamp IDs</h3>
         <p>
           Every element gets an <strong>element ID</strong>: <code>data-n</code>, its index in document order. Only in the served copy; never written to disk. Comments are not elements, so adding a note shifts no ID.
@@ -131,6 +142,7 @@ first.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;one&lt;/li&gt;&lt;li&gt;two&lt;/li&gt;&lt;/u
       <div class="detail" id="d-lift">
         <h3>lift notes</h3>
         <p>
+          <!-- @AI: show what it looks like in the browser -->
           Notes come out of the served copy and travel as JSON keyed by element ID. The browser draws them as markers.
         </p>
         <div class="ba">
@@ -143,6 +155,7 @@ first.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;one&lt;/li&gt;&lt;li&gt;two&lt;/li&gt;&lt;/u
           </div>
           <div>
             <div class="label">served</div>
+            <!-- @AI: I'm a little confused by the loose JSON in script. There's a level of detail in the attributes that makes me expect JS I understand ... or is there a clever way to pull JS objects out of script blocks when they're just like this? I am interested -->
             <pre>&lt;p data-n="4"&gt;Ship the …&lt;/p&gt;
 …
 &lt;script type="application/json" id="hn-notes"
@@ -155,12 +168,14 @@ first.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;one&lt;/li&gt;&lt;li&gt;two&lt;/li&gt;&lt;/u
       <div class="detail" id="d-inject">
         <h3>inject client</h3>
         <p>
+          <!-- @AI: fewer words, more diagram! make some pseudohtml maybe -->
           Appended to the served copy after stamping, so none of it gets an ID: a <code>&lt;style&gt;</code> in head; the notes JSON and the client <code>&lt;script&gt;</code> at the end of body. <code>data-version</code> is a hash of the file bytes.
         </p>
       </div>
       <div class="detail" id="d-version">
         <h3>version check</h3>
         <p>
+          <!-- @AI: diagram please. The text is fine as a supplement -->
           Every PUT carries the version the page loaded with. If the file changed on disk since, the server answers 409 and writes nothing; the tab shows a lasting warning. The client saves 0.4 s after you stop typing, so you hear about it fast.
         </p>
       </div>
@@ -193,6 +208,7 @@ texts: {"4": "…"}          &lt;p&gt;Ship the &lt;b&gt;…  →  refused, uncha
       <div class="detail dir" id="d-format">
         <h3>format <span class="directional">directional</span></h3>
         <p>
+          <!-- @AI: yeah you nailed it -->
           The normalize step becomes its own command. The agent runs it after writing the page and fixes what it reports, before the human opens it. The server's GET runs the same code. Validation rules are still to be chosen; one example:
         </p>
         <pre>$ html-notes format OVERVIEW.html
@@ -226,7 +242,7 @@ OVERVIEW.html:42  &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing cont
       <h2>Prose editing: today vs headed</h2>
       <div class="grid">
         <div class="card">
-          <strong>Today</strong>
+          <strong><!-- @AI: go ahead and put today's edit/comment box in there, for contrast -->Today</strong>
           <div class="demo">
             <p class="off">
               A paragraph with <b class="hl">bold</b> and <a href="#prose" class="hl">a link</a>.
@@ -260,7 +276,10 @@ OVERVIEW.html:42  &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing cont
         </li>
         <li>A note is <code>&lt;!-- @AI: … --&gt;</code>, attached to exactly one element.</li>
         <li>Formatting is idempotent: a normalized file loads unchanged.</li>
-        <li>An edit never loses markup.</li>
+        <li>
+          <!-- @AI: what does that even mean? I think this one goes. Markup will technically be lost when I can edit <b&gt;formatted text</b&gt; -->
+          An edit never loses markup.
+        </li>
         <li>A stale tab cannot write (version check, 409).</li>
         <li>Dependencies point down: orchestration → domain → interface.</li>
       </ul>
@@ -268,8 +287,13 @@ OVERVIEW.html:42  &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing cont
     <section id="terms">
       <h2>Terms</h2>
       <dl>
-        <dt>note</dt>
+        <dt>
+          <!-- @AI: OK, I'm gonna make a call on this one. Leave the yak open pending discussion with Arlo (this was his process to begin with) but rn, let's change to "directive" everywhere. I like this because we'll be able to search-and-replace if we want to change the word to note/comment/annotation later. I like it because it gives the human instruction on what goes in that box.
+Have a subagent change it in the code as well, everywhere in this project. -->
+          directive
+        </dt>
         <dd>
+          <!-- @AI: Add "Avoid: note/comment/annotation" -->
           A request from the human, stored as an HTML comment starting <code>@AI:</code>. The code says "note"; iterate-on-docs says "comment" and "annotation". To standardize.
         </dd>
         <dt>normalize</dt>
@@ -282,7 +306,12 @@ OVERVIEW.html:42  &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing cont
         </dd>
         <dt>text element <span class="current">current</span></dt>
         <dd>Today's unit of editing: an element whose children are only text.</dd>
-        <dt>chunk <span class="directional">directional</span></dt>
+        <dt>
+          <!-- @AI: weird, I can't even edit the word "chunk." that'll be different later. 
+
+"Prose chunk". -->
+          chunk <span class="directional">directional</span>
+        </dt>
         <dd>
           Tomorrow's unit of editing: a piece of prose that converts to markdown as a whole. Candidate term.
         </dd>
@@ -303,13 +332,17 @@ OVERVIEW.html:42  &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing cont
             </li>
             <li>Which elements are their own chunk?</li>
             <li>Write IDs into the file? Longer file vs. the agent seeing the same IDs.</li>
-            <li>Note, comment, or annotation?</li>
+            <li>
+              <!-- @AI: answered this :-) -->
+              Note, comment, or annotation?
+            </li>
           </ul>
         </div>
         <div class="card">
           <strong>Tracker</strong>
           <p>Work lives in <code>yx</code>. Run <code>yx list</code>.</p>
           <p class="sub">
+            <!-- @AI: this is weirdly formatted, needs line breaks -->
             Spec: <code>html-notes-spec.md</code> · Usage: <code>README.md</code> · Research notes: commit <code>8683442</code>
           </p>
         </div>
