@@ -2,6 +2,10 @@
 
 Read `README.md` for usage. Build history is in git log; open work is in `yx`. `html-notes-spec.md` is the original spec. `OVERVIEW.html` is the picture of the project for humans: architecture now and planned. When a change alters the architecture or lands something marked directional there, update it in the same commit and tell Jess.
 
+## Where the code lives
+
+The code lives here. A built output is vendored into the iterate-on-docs plugin at `~/code/jessitron/iterate-on-docs/html-with-comments/`, and that copy is the one Jess runs day to day. Don't edit the copy; change it here, then copy it over. `iterate-on-docs/html-with-comments/VENDORED.md` records which commit it came from and its local changes. Whose job the copying is remains open (yak). The tool's name is changing to html-revisor (yak); until then it's called html-notes in the code and html-with-comments in directory names.
+
 The domain word for an `<!-- @AI: ... -->` request is **directive**. Avoid note, comment, annotation ("HTML comment" still means the syntax).
 
 ## What the HTML files are

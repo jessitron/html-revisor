@@ -4,6 +4,8 @@ Review agent-generated HTML in a browser and leave directives on specific elemen
 
 You can also fix wording directly. When the clicked element holds only text (no child elements), the box shows a Text field above the directive. Edits show on the page as you type and are written into the file.
 
+This repo is where html-notes is developed. Its built output ships inside the [iterate-on-docs](https://github.com/jessitron/iterate-on-docs) plugin, vendored at `iterate-on-docs/html-with-comments/`. Make changes here, not in that copy.
+
 ## Run
 
 ```
