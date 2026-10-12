@@ -134,7 +134,7 @@
               The inverse, markdown to a scope's content, and a property test: scope → markdown → scope is identity, IDs aside. Seeded scopes in the shapes agents write, plus every scope in this repo's pages. Watch <code>* _ ` [</code> escaping. What it catches gets fixed in the writer. <span class="yak">s8s3</span>
             </li>
             <li data-hrv="189">
-              Canonical tags: the formatter rewrites <code>b</code>→<code>strong</code>, <code>i</code>→<code>em</code>, so markdown's one syntax maps back to one tag. Formatting, not a validation rule: no agent hears of it. <span class="yak">w3yn</span>
+              Done: canonical forms. The formatter rewrites <code>b</code>→<code>strong</code>, <code>i</code>→<code>em</code>, puts table rows in <code>thead</code>/<code>tbody</code>, and drops whitespace beside <code>&lt;br&gt;</code>, so what markdown writes back is what the file holds. Formatting, not a validation rule: no agent hears of it. <span class="yak">w3yn</span>
             </li>
             <li data-hrv="190">
               What markdown holds as a stand-in: <code>⟦svg⟧</code> comes back as the original element, and a directive inside the scope rides with its element. <span class="yak">25ov</span>
@@ -191,183 +191,191 @@
         What iterate-on-docs relies on; the README's “Contract” table is the source. A change here travels with a matching edit there.
       </p>
       <table data-hrv="103">
-        <tr>
-          <th data-hrv="104">the skill relies on</th>
-          <th data-hrv="105">today</th>
-        </tr>
-        <tr>
-          <td data-hrv="106">server path</td>
-          <td data-hrv="107"><code>../../html-revisor/server.mjs</code></td>
-        </tr>
-        <tr>
-          <td data-hrv="108">CLI</td>
-          <td data-hrv="109">
-            <code>node &lt;server&gt; &lt;file&gt; --port 0</code>, formats the file first
-          </td>
-        </tr>
-        <tr>
-          <td data-hrv="110">startup line</td>
-          <td data-hrv="111"><code>html-revisor: &lt;page URL&gt; serving &lt;dir&gt;</code></td>
-        </tr>
-        <tr>
-          <td data-hrv="112">directive syntax</td>
-          <td data-hrv="113">
-            <code>&lt;!-- @AI: … --&gt;</code>, first child, or before a void or raw-text element
-          </td>
-        </tr>
-        <tr>
-          <td data-hrv="114">loading a page reformats its file</td>
-          <td data-hrv="115">
-            The skill runs the formatter CLI before each commit, so the reformat lands in the agent's commit and doesn't read as the user's next edit.
-          </td>
-        </tr>
-        <tr>
-          <td data-hrv="116">formatter CLI</td>
-          <td data-hrv="117">
-            <code>node ../../html-revisor/formatter.mjs &lt;file&gt;...</code> rewrites each file into canonical form. Silent, exit 0 on success; exit 1 with <code>&lt;file&gt;: &lt;problem&gt;</code> on stderr; exit 2 with no files. Skills that generate pages run it before Jess sees them.
-          </td>
-        </tr>
-        <tr>
-          <td data-hrv="175">element IDs</td>
-          <td data-hrv="176">
-            The formatter writes <code>data-hrv="&lt;n&gt;"</code> on each element you can pick and <code>data-hrv-next</code> on <code>&lt;html&gt;</code>. Agents leave both alone; a new element needs none.
-          </td>
-        </tr>
+        <thead>
+          <tr>
+            <th data-hrv="104">the skill relies on</th>
+            <th data-hrv="105">today</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-hrv="106">server path</td>
+            <td data-hrv="107"><code>../../html-revisor/server.mjs</code></td>
+          </tr>
+          <tr>
+            <td data-hrv="108">CLI</td>
+            <td data-hrv="109">
+              <code>node &lt;server&gt; &lt;file&gt; --port 0</code>, formats the file first
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="110">startup line</td>
+            <td data-hrv="111"><code>html-revisor: &lt;page URL&gt; serving &lt;dir&gt;</code></td>
+          </tr>
+          <tr>
+            <td data-hrv="112">directive syntax</td>
+            <td data-hrv="113">
+              <code>&lt;!-- @AI: … --&gt;</code>, first child, or before a void or raw-text element
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="114">loading a page reformats its file</td>
+            <td data-hrv="115">
+              The skill runs the formatter CLI before each commit, so the reformat lands in the agent's commit and doesn't read as the user's next edit.
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="116">formatter CLI</td>
+            <td data-hrv="117">
+              <code>node ../../html-revisor/formatter.mjs &lt;file&gt;...</code> rewrites each file into canonical form. Silent, exit 0 on success; exit 1 with <code>&lt;file&gt;: &lt;problem&gt;</code> on stderr; exit 2 with no files. Skills that generate pages run it before Jess sees them.
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="175">element IDs</td>
+            <td data-hrv="176">
+              The formatter writes <code>data-hrv="&lt;n&gt;"</code> on each element you can pick and <code>data-hrv-next</code> on <code>&lt;html&gt;</code>. Agents leave both alone; a new element needs none.
+            </td>
+          </tr>
+        </tbody>
       </table>
     </section>
     <section data-hrv="118" id="decided">
       <h2 data-hrv="119">Decided</h2>
       <table data-hrv="120">
-        <tr>
-          <th data-hrv="121">question</th>
-          <th data-hrv="122">answer</th>
-        </tr>
-        <tr>
-          <td data-hrv="123">Format or prose first?</td>
-          <td data-hrv="124">Format, for its validation steps.</td>
-        </tr>
-        <tr>
-          <td data-hrv="125">Validation rules</td>
-          <td data-hrv="126">None until needed.</td>
-        </tr>
-        <tr>
-          <td data-hrv="127">Element IDs in the file?</td>
-          <td data-hrv="128">
-            Yes, so edits can't shift them. Changed 2026-10-12, with scopes. A tree path or index shifts the same way; only an ID in the file gives an element an identity.
-          </td>
-        </tr>
-        <tr>
-          <td data-hrv="129">What kind of ID?</td>
-          <td data-hrv="130">
-            A counter, for short IDs, with its high-water mark in the file. Never reused. An ID is stable for the life of its element.
-          </td>
-        </tr>
-        <tr>
-          <td data-hrv="131">Saves and conflicts</td>
-          <td data-hrv="132">
-            One change per save, checked against its own scope. No file-wide version. A conflict is an edge case: error, suggest reload. A changed page is a notice, not a block.
-          </td>
-        </tr>
-        <tr>
-          <td data-hrv="133">IDs after a markdown edit of a wider scope</td>
-          <td data-hrv="134">
-            Unchanged elements keep them, reconciled against the prior HTML. Intent; built with markdown editing.
-          </td>
-        </tr>
-        <tr>
-          <td data-hrv="135">IDs on a page leaving the tool</td>
-          <td data-hrv="136">
-            A cleanup script strips them, roughly the formatter in reverse. Pairs with squashing the commits. <span class="yak">41o3</span>
-          </td>
-        </tr>
-        <tr>
-          <td data-hrv="137">Editing notation</td>
-          <td data-hrv="138">
-            Markdown, not contenteditable. Research in commit <code>8683442</code>.
-          </td>
-        </tr>
-        <tr>
-          <td data-hrv="139">Formatter CLI in the contract?</td>
-          <td data-hrv="140">Yes. iterate-on-docs changes with it.</td>
-        </tr>
-        <tr>
-          <td data-hrv="141">What can you pick to edit or direct?</td>
-          <td data-hrv="142">
-            Any block: a section, a list, one item, a table, one cell, an svg text label. Each edits its whole content as markdown. Replaces "one chunk, nothing inside it", 2026-10-12.
-          </td>
-        </tr>
-        <tr>
-          <td data-hrv="143">Lists</td>
-          <td data-hrv="144">
-            Markdown <code>- </code> lines, nested lists indented. Add and delete items by editing. A list holding paragraphs or tables: pick the inner blocks too.
-          </td>
-        </tr>
-        <tr>
-          <td data-hrv="145">Code blocks</td>
-          <td data-hrv="146">A fenced block. Highlighting spans don't survive.</td>
-        </tr>
-        <tr>
-          <td data-hrv="147">Text beside blocks</td>
-          <td data-hrv="148">
-            Paragraphs in the enclosing scope's markdown: text, list, text edits as one.
-          </td>
-        </tr>
-        <tr>
-          <td data-hrv="149">Tables</td>
-          <td data-hrv="150">
-            A table with a header row of plain cells is a markdown table; otherwise HTML. Each cell is a scope too.
-          </td>
-        </tr>
-        <tr>
-          <td data-hrv="151">What markdown can't say</td>
-          <td data-hrv="152">
-            Stays as inline HTML (<code>kbd</code>, <code>span class</code>, <code>a target</code>).
-          </td>
-        </tr>
-        <tr>
-          <td data-hrv="153">Headings</td>
-          <td data-hrv="154">
-            <code>#</code> inside a bigger scope; picked alone, only the text.
-          </td>
-        </tr>
-        <tr>
-          <td data-hrv="155">Line breaks and <code>&amp;nbsp;</code></td>
-          <td data-hrv="156">
-            A <code>&lt;br&gt;</code> is a newline, not a backslash. U+00A0 shows as the character.
-          </td>
-        </tr>
-        <tr>
-          <td data-hrv="157">Images</td>
-          <td data-hrv="158">
-            <code>![alt](src)</code>; saving takes the other attributes from the original.
-          </td>
-        </tr>
-        <tr>
-          <td data-hrv="159">
-            Unlikely shapes in HTML ⇄ markdown (empty paragraphs, <code>dl</code>, stat tiles)
-          </td>
-          <td data-hrv="160">May be ugly. Spend effort on the shapes agents write.</td>
-        </tr>
-        <tr>
-          <td data-hrv="161">Inline elements: hover and directives?</td>
-          <td data-hrv="162">
-            Per element. <code>a</code> and <code>img</code>: yes. <code>strong</code>: no, it belongs to its block.
-          </td>
-        </tr>
-        <tr>
-          <td data-hrv="163">The word</td>
-          <td data-hrv="164"><strong>scope</strong>, not chunk.</td>
-        </tr>
-        <tr>
-          <td data-hrv="165">Shipping</td>
-          <td data-hrv="166">
-            <code>./deploy</code> here copies into iterate-on-docs; <code>./release</code> there publishes.
-          </td>
-        </tr>
-        <tr>
-          <td data-hrv="167">SVG commenting</td>
-          <td data-hrv="168">Stays as is.</td>
-        </tr>
+        <thead>
+          <tr>
+            <th data-hrv="121">question</th>
+            <th data-hrv="122">answer</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-hrv="123">Format or prose first?</td>
+            <td data-hrv="124">Format, for its validation steps.</td>
+          </tr>
+          <tr>
+            <td data-hrv="125">Validation rules</td>
+            <td data-hrv="126">None until needed.</td>
+          </tr>
+          <tr>
+            <td data-hrv="127">Element IDs in the file?</td>
+            <td data-hrv="128">
+              Yes, so edits can't shift them. Changed 2026-10-12, with scopes. A tree path or index shifts the same way; only an ID in the file gives an element an identity.
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="129">What kind of ID?</td>
+            <td data-hrv="130">
+              A counter, for short IDs, with its high-water mark in the file. Never reused. An ID is stable for the life of its element.
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="131">Saves and conflicts</td>
+            <td data-hrv="132">
+              One change per save, checked against its own scope. No file-wide version. A conflict is an edge case: error, suggest reload. A changed page is a notice, not a block.
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="133">IDs after a markdown edit of a wider scope</td>
+            <td data-hrv="134">
+              Unchanged elements keep them, reconciled against the prior HTML. Intent; built with markdown editing.
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="135">IDs on a page leaving the tool</td>
+            <td data-hrv="136">
+              A cleanup script strips them, roughly the formatter in reverse. Pairs with squashing the commits. <span class="yak">41o3</span>
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="137">Editing notation</td>
+            <td data-hrv="138">
+              Markdown, not contenteditable. Research in commit <code>8683442</code>.
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="139">Formatter CLI in the contract?</td>
+            <td data-hrv="140">Yes. iterate-on-docs changes with it.</td>
+          </tr>
+          <tr>
+            <td data-hrv="141">What can you pick to edit or direct?</td>
+            <td data-hrv="142">
+              Any block: a section, a list, one item, a table, one cell, an svg text label. Each edits its whole content as markdown. Replaces "one chunk, nothing inside it", 2026-10-12.
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="143">Lists</td>
+            <td data-hrv="144">
+              Markdown <code>- </code> lines, nested lists indented. Add and delete items by editing. A list holding paragraphs or tables: pick the inner blocks too.
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="145">Code blocks</td>
+            <td data-hrv="146">A fenced block. Highlighting spans don't survive.</td>
+          </tr>
+          <tr>
+            <td data-hrv="147">Text beside blocks</td>
+            <td data-hrv="148">
+              Paragraphs in the enclosing scope's markdown: text, list, text edits as one.
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="149">Tables</td>
+            <td data-hrv="150">
+              A table with a header row of plain cells is a markdown table; otherwise HTML. Each cell is a scope too.
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="151">What markdown can't say</td>
+            <td data-hrv="152">
+              Stays as inline HTML (<code>kbd</code>, <code>span class</code>, <code>a target</code>).
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="153">Headings</td>
+            <td data-hrv="154">
+              <code>#</code> inside a bigger scope; picked alone, only the text.
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="155">Line breaks and <code>&amp;nbsp;</code></td>
+            <td data-hrv="156">
+              A <code>&lt;br&gt;</code> is a newline, not a backslash. U+00A0 shows as the character.
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="157">Images</td>
+            <td data-hrv="158">
+              <code>![alt](src)</code>; saving takes the other attributes from the original.
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="159">
+              Unlikely shapes in HTML ⇄ markdown (empty paragraphs, <code>dl</code>, stat tiles)
+            </td>
+            <td data-hrv="160">May be ugly. Spend effort on the shapes agents write.</td>
+          </tr>
+          <tr>
+            <td data-hrv="161">Inline elements: hover and directives?</td>
+            <td data-hrv="162">
+              Per element. <code>a</code> and <code>img</code>: yes. <code>strong</code>: no, it belongs to its block.
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="163">The word</td>
+            <td data-hrv="164"><strong>scope</strong>, not chunk.</td>
+          </tr>
+          <tr>
+            <td data-hrv="165">Shipping</td>
+            <td data-hrv="166">
+              <code>./deploy</code> here copies into iterate-on-docs; <code>./release</code> there publishes.
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="167">SVG commenting</td>
+            <td data-hrv="168">Stays as is.</td>
+          </tr>
+        </tbody>
       </table>
     </section>
   </body>

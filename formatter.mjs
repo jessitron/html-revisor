@@ -6,7 +6,8 @@
 //
 // Tiers, dependencies point downward only:
 //   Tier I   orchestration: the CLI
-//   Tier II  domain: parse, skeleton, element IDs, layout, serialize, validation (pure functions)
+//   Tier II  domain: parse, skeleton, canonical forms, element IDs, layout, serialize, validation
+//            (pure functions)
 //   Tier III interface: the filesystem, through fs in the CLI
 // server.mjs imports Tier II from here.
 import fs from 'node:fs/promises';
@@ -116,7 +117,47 @@ const BLOCK = new Set(
 const ONE_LINE_LIMIT = 90; // inline-only blocks shorter than this stay on one line
 
 export function parse(html) {
-  return ensureSkeleton(parseHTML(html).document);
+  return canonicalize(ensureSkeleton(parseHTML(html).document));
+}
+
+// ---- Canonical forms ----------------------------------------------------
+
+// Where HTML has two ways to say one thing, the file uses the one markdown writes back, so a
+// scope saved unchanged as markdown comes back the same (PLAN.html stage 5). Formatting, not
+// validation: no agent hears of it. Whitespace beside <br> goes in the layout, below.
+export function canonicalize(document) {
+  for (const [from, to] of [['b', 'strong'], ['i', 'em']]) {
+    for (const el of document.querySelectorAll(from)) rename(el, to);
+  }
+  for (const table of document.querySelectorAll('table')) sectionRows(table);
+  return document;
+}
+
+function rename(el, name) {
+  const copy = el.ownerDocument.createElement(name);
+  for (const a of [...el.attributes]) copy.setAttribute(a.name, a.value);
+  copy.append(...el.childNodes);
+  el.replaceWith(copy);
+}
+
+// Rows sitting right in a table go in sections, as markdown's tables have them: a leading
+// row of th is the thead, the rest a tbody.
+function sectionRows(table) {
+  const rows = [...table.children].filter((c) => c.localName === 'tr');
+  if (rows.length === 0) return;
+  const document = table.ownerDocument;
+  const hasHead = [...table.children].some((c) => c.localName === 'thead');
+  const [first] = rows;
+  if (!hasHead && first === table.firstElementChild && [...first.children].every((c) => c.localName === 'th')) {
+    const thead = document.createElement('thead');
+    first.replaceWith(thead);
+    thead.appendChild(first);
+    rows.shift();
+  }
+  if (rows.length === 0) return;
+  const tbody = document.createElement('tbody');
+  rows[0].replaceWith(tbody);
+  tbody.append(...rows);
 }
 
 // Browsers supply a missing <html>, <head> or <body>; linkedom does not. It makes the first
@@ -250,11 +291,19 @@ function formatBlock(node, depth) {
 }
 
 // Inline content: whitespace collapses to single spaces, and a whitespace-only
-// string between two inline nodes survives as one space.
+// string between two inline nodes survives as one space. Whitespace beside a <br> goes:
+// a browser doesn't show it, and markdown can't say it.
+const isBr = (item) => typeof item === 'object' && item?.localName === 'br';
+
 function inlineHTML(items) {
   return items
-    .map((item) => {
-      if (typeof item === 'string') return escapeText(collapse(item));
+    .map((item, i) => {
+      if (typeof item === 'string') {
+        let text = collapse(item);
+        if (isBr(items[i - 1])) text = text.replace(/^ /, '');
+        if (isBr(items[i + 1])) text = text.replace(/ $/, '');
+        return escapeText(text);
+      }
       if (item.nodeType === 8) return `<!--${item.data}-->`;
       const open = openTag(item);
       if (VOID.has(item.localName)) return open;

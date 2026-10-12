@@ -103,7 +103,7 @@ test('2. inline spacing survives', () =>
   withServer(async (s) => {
     s.write('spacing.html', '<!DOCTYPE html><html><body><p>a <b>b</b> &amp; c</p></body></html>');
     await s.get('spacing.html');
-    assert.match(s.read('spacing.html'), /<p data-hrv="\d+">a <b>b<\/b> &amp; c<\/p>/);
+    assert.match(s.read('spacing.html'), /<p data-hrv="\d+">a <strong>b<\/strong> &amp; c<\/p>/);
   }));
 
 test('3. preformatted content is untouched', () =>
