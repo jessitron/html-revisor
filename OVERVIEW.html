@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>html-notes — overview</title>
+    <style>
+  :root { --ink: #1f2328; --muted: #656d76; --line: #d0d7de; --bg: #ffffff; --card: #f6f8fa;
+    --now: #1a7f37; --dir: #8250df; --warn: #bc4c00; --accent: #0969da; }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink: #e6edf3; --muted: #9198a1; --line: #3d444d; --bg: #0d1117; --card: #151b23;
+      --now: #3fb950; --dir: #ab7df8; --warn: #f0883e; --accent: #4493f8; }
+  }
+  body { font: 16px/1.5 system-ui, sans-serif; color: var(--ink); background: var(--bg); max-width: 960px; margin: 2rem auto; padding: 0 1rem; }
+  h1 { margin-bottom: 0; }
+  h2 { border-bottom: 1px solid var(--line); padding-bottom: .25rem; margin-top: 2.5rem; }
+  .sub { color: var(--muted); margin-top: .25rem; }
+  .directional { display: inline-block; font-size: .75rem; font-weight: 600; color: var(--dir); border: 1px solid var(--dir); border-radius: 999px; padding: 0 .5rem; vertical-align: middle; }
+  svg { width: 100%; height: auto; display: block; }
+  svg text { fill: var(--ink); font-family: system-ui, sans-serif; }
+  svg .muted { fill: var(--muted); }
+  svg .box { fill: var(--card); stroke: var(--line); }
+  svg .now { stroke: var(--now); }
+  svg .dir { stroke: var(--dir); stroke-dasharray: 6 4; }
+  svg .arrow { stroke: var(--muted); fill: none; stroke-width: 1.5; }
+  svg .mono { font-family: ui-monospace, monospace; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: .75rem 1rem; }
+  .card.dir { border: 1px dashed var(--dir); }
+  code { font-family: ui-monospace, monospace; font-size: .9em; }
+  .demo p { margin: .25rem 0; }
+  .hl { outline: 2px solid var(--now); outline-offset: 1px; border-radius: 2px; }
+  .hl-dir { outline: 2px dashed var(--dir); outline-offset: 4px; border-radius: 4px; display: block; }
+  .off { color: var(--muted); }
+  dl { display: grid; grid-template-columns: max-content 1fr; gap: .4rem 1rem; }
+  dt { font-weight: 600; }
+  dd { margin: 0; }
+  ul.inv li { margin: .3rem 0; }
+</style>
+  </head>
+  <body>
+    <h1>html-notes</h1>
+    <p class="sub">
+      A human and an agent trade turns on an HTML page. The human comments and edits in the browser; everything lands in the file.
+    </p>
+    <section id="loop">
+      <h2>What it's for</h2>
+      <svg viewBox="0 0 900 260" role="img" aria-label="The turn-taking loop">
+        <defs> <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"> <path d="M0 0 L10 5 L0 10 z" fill="#888"></path> </marker> </defs> <rect class="box" x="20" y="90" width="170" height="80" rx="10"></rect> <text x="105" y="125" text-anchor="middle" font-size="22">🤖 agent</text> <text x="105" y="150" text-anchor="middle" font-size="13" class="muted">writes, then reads the diff</text> <rect class="box" x="365" y="90" width="170" height="80" rx="10"></rect> <text x="450" y="125" text-anchor="middle" font-size="18" class="mono">OVERVIEW.html</text> <text x="450" y="150" text-anchor="middle" font-size="13" class="muted">the only record</text> <rect class="box" x="710" y="90" width="170" height="80" rx="10"></rect> <text x="795" y="125" text-anchor="middle" font-size="22">👩🏽‍🦱 human</text> <text x="795" y="150" text-anchor="middle" font-size="13" class="muted">in the browser</text> <path class="arrow" d="M190 110 Q280 60 365 110" marker-end="url(#ah)"></path> <text x="278" y="62" text-anchor="middle" font-size="13">generates · formats</text> <path class="arrow" d="M365 150 Q280 200 190 150" marker-end="url(#ah)"></path> <text x="278" y="215" text-anchor="middle" font-size="13">grep notes · git diff</text> <path class="arrow" d="M535 110 Q620 60 710 110" marker-end="url(#ah)"></path> <text x="622" y="62" text-anchor="middle" font-size="13">html-notes serves it</text> <path class="arrow" d="M710 150 Q620 200 535 150" marker-end="url(#ah)"></path> <text x="622" y="215" text-anchor="middle" font-size="13">comments + prose edits</text> <text x="450" y="250" text-anchor="middle" font-size="13" class="muted">The tool owns the file's shape: it may reformat, restrict, and rewrite it in place.</text>
+      </svg>
+    </section>
+    <section id="direction">
+      <h2>Where it's headed</h2>
+      <svg viewBox="0 0 900 230" role="img" aria-label="Journey from today to the safe harbor">
+        <path d="M40 170 C160 170 160 80 300 80 S460 170 580 150 S720 70 800 110" fill="none" stroke="var(--line)" stroke-width="10" stroke-linecap="round"></path> <circle cx="40" cy="170" r="12" fill="var(--now)"></circle> <text x="40" y="205" text-anchor="middle" font-size="14" font-weight="600">Today</text> <text x="40" y="222" text-anchor="middle" font-size="12" class="muted">comment anything</text> <text x="40" y="140" text-anchor="middle" font-size="12" class="muted">edit text-only</text> <circle cx="250" cy="86" r="10" fill="var(--bg)" stroke="var(--dir)" stroke-width="3"></circle> <text x="250" y="45" text-anchor="middle" font-size="14" font-weight="600">Format stands alone</text> <text x="250" y="62" text-anchor="middle" font-size="12" class="muted">agent runs it · it validates</text> <circle cx="440" cy="150" r="10" fill="var(--bg)" stroke="var(--dir)" stroke-width="3"></circle> <text x="440" y="190" text-anchor="middle" font-size="14" font-weight="600">Prose edits as markdown</text> <text x="440" y="207" text-anchor="middle" font-size="12" class="muted">a paragraph with bold, a whole list</text> <circle cx="640" cy="120" r="10" fill="var(--bg)" stroke="var(--dir)" stroke-width="3"></circle> <text x="640" y="80" text-anchor="middle" font-size="14" font-weight="600">New element IDs</text> <text x="640" y="97" text-anchor="middle" font-size="12" class="muted">one per chunk · in the file?</text> <text x="830" y="100" text-anchor="middle" font-size="40">⚓</text> <text x="830" y="140" text-anchor="middle" font-size="14" font-weight="600">Safe harbor</text> <text x="830" y="157" text-anchor="middle" font-size="12" class="muted">it works, and it's</text> <text x="830" y="172" text-anchor="middle" font-size="12" class="muted">copied into</text> <text x="830" y="187" text-anchor="middle" font-size="12" class="muted mono">iterate-on-docs</text>
+      </svg>
+      <p class="sub">
+        Hollow stops are <span class="directional">directional</span>. Order is loose; the ID scheme comes with prose editing.
+      </p>
+    </section>
+    <section id="architecture-now">
+      <h2>Architecture now</h2>
+      <svg viewBox="0 0 900 330" role="img" aria-label="GET and PUT pipelines through server.mjs">
+        <text x="20" y="28" font-size="15" font-weight="600">GET page.html</text> <rect class="box" x="20" y="45" width="120" height="50" rx="8"></rect> <text x="80" y="75" text-anchor="middle" font-size="13">file on disk</text> <rect class="box now" x="170" y="45" width="130" height="50" rx="8"></rect> <text x="235" y="67" text-anchor="middle" font-size="13">normalize</text> <text x="235" y="84" text-anchor="middle" font-size="11" class="muted">rewrites disk if changed</text> <rect class="box now" x="330" y="45" width="130" height="50" rx="8"></rect> <text x="395" y="67" text-anchor="middle" font-size="13">stamp</text> <text x="395" y="84" text-anchor="middle" font-size="11" class="muted mono">data-n = 0,1,2…</text> <rect class="box now" x="490" y="45" width="130" height="50" rx="8"></rect> <text x="555" y="67" text-anchor="middle" font-size="13">lift notes</text> <text x="555" y="84" text-anchor="middle" font-size="11" class="muted">comments → JSON</text> <rect class="box now" x="650" y="45" width="110" height="50" rx="8"></rect> <text x="705" y="67" text-anchor="middle" font-size="13">inject client</text> <text x="705" y="84" text-anchor="middle" font-size="11" class="muted">+ version hash</text> <rect class="box" x="790" y="45" width="95" height="50" rx="8"></rect> <text x="837" y="75" text-anchor="middle" font-size="13">browser</text> <path class="arrow" d="M140 70 H168" marker-end="url(#ah)"></path> <path class="arrow" d="M300 70 H328" marker-end="url(#ah)"></path> <path class="arrow" d="M460 70 H488" marker-end="url(#ah)"></path> <path class="arrow" d="M620 70 H648" marker-end="url(#ah)"></path> <path class="arrow" d="M760 70 H788" marker-end="url(#ah)"></path> <text x="20" y="143" font-size="15" font-weight="600">PUT page.html <tspan class="mono muted" font-size="12">{notes, texts, version}</tspan></text> <rect class="box" x="790" y="160" width="95" height="50" rx="8"></rect> <text x="837" y="190" text-anchor="middle" font-size="13">browser</text> <rect class="box now" x="650" y="160" width="110" height="50" rx="8"></rect> <text x="705" y="182" text-anchor="middle" font-size="13">version check</text> <text x="705" y="199" text-anchor="middle" font-size="11" class="muted">stale → 409</text> <rect class="box now" x="490" y="160" width="130" height="50" rx="8"></rect> <text x="555" y="182" text-anchor="middle" font-size="13">set texts</text> <text x="555" y="199" text-anchor="middle" font-size="11" class="muted">text-only elements</text> <rect class="box now" x="330" y="160" width="130" height="50" rx="8"></rect> <text x="395" y="182" text-anchor="middle" font-size="13">place notes</text> <text x="395" y="199" text-anchor="middle" font-size="11" class="muted">all of them, by data-n</text> <rect class="box now" x="170" y="160" width="130" height="50" rx="8"></rect> <text x="235" y="182" text-anchor="middle" font-size="13">serialize</text> <text x="235" y="199" text-anchor="middle" font-size="11" class="muted">canonical format</text> <rect class="box" x="20" y="160" width="120" height="50" rx="8"></rect> <text x="80" y="190" text-anchor="middle" font-size="13">file on disk</text> <path class="arrow" d="M790 185 H762" marker-end="url(#ah)"></path> <path class="arrow" d="M650 185 H622" marker-end="url(#ah)"></path> <path class="arrow" d="M490 185 H462" marker-end="url(#ah)"></path> <path class="arrow" d="M330 185 H302" marker-end="url(#ah)"></path> <path class="arrow" d="M170 185 H142" marker-end="url(#ah)"></path> <rect x="170" y="250" width="590" height="66" rx="8" fill="none" stroke="var(--line)"></rect> <text x="185" y="272" font-size="13" font-weight="600" class="mono">server.mjs</text> <text x="185" y="294" font-size="12"><tspan font-weight="600">I</tspan> CLI · routing · GET/PUT flows <tspan font-weight="600">II</tspan> formatter · notes · text edits · identity <tspan font-weight="600">III</tspan> fs gateway · client assets</text> <text x="185" y="310" font-size="11" class="muted">Pure domain in tier II. Parser: vendor/linkedom.mjs (bundled, no npm install).</text>
+      </svg>
+    </section>
+    <section id="architecture-direction">
+      <h2>Architecture direction <span class="directional">directional</span></h2>
+      <svg viewBox="0 0 900 250" role="img" aria-label="Planned architecture">
+        <rect class="box" x="20" y="20" width="150" height="56" rx="8"></rect> <text x="95" y="53" text-anchor="middle" font-size="14">🤖 agent</text> <rect class="box dir" x="230" y="20" width="200" height="56" rx="8"></rect> <text x="330" y="44" text-anchor="middle" font-size="14" class="mono">format</text> <text x="330" y="63" text-anchor="middle" font-size="11" class="muted">normalize + validate → errors</text> <rect class="box" x="490" y="20" width="150" height="56" rx="8"></rect> <text x="565" y="53" text-anchor="middle" font-size="13" class="mono">page.html</text> <path class="arrow" d="M170 48 H228" marker-end="url(#ah)"></path> <path class="arrow" d="M430 48 H488" marker-end="url(#ah)"></path> <text x="330" y="100" text-anchor="middle" font-size="12" class="muted">the server's GET runs the same format</text> <rect class="box" x="20" y="140" width="150" height="56" rx="8"></rect> <text x="95" y="173" text-anchor="middle" font-size="14">👩🏽‍🦱 click a chunk</text> <rect class="box dir" x="230" y="125" width="200" height="86" rx="8"></rect> <text x="330" y="150" text-anchor="middle" font-size="13">classify element</text> <text x="330" y="172" text-anchor="middle" font-size="12" class="muted">prose chunk → markdown editor</text> <text x="330" y="190" text-anchor="middle" font-size="12" class="muted">scaffolding → comment only</text> <rect class="box dir" x="490" y="140" width="150" height="56" rx="8"></rect> <text x="565" y="164" text-anchor="middle" font-size="13">markdown → HTML</text> <text x="565" y="183" text-anchor="middle" font-size="11" class="muted">round-trip is identity</text> <rect class="box" x="700" y="140" width="150" height="56" rx="8"></rect> <text x="775" y="173" text-anchor="middle" font-size="13" class="mono">page.html</text> <path class="arrow" d="M170 168 H228" marker-end="url(#ah)"></path> <path class="arrow" d="M430 168 H488" marker-end="url(#ah)"></path> <path class="arrow" d="M640 168 H698" marker-end="url(#ah)"></path> <text x="450" y="240" text-anchor="middle" font-size="12" class="muted">IDs name chunks, not every element. Maybe written into the file.</text>
+      </svg>
+    </section>
+    <section id="prose">
+      <h2>Prose editing: today vs headed</h2>
+      <div class="grid">
+        <div class="card">
+          <strong>Today</strong>
+          <div class="demo">
+            <p class="off">
+              A paragraph with <b class="hl">bold</b> and <a href="#prose" class="hl">a link</a>.
+            </p>
+            <p class="sub">Only the green bits are editable. The paragraph gets a comment box.</p>
+          </div>
+        </div>
+        <div class="card dir">
+          <strong>Headed</strong> <span class="directional">directional</span>
+          <div class="demo">
+            <span class="hl-dir"><code>A paragraph with **bold** and [a link](#prose).</code></span>
+            <p class="sub">
+              The whole paragraph is one chunk, edited as markdown. A heading is its own chunk; a list is one chunk.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section id="invariants">
+      <h2>Invariants</h2>
+      <ul class="inv">
+        <li>The HTML file is the only record. Nothing in the browser, no sidecar.</li>
+        <li>A note is <code>&lt;!-- jess: … --&gt;</code>, attached to exactly one element.</li>
+        <li>Formatting is idempotent: a normalized file loads unchanged.</li>
+        <li>An edit never loses markup.</li>
+        <li>A stale tab cannot write (version check, 409).</li>
+        <li>Dependencies point down: orchestration → domain → interface.</li>
+      </ul>
+    </section>
+    <section id="terms">
+      <h2>Terms</h2>
+      <dl>
+        <dt>note</dt>
+        <dd>
+          An HTML comment starting <code>&lt;author&gt;:</code>. The human's request to the agent.
+        </dd>
+        <dt>normalize</dt>
+        <dd>
+          The formatter. Rewrites the file into canonical shape, adding <code>html/head/body</code> if missing.
+        </dd>
+        <dt><code>data-n</code></dt>
+        <dd>Element ID today: document-order index, stamped on serve, stripped on save.</dd>
+        <dt>text element</dt>
+        <dd>Today's unit of editing: an element whose children are only text.</dd>
+        <dt>prose chunk <span class="directional">directional</span></dt>
+        <dd>Tomorrow's unit of editing: a piece that converts to markdown. Name still open.</dd>
+        <dt>phrasing content</dt>
+        <dd>
+          HTML-spec term: text plus inline markup (<code>b</code>, <code>a</code>, <code>code</code>…).
+        </dd>
+      </dl>
+    </section>
+    <section id="current-work">
+      <h2>Current work</h2>
+      <div class="grid">
+        <div class="card">
+          <strong>Open questions</strong>
+          <ul>
+            <li>
+              What do we call the two kinds of element? The spec's "flow content" includes <code>&lt;p&gt;</code>.
+            </li>
+            <li>Which elements are their own chunk?</li>
+            <li>Write IDs into the file? Longer file vs. steadier identity for the agent.</li>
+            <li>
+              The copy in <code>iterate-on-docs/html-with-comments/</code> is behind this repo.
+            </li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Tracker</strong>
+          <p>Work lives in <code>yx</code>. Run <code>yx list</code>.</p>
+          <p class="sub">
+            Spec: <code>html-notes-spec.md</code> · Usage: <code>README.md</code> · Research notes: commit <code>8683442</code>
+          </p>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>
