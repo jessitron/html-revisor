@@ -51,8 +51,12 @@
   .hl { outline: 2px solid var(--now); outline-offset: 1px; border-radius: 2px; }
   .off { color: var(--muted); }
   .page { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: .75rem 1rem; position: relative; }
-  .noted { box-shadow: inset 3px 0 0 var(--pink); padding-left: .6rem; }
-  .marker { position: absolute; right: .6rem; width: 1.4rem; height: 1.4rem; border-radius: 50%; background: var(--pink); color: #fff; text-align: center; font-size: .8rem; line-height: 1.4rem; }
+  .noted-wrap { position: relative; }
+  .noted { box-shadow: inset 3px 0 0 var(--pink); padding-left: .6rem; margin: 0; }
+  .marker { position: absolute; left: -9px; top: -9px; z-index: 1; }
+  .marker summary { list-style: none; width: 18px; height: 18px; border-radius: 50%; background: var(--pink); color: #fff; text-align: center; font-size: 11px; line-height: 18px; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.35); }
+  .marker summary::-webkit-details-marker { display: none; }
+  .marker .pop { position: absolute; left: 24px; top: -4px; white-space: nowrap; background: var(--card); border: 1px solid var(--pink); border-radius: 6px; padding: .2rem .5rem; font-size: .8rem; }
   .mock { border: 1px solid var(--line); border-radius: 8px; padding: .6rem; background: var(--bg); box-shadow: 0 4px 12px rgba(0,0,0,.12); font-size: .85rem; margin-top: .5rem; }
   .mock .field { border: 1px solid var(--line); border-radius: 4px; padding: .4rem; margin: .2rem 0 .5rem; font-family: ui-monospace, monospace; min-height: 1.5rem; }
   .mock .field.big { min-height: 3.5rem; border-color: var(--dir); }
@@ -210,15 +214,19 @@ OVERVIEW.html:42  &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing cont
               </div>
             </div>
             <p class="sub">
-              A <code><!-- @AI: this is a comment -->type="application/json"</code> script never runs. The client reads it with <code>JSON.parse(el.textContent)</code>.
+              Like an HTML comment, a <code>type="application/json"</code> script is inert: the browser never runs it. The client reads it with <code>JSON.parse(el.textContent)</code>.
             </p>
             <div class="label">in the browser</div>
             <div class="page">
-              <!-- @AI: ok, you're close, but the marker shows up on the left.
-Make one that if I click it pops up with "yep, this is the marker that shows a directive is here" (to distinguish it from these actual ones haha) -->
-              <span class="marker">✎</span>
-              <p class="noted">Ship the <b>formatter</b> first.</p>
+              <div class="noted-wrap">
+                <details class="marker" title="yep, this is the marker that shows a directive is here">
+                  <summary>✎</summary>
+                  <div class="pop">yep, this is the marker that shows a directive is here</div>
+                </details>
+                <p class="noted">Ship the <b>formatter</b> first.</p>
+              </div>
             </div>
+            <p class="sub">⌘-click the marker. Clicking a real one opens its directive.</p>
           </div>
         </div>
         <div class="step" id="d-inject">
@@ -241,8 +249,7 @@ Make one that if I click it pops up with "yep, this is the marker that shows a d
   &lt;/body&gt;
 &lt;/html&gt;</pre>
             <p class="sub">
-              <!-- @AI: ok I don't know what this means -->
-              Added after stamping, so none of it gets an ID. <code>data-version</code>: hash of the file bytes.
+              The green lines exist only in the served copy. They go in after IDs are stamped, so the client's own elements have no <code>data-n</code> and can't take a directive. <code>data-version</code> fingerprints the file on disk; the PUT sends it back for the <a href="#d-version">version check</a>.
             </p>
           </div>
         </div>
@@ -338,7 +345,6 @@ texts {"4": "…"}       &lt;p&gt;Ship the &lt;b&gt;…&lt;/p&gt;  →  refused<
               A paragraph with <b class="hl">bold</b> and <a href="#prose" class="hl">a link</a>.
             </p>
             <div class="mock">
-              <!-- @AI: this is pointing out to me that we need a style guide, because don't look like the real ones. That's OK for now. Add a yak to do design and make a style guide. -->
               <div>Directive</div>
               <div class="field off">Directive for this element</div>
               <div class="btns">⌘↵ to save · esc to close · Delete · Save</div>
@@ -349,7 +355,6 @@ texts {"4": "…"}       &lt;p&gt;Ship the &lt;b&gt;…&lt;/p&gt;  →  refused<
           </div>
         </div>
         <div class="card dir">
-          <!-- @AI: i love this so much -->
           <strong>Headed</strong> <span class="directional">directional</span>
           <div class="demo">
             <p>A paragraph with <b>bold</b> and <a href="#prose">a link</a>.</p>
