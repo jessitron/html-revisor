@@ -27,6 +27,22 @@ Tests: `npm test`.
 
 Your directives and text edits write into the file, so it shows as changed in git. `git checkout try-me.html` resets it. It is committed in normalized form, so loading it does not change it.
 
+## Contract with iterate-on-docs
+
+The iterate-on-a-document skill in iterate-on-docs runs this tool. It relies on:
+
+| What | Value |
+| --- | --- |
+| Server path | `../../html-with-comments/server.mjs`, from the skill's base directory |
+| CLI | `node <server> <dir> --port 0` |
+| Default author | `@AI` (the skill passes no `--author`) |
+| Startup line | `html-notes: http://localhost:<port>/ serving <dir>` |
+| Directive syntax | `<!-- @AI: … -->`, first child of its element, or just before a void or raw-text element |
+| Finding directives | `grep '<!-- *@AI:'` |
+| GET rewrites the file | the skill fetches the page before each commit |
+
+A change to anything in this table is a contract change, not just a deploy. Make the matching edit to the skill in the same session. This list stands in for a changelog: these are the only changes iterate-on-docs has to hear about.
+
 ## Directive format
 
 A directive is an HTML comment whose text starts with `<author>:`.
