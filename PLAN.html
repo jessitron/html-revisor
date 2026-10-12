@@ -106,8 +106,12 @@
             <li>
               Canonical tags: the formatter rewrites <code>b</code>→<code>strong</code>, <code>i</code>→<code>em</code>, so markdown's one syntax maps back to one tag. The first validation rule.
             </li>
-            <li>A property test: chunk → markdown → chunk is identity. Watch <code>* _ ` [</code> escaping.</li>
-            <li>Libraries: a markdown parser and an HTML-to-markdown writer, vendored like linkedom</li>
+            <li>
+              A property test: chunk → markdown → chunk is identity. Watch <code>* _ ` [</code> escaping.
+            </li>
+            <li>
+              Libraries: a markdown parser and an HTML-to-markdown writer, vendored like linkedom
+            </li>
           </ul>
           <div class="q">
             Where does conversion run: server or client? Server keeps the client small and the PUT keyed by <code>data-n</code>; client gives a live preview.
@@ -123,7 +127,9 @@
           </p>
           <ul class="yaks">
             <li>The field grows with the text</li>
-            <li>A directive on an element inside the chunk, a <code>&lt;b&gt;</code> say, is lost on re-render</li>
+            <li>
+              A directive on an element inside the chunk, a <code>&lt;b&gt;</code> say, is lost on re-render
+            </li>
           </ul>
           <div class="q">
             Inner directives: lift them to the chunk on save, or refuse the edit until they're gone?
@@ -135,7 +141,9 @@
         <div class="num">5</div>
         <div class="card">
           <h3>Undo for text edits</h3>
-          <p class="why">Once prose edits rewrite markup, a mistake costs more. <span class="yak">x8yp</span></p>
+          <p class="why">
+            Once prose edits rewrite markup, a mistake costs more. <span class="yak">x8yp</span>
+          </p>
         </div>
       </div>
     </section>
@@ -227,7 +235,9 @@
         </tr>
         <tr>
           <td>Shipping</td>
-          <td><code>./deploy</code> here copies into iterate-on-docs; <code>./release</code> there publishes.</td>
+          <td>
+            <code>./deploy</code> here copies into iterate-on-docs; <code>./release</code> there publishes.
+          </td>
         </tr>
         <tr>
           <td>SVG commenting</td>
