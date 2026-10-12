@@ -123,7 +123,7 @@ Open `try-me.html` in a browser (see [Try it](#try-it)).
 - [ ] The docket at the bottom right counts the directives (`N directives`) and changes as you add or delete one.
 - [ ] The docket's ↑ and ↓, and ⌥↑ and ⌥↓ outside a text field, scroll each directive's element to the middle of the window in document order, wrapping at the ends, and show its crop marks for a moment.
 - [ ] Clicking the docket's icon or count turns review mode off (`· review off`): markers hide, hovering shows no marks and no copy cursor, and clicks go to the page. Clicking again turns it back on.
-- [ ] Reloading the page shows the marker. The element itself is not restyled: no stripe, no outline.
+- [ ] Reloading the page shows the marker. The element itself is not restyled.
 - [ ] Clicking a marker opens its box for editing.
 - [ ] Delete (or emptying the text, or `⌥⌘⌫` in the box) removes the directive and the marker. Delete's tooltip names the hotkey.
 - [ ] `⌘↵`, `Esc`, Done, and clicking outside each commit and close the box. (On a page with a full-width wrapper element, clicking the margin opens a box on the wrapper instead; use Esc.)
