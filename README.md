@@ -132,7 +132,7 @@ Open `try-me.html` in a browser (see [Try it](#try-it)).
 - [ ] Stopping the server and typing shows `save failed: ...` on the pill; restarting and typing again saves and clears it.
 - [ ] Edit one element in the file on disk while the tab is open, then type a directive on that element: the pill says it wasn't saved and suggests a reload, the box's footer says `not saved`, the file stays untouched, and the box keeps your text.
 - [ ] Edit a different element on disk, then type a directive: it saves, and the pill says the page changed on disk.
-- [ ] Dark mode gives the box a dark theme.
+- [ ] In dark mode the box, markers and pill look the same as in light mode: one material.
 
 ## Design
 
