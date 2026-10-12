@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(/Users/jessitron/code/jessitron/iterate-on-docs/release *)"
+    ]
+  }
+}
