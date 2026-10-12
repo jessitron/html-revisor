@@ -4,7 +4,7 @@ Read `README.md` for usage. Build history is in git log; open work is in `yx`. `
 
 ## Where the code lives
 
-The code lives here. A built output is vendored into the iterate-on-docs plugin at `~/code/jessitron/iterate-on-docs/html-with-comments/`, and that copy is the one Jess runs day to day. Don't edit the copy; change it here, then copy it over. `iterate-on-docs/html-with-comments/VENDORED.md` records which commit it came from and its local changes. Whose job the copying is remains open (yak). The tool's name is changing to html-revisor (yak); until then it's called html-notes in the code and html-with-comments in directory names.
+The code lives here. A built output is vendored into the iterate-on-docs plugin at `~/code/jessitron/iterate-on-docs/html-with-comments/`, and that copy is the one Jess runs day to day. Don't edit the copy; change it here, then copy it over. `iterate-on-docs/html-with-comments/VENDORED.md` records which commit it came from and its local changes. A `deploy` script here will do the copying (yak; see `PLAN.html` for the contract with iterate-on-docs). The tool's name is changing to html-revisor (yak); until then it's called html-notes in the code and html-with-comments in directory names.
 
 The domain word for an `<!-- @AI: ... -->` request is **directive**. Avoid note, comment, annotation ("HTML comment" still means the syntax).
 
@@ -32,6 +32,7 @@ The files this tool serves are project-overview documents that Jess's agents gen
 This project tracks work with `yx`, a git-backed TODO CLI (`yx help` for full command list). Don't use TaskCreate/TaskUpdate for durable project work — those are session-scoped. Use `yx` instead so tasks persist across sessions and machines.
 
 - yx makes each yak directory in `.yaks` read-only, so `git worktree remove` and `rm -rf` fail with "Permission denied" on a worktree that ran `yx`. Run `chmod -R u+w <worktree>` first. The cache is safe to delete; `yx reset` rebuilds it.
+- A blocker on a parent yak does not block its children. In yx, children are work toward the parent, so `--ready` lists a blocked parent's children. When a whole stage waits, put the blocker on each child that waits.
 - `.yaks` is gitignored (required for `yx` to run at all — it'll error and tell you to fix this if it isn't).
 - The yak history itself lives in git notes (`refs/notes/yaks`), not in `.yaks`, so it travels with the repo via `yx sync`.
 
