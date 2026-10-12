@@ -4,7 +4,9 @@ Read `README.md` for usage. Build history is in git log; open work is in `yx`. `
 
 ## Where the code lives
 
-The code lives here. A built output is vendored into the iterate-on-docs plugin at `~/code/jessitron/iterate-on-docs/html-with-comments/`, and that copy is the one Jess runs day to day. Don't edit the copy; change it here, merge to main, then run `./deploy` (see README, "Deploy"). `iterate-on-docs/html-with-comments/VENDORED.md` records which commit it came from. A change to the README's "Contract with iterate-on-docs" table needs a matching edit to the iterate-on-a-document skill. The tool's name is changing to html-revisor (yak); until then it's called html-notes in the code and html-with-comments in directory names.
+The code lives here. A built output is vendored into the iterate-on-docs plugin at `~/code/jessitron/iterate-on-docs/html-with-comments/`, and that copy is the one Jess runs day to day. Don't edit the copy; change it here, merge to main, then run `./deploy` (see README, "Deploy"). `iterate-on-docs/html-with-comments/VENDORED.md` records which commit it came from.
+
+The README's "Contract with iterate-on-docs" table lists everything iterate-on-docs relies on, including vocabulary: every word the user sees (today, "directive"). If you find a mismatch, the Contract wins. A Contract change travels out of band (Jess, 2026-10-12): you, the agent here, make the matching edits in iterate-on-docs yourself (`skills/iterate-on-a-document/SKILL.md`, `README.md`, any other skill that relies on it), in their own commit there, along with the deploy. deploy stays a plain copy. iterate-on-docs/CLAUDE.md states the same rule from its side. The tool's name is changing to html-revisor (yak); until then it's called html-notes in the code and html-with-comments in directory names.
 
 The domain word for an `<!-- @AI: ... -->` request is **directive**. Avoid note, comment, annotation ("HTML comment" still means the syntax).
 

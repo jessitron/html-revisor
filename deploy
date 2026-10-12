@@ -11,9 +11,6 @@ dev_only=(CLAUDE.md OVERVIEW.html PLAN.html .gitignore deploy)
 
 die() { echo "deploy: $*" >&2; exit 1; }
 
-# The README's Contract section at a commit; empty if it has none.
-contract() { git -C "$here" show "$1:README.md" 2>/dev/null | awk '/^## /{on=/^## Contract/} on'; }
-
 [ -z "$(git -C "$here" status --porcelain --untracked-files=no -- . ':!try-me.html')" ] ||
   die "uncommitted changes in $here; commit them first"
 git -C "$here" merge-base --is-ancestor HEAD main || die "HEAD is not on main; merge first"
@@ -22,7 +19,6 @@ git -C "$here" merge-base --is-ancestor HEAD main || die "HEAD is not on main; m
   die "uncommitted changes in $dest; commit or discard them first"
 
 hash="$(git -C "$here" rev-parse --short HEAD)"
-last="$(sed -n 's/^Source: .* at `\([0-9a-f]*\)`.*/\1/p' "$dest/VENDORED.md" 2>/dev/null || true)"
 
 find "$dest" -mindepth 1 -delete
 excludes=()
@@ -52,8 +48,3 @@ if git -C "$target" diff --cached --quiet -- html-with-comments; then
 fi
 git -C "$target" commit -q -m "Deploy html-with-comments at $hash" -- html-with-comments
 echo "deploy: committed html-with-comments at $hash in $target (not pushed, not released)"
-
-if [ "$(contract "${last:-none}")" != "$(contract HEAD)" ]; then
-  echo "deploy: the README's Contract section changed since ${last:-the last deploy}."
-  echo "        Make the matching edit to the iterate-on-a-document skill."
-fi

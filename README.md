@@ -38,23 +38,29 @@ Copies the committed files at HEAD into `<dir>/html-with-comments/` (default `~/
 - It refuses when this repo has uncommitted changes (except `try-me.html`), when HEAD is not on main, or when the copy has uncommitted changes.
 - It replaces the whole directory, leaving out dev-only files: `CLAUDE.md`, `OVERVIEW.html`, `PLAN.html`, `.gitignore`, `deploy`. It writes `VENDORED.md` with the commit hash.
 - If the tests fail in the copy, it restores the directory and commits nothing.
-- If the Contract section below changed since the last deploy, it says so.
 
 ## Contract with iterate-on-docs
 
-The iterate-on-a-document skill in iterate-on-docs runs this tool. It relies on:
+The iterate-on-a-document skill and the README in iterate-on-docs run and describe this tool. They rely on:
 
 | What | Value |
 | --- | --- |
 | Server path | `../../html-with-comments/server.mjs`, from the skill's base directory |
+| Runtime | Node 20 or later. No `npm install`: the output runs as copied, linkedom is in `vendor/` |
 | CLI | `node <server> <dir> --port 0` |
 | Default author | `@AI` (the skill passes no `--author`) |
 | Startup line | `html-notes: http://localhost:<port>/ serving <dir>` |
-| Directive syntax | `<!-- @AI: … -->`, first child of its element, or just before a void or raw-text element |
+| Page URL | the startup address plus the file's path under `<dir>` |
+| Directive syntax | `<!-- @AI: … -->`, first child of its element, or just before a void or raw-text element (full list under [Directive format](#directive-format)) |
 | Finding directives | `grep '<!-- *@AI:'` |
 | GET rewrites the file | the skill fetches the page before each commit |
+| Browser behavior | click any element to leave a directive on it or change its wording; both save into the file as you type |
+| README | this README ships in the output and keeps its "Directive format" section; iterate-on-docs links to it |
+| Vocabulary | the words the user sees: **directive** (the popup says "Directive", "Directive for this element", "Delete the directive", and the toast "saved · N directives"). Not note, comment or annotation |
 
-A change to anything in this table is a contract change, not just a deploy. Make the matching edit to the skill in the same session. This list stands in for a changelog: these are the only changes iterate-on-docs has to hear about.
+If you find a mismatch, the Contract wins.
+
+A change to anything in this table is a contract change. It travels out of band, not through deploy: the agent changing it here makes the matching edits in iterate-on-docs (`skills/iterate-on-a-document/SKILL.md`, `README.md`, any other skill that relies on it), in their own commit there, along with the deploy. deploy stays a plain copy. This list stands in for a changelog: these are the only changes iterate-on-docs has to hear about.
 
 ## Directive format
 
@@ -71,7 +77,7 @@ A directive is an HTML comment whose text starts with `<author>:`.
 Placement: a directive attaches to exactly one element.
 
 - On a normal element, the directive is its **first child**.
-- On a void element (`img`, `hr`, `br`, `input`, ...) or a raw-text element (`pre`, `textarea`, `script`, `style`), the directive sits **immediately before** the element as a sibling.
+- On an element that can't hold an HTML comment inside, the directive sits **immediately before** the element as a sibling. Those are the void elements (`area`, `base`, `br`, `col`, `embed`, `hr`, `img`, `input`, `link`, `meta`, `param`, `source`, `track`, `wbr`), the raw-text elements (`pre`, `textarea`, `script`, `style`, `template`), and `title`, `iframe`, `xmp`, `noembed`, `noframes`.
 - A hand-written directive placed in `<body>` between blocks attaches to `<body>` and moves to the top of `<body>` on the next save.
 
 ## Agent instructions
@@ -83,8 +89,10 @@ HTML files in this project may hold directives written as HTML comments that
 start with "@AI:", for example <!-- @AI: this section is out of date -->.
 To find them, run: grep -n '<!-- *@AI:' file.html
 Each directive is a request about the element that contains it (it is the element's
-first child), or about the element right after it when that element is an img, hr,
-br, input, pre, textarea, script, or style. Address every directive, then delete the
+first child), or about the element right after it when that element can't hold a
+comment inside: a void element (img, hr, br, input, meta, ...), a raw-text element
+(pre, textarea, script, style, template), or title, iframe, xmp, noembed, noframes.
+Address every directive, then delete the
 directive from the file. Leave HTML comments that do not start with "@AI:" alone.
 Before you regenerate an HTML file from scratch, run grep -c '<!-- *@AI:' file.html.
 The count must be 0. If it is not, address those directives first so no unresolved
