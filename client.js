@@ -118,7 +118,7 @@
   // ---- hover ----
 
   var hovered = null;
-  var flashed = null;       // the element the pill just stepped to; its marks show for a moment
+  var flashed = null;       // the element the docket just stepped to; its marks show for a moment
   var reviewing = true;     // review mode: hover marks, copy cursor, click to open, markers
   var hoverCrop = makeCrop('hrv-crop');
   var selectedCrop = makeCrop('hrv-crop hrv-selected');
@@ -354,29 +354,29 @@
   window.addEventListener('resize', schedulePosition);
   if (window.ResizeObserver) new ResizeObserver(schedulePosition).observe(document.body);
 
-  // ---- the pill ----
+  // ---- the docket ----
 
   // Bottom right of the window. It counts the directives, steps through them in document order,
   // and holds a save error or the stale-file warning. Its icon and count switch review mode.
   var current = null;       // id of the element last stepped to or clicked
-  var problem = null;       // the save error or stale warning the pill shows, if any
+  var problem = null;       // the save error or stale warning the docket shows, if any
   var flashTimer = null;
 
-  var pill = document.createElement('div');
-  pill.className = 'hrv-pill';
-  var pillMsg = document.createElement('div');
-  pillMsg.className = 'hrv-pill-msg';
-  var pillMain = document.createElement('div');
-  pillMain.className = 'hrv-pill-main';
-  var pillCount = document.createElement('span');
-  pillMain.appendChild(icon());
-  pillMain.appendChild(pillCount);
-  pillMain.addEventListener('click', function () { setReviewing(!reviewing); });
-  pill.appendChild(pillMsg);
-  pill.appendChild(pillMain);
-  pill.appendChild(stepButton('↑', 'Previous directive (⌥↑)', -1));
-  pill.appendChild(stepButton('↓', 'Next directive (⌥↓)', 1));
-  layer.appendChild(pill);
+  var docket = document.createElement('div');
+  docket.className = 'hrv-docket';
+  var docketMsg = document.createElement('div');
+  docketMsg.className = 'hrv-docket-msg';
+  var docketMain = document.createElement('div');
+  docketMain.className = 'hrv-docket-main';
+  var docketCount = document.createElement('span');
+  docketMain.appendChild(icon());
+  docketMain.appendChild(docketCount);
+  docketMain.addEventListener('click', function () { setReviewing(!reviewing); });
+  docket.appendChild(docketMsg);
+  docket.appendChild(docketMain);
+  docket.appendChild(stepButton('↑', 'Previous directive (⌥↑)', -1));
+  docket.appendChild(stepButton('↓', 'Next directive (⌥↓)', 1));
+  layer.appendChild(docket);
 
   function stepButton(arrow, title, dir) {
     var b = document.createElement('div');
@@ -387,20 +387,20 @@
     return b;
   }
 
-  function updatePill() {
+  function updateDocket() {
     var n = directiveCount();
-    pillCount.textContent = n + (n === 1 ? ' directive' : ' directives') + (reviewing ? '' : ' · review off');
-    pillMsg.textContent = problem || '';
-    pillMain.title = reviewing
+    docketCount.textContent = n + (n === 1 ? ' directive' : ' directives') + (reviewing ? '' : ' · review off');
+    docketMsg.textContent = problem || '';
+    docketMain.title = reviewing
       ? 'Review mode: click to hide the marks and read the page'
       : 'Review mode is off: click to leave directives again';
-    pill.className = 'hrv-pill' + (n === 0 ? ' hrv-none' : '') + (reviewing ? '' : ' hrv-off') +
+    docket.className = 'hrv-docket' + (n === 0 ? ' hrv-none' : '') + (reviewing ? '' : ' hrv-off') +
       (problem ? ' hrv-error' : '');
   }
 
   function showProblem(text) {
     problem = text;
-    updatePill();
+    updateDocket();
   }
 
   // Elements with directives, in document order.
@@ -452,7 +452,7 @@
     else document.documentElement.setAttribute('data-hrv-review', 'off');
     layer.classList.toggle('hrv-reading', !on);
     positionHover();
-    updatePill();
+    updateDocket();
   }
 
   // ⌥↓ and ⌥↑ step, unless the reader is typing somewhere.
@@ -586,7 +586,7 @@
     if (text.trim() === '') delete directives[id];
     else directives[id] = text;
     syncMarker(id);
-    updatePill();
+    updateDocket();
   }
 
   // Commit and close the open box.
@@ -741,5 +741,5 @@
   // ---- start ----
 
   for (var id in directives) syncMarker(id);
-  updatePill();
+  updateDocket();
 })();

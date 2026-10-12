@@ -35,7 +35,7 @@
    any page. --hrv-halo-filter draws it around any shape: four crisp 1px white shadows, then a soft
    dark one. Components in the material carry their own light ring instead. */
 
-/* Clicking an element leaves a directive on it; the cursor says so. Review mode off (the pill)
+/* Clicking an element leaves a directive on it; the cursor says so. Review mode off (the docket)
    sets data-hrv-review="off" on the html element, which turns the cursor off. That attribute is
    the one mark the tool puts on the page, and only this rule reads it. */
 html:not([data-hrv-review="off"]) [data-hrv]:not(html, body) { cursor: copy !important; }
@@ -148,25 +148,25 @@ html:not([data-hrv-review="off"]) [data-hrv]:not(html, body) { cursor: copy !imp
 :is(#hrv-layer, .hrv-layer) .hrv-btn.hrv-quiet { padding: 4px 6px; border-color: transparent; background: none; color: var(--hrv-muted); }
 :is(#hrv-layer, .hrv-layer) .hrv-btn.hrv-quiet:hover { color: var(--hrv-text); text-decoration: underline; }
 
-/* The pill: bottom right of the window. Icon and count switch review mode; the arrows step through
+/* The docket: bottom right of the window. Icon and count switch review mode; the arrows step through
    the directives. A save error or the stale-file warning sits on top, in the error color. */
-:is(#hrv-layer, .hrv-layer) .hrv-pill {
+:is(#hrv-layer, .hrv-layer) .hrv-docket {
   position: fixed; right: 16px; bottom: 16px; z-index: 1; display: flex; flex-wrap: wrap; max-width: 360px;
   background: var(--hrv-surface); box-shadow: var(--hrv-material);
 }
-:is(#hrv-layer, .hrv-layer) .hrv-pill-msg { display: none; flex: 1 0 100%; padding: 6px 10px; border-bottom: 1px solid var(--hrv-line); color: var(--hrv-error); }
-:is(#hrv-layer, .hrv-layer) .hrv-pill-main { display: flex; flex: 1; align-items: center; gap: 6px; padding: 6px 10px; cursor: pointer; white-space: nowrap; }
+:is(#hrv-layer, .hrv-layer) .hrv-docket-msg { display: none; flex: 1 0 100%; padding: 6px 10px; border-bottom: 1px solid var(--hrv-line); color: var(--hrv-error); }
+:is(#hrv-layer, .hrv-layer) .hrv-docket-main { display: flex; flex: 1; align-items: center; gap: 6px; padding: 6px 10px; cursor: pointer; white-space: nowrap; }
 :is(#hrv-layer, .hrv-layer) .hrv-step {
   display: flex; align-items: center; justify-content: center; width: 28px; border-left: 1px solid var(--hrv-line);
   cursor: pointer; user-select: none;
 }
-:is(#hrv-layer, .hrv-layer) :is(.hrv-pill-main, .hrv-step):hover { background: var(--hrv-button-hover); }
-:is(#hrv-layer, .hrv-layer) .hrv-pill.hrv-none .hrv-step { display: none; }
-:is(#hrv-layer, .hrv-layer) .hrv-pill.hrv-none .hrv-pill-main { color: var(--hrv-muted); }
-:is(#hrv-layer, .hrv-layer) .hrv-pill.hrv-off .hrv-pill-main { color: var(--hrv-muted); }
-:is(#hrv-layer, .hrv-layer) .hrv-pill.hrv-off .hrv-icon { background: var(--hrv-muted); }
-:is(#hrv-layer, .hrv-layer) .hrv-pill.hrv-error { box-shadow: 0 0 0 1px var(--hrv-error), 0 4px 16px rgba(0, 0, 0, 0.45); }
-:is(#hrv-layer, .hrv-layer) .hrv-pill.hrv-error .hrv-pill-msg { display: block; }
+:is(#hrv-layer, .hrv-layer) :is(.hrv-docket-main, .hrv-step):hover { background: var(--hrv-button-hover); }
+:is(#hrv-layer, .hrv-layer) .hrv-docket.hrv-none .hrv-step { display: none; }
+:is(#hrv-layer, .hrv-layer) .hrv-docket.hrv-none .hrv-docket-main { color: var(--hrv-muted); }
+:is(#hrv-layer, .hrv-layer) .hrv-docket.hrv-off .hrv-docket-main { color: var(--hrv-muted); }
+:is(#hrv-layer, .hrv-layer) .hrv-docket.hrv-off .hrv-icon { background: var(--hrv-muted); }
+:is(#hrv-layer, .hrv-layer) .hrv-docket.hrv-error { box-shadow: 0 0 0 1px var(--hrv-error), 0 4px 16px rgba(0, 0, 0, 0.45); }
+:is(#hrv-layer, .hrv-layer) .hrv-docket.hrv-error .hrv-docket-msg { display: block; }
 
 /* Review mode off: the markers go too. */
 :is(#hrv-layer, .hrv-layer).hrv-reading .hrv-marker { display: none !important; }
