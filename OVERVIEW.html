@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>html-notes — overview</title>
+    <title>html-revisor — overview</title>
     <style>
   :root { --ink: #1f2328; --muted: #656d76; --line: #d0d7de; --bg: #ffffff; --card: #f6f8fa;
     --now: #1a7f37; --dir: #8250df; --warn: #bc4c00; --accent: #0969da; --pink: #d6336c; }
@@ -68,14 +68,14 @@
 </style>
   </head>
   <body>
-    <h1>html-notes</h1>
+    <h1>html-revisor</h1>
     <p class="sub">
       A human and an agent trade turns on an HTML page. The human leaves directives and edits prose in the browser; everything lands in the file.
     </p>
     <section id="loop">
       <h2>What it's for</h2>
       <svg viewBox="0 0 900 260" role="img" aria-label="The turn-taking loop">
-        <defs> <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"> <path d="M0 0 L10 5 L0 10 z" fill="#888"></path> </marker> </defs> <rect class="box" x="20" y="90" width="170" height="80" rx="10"></rect> <text x="105" y="125" text-anchor="middle" font-size="22">🤖 agent</text> <text x="105" y="150" text-anchor="middle" font-size="13" class="muted">writes, then reads the diff</text> <rect class="box" x="365" y="90" width="170" height="80" rx="10"></rect> <text x="450" y="125" text-anchor="middle" font-size="18" class="mono">OVERVIEW.html</text> <text x="450" y="150" text-anchor="middle" font-size="13" class="muted">the only record</text> <rect class="box" x="710" y="90" width="170" height="80" rx="10"></rect> <text x="795" y="125" text-anchor="middle" font-size="22">👩🏽‍🦱 human</text> <text x="795" y="150" text-anchor="middle" font-size="13" class="muted">in the browser</text> <path class="arrow" d="M190 110 Q280 60 365 110" marker-end="url(#ah)"></path> <text x="278" y="62" text-anchor="middle" font-size="13">agent generates</text> <path class="arrow" d="M365 150 Q280 200 190 150" marker-end="url(#ah)"></path> <text x="278" y="215" text-anchor="middle" font-size="13">grep directives · git diff</text> <path class="arrow" d="M535 110 Q620 60 710 110" marker-end="url(#ah)"></path> <text x="622" y="62" text-anchor="middle" font-size="13">html-notes formats, serves</text> <path class="arrow" d="M710 150 Q620 200 535 150" marker-end="url(#ah)"></path> <text x="622" y="215" text-anchor="middle" font-size="13">directives + prose edits</text> <text x="450" y="250" text-anchor="middle" font-size="13" class="muted">The tool owns the file's shape: it may reformat, restrict, and rewrite it in place.</text>
+        <defs> <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"> <path d="M0 0 L10 5 L0 10 z" fill="#888"></path> </marker> </defs> <rect class="box" x="20" y="90" width="170" height="80" rx="10"></rect> <text x="105" y="125" text-anchor="middle" font-size="22">🤖 agent</text> <text x="105" y="150" text-anchor="middle" font-size="13" class="muted">writes, then reads the diff</text> <rect class="box" x="365" y="90" width="170" height="80" rx="10"></rect> <text x="450" y="125" text-anchor="middle" font-size="18" class="mono">OVERVIEW.html</text> <text x="450" y="150" text-anchor="middle" font-size="13" class="muted">the only record</text> <rect class="box" x="710" y="90" width="170" height="80" rx="10"></rect> <text x="795" y="125" text-anchor="middle" font-size="22">👩🏽‍🦱 human</text> <text x="795" y="150" text-anchor="middle" font-size="13" class="muted">in the browser</text> <path class="arrow" d="M190 110 Q280 60 365 110" marker-end="url(#ah)"></path> <text x="278" y="62" text-anchor="middle" font-size="13">agent generates</text> <path class="arrow" d="M365 150 Q280 200 190 150" marker-end="url(#ah)"></path> <text x="278" y="215" text-anchor="middle" font-size="13">grep directives · git diff</text> <path class="arrow" d="M535 110 Q620 60 710 110" marker-end="url(#ah)"></path> <text x="622" y="62" text-anchor="middle" font-size="13">html-revisor formats, serves</text> <path class="arrow" d="M710 150 Q620 200 535 150" marker-end="url(#ah)"></path> <text x="622" y="215" text-anchor="middle" font-size="13">directives + prose edits</text> <text x="450" y="250" text-anchor="middle" font-size="13" class="muted">The tool owns the file's shape: it may reformat, restrict, and rewrite it in place.</text>
       </svg>
     </section>
     <section id="direction">
@@ -96,7 +96,7 @@
     <section id="how-it-reaches-you">
       <h2>How it reaches you</h2>
       <svg viewBox="0 0 900 265" role="img" aria-label="deploy copies main into iterate-on-docs, release tags and pushes it to installed plugins; Contract changes travel out of band to the skills and README">
-        <rect class="box" x="20" y="40" width="160" height="70" rx="8"></rect> <text x="100" y="68" text-anchor="middle" font-size="13" font-weight="600" class="mono">html-with-comments</text> <text x="100" y="90" text-anchor="middle" font-size="11" class="muted">main: code, tests, yaks</text> <rect class="box now" x="290" y="40" width="190" height="70" rx="8"></rect> <text x="385" y="62" text-anchor="middle" font-size="13" font-weight="600">iterate-on-docs</text> <text x="385" y="80" text-anchor="middle" font-size="11" class="mono">html-with-comments/</text> <text x="385" y="97" text-anchor="middle" font-size="11" class="muted">the copy you run</text> <rect class="box" x="590" y="40" width="130" height="70" rx="8"></rect> <text x="655" y="68" text-anchor="middle" font-size="13" font-weight="600">GitHub</text> <text x="655" y="90" text-anchor="middle" font-size="11" class="muted mono">tag v0.1.1</text> <rect class="box" x="770" y="40" width="115" height="70" rx="8"></rect> <text x="827" y="68" text-anchor="middle" font-size="13" font-weight="600">installed</text> <text x="827" y="90" text-anchor="middle" font-size="11" class="muted">plugins</text> <path class="arrow" d="M180 75 H288" marker-end="url(#ah)"></path> <text x="235" y="66" text-anchor="middle" font-size="13" class="mono">./deploy</text> <text x="235" y="94" text-anchor="middle" font-size="11" class="muted">plain copy,</text> <text x="235" y="108" text-anchor="middle" font-size="11" class="muted">tests, commit</text> <path class="arrow" d="M480 75 H588" marker-end="url(#ah)"></path> <text x="535" y="66" text-anchor="middle" font-size="13" class="mono">./release</text> <text x="535" y="94" text-anchor="middle" font-size="11" class="muted">bump, tag,</text> <text x="535" y="108" text-anchor="middle" font-size="11" class="muted mono">--push</text> <path class="arrow" d="M720 75 H768" marker-end="url(#ah)"></path> <rect class="box" x="20" y="160" width="160" height="56" rx="8"></rect> <text x="100" y="184" text-anchor="middle" font-size="13" font-weight="600">Contract</text> <text x="100" y="202" text-anchor="middle" font-size="11" class="muted">README table, incl. words</text> <rect class="box" x="290" y="160" width="190" height="56" rx="8"></rect> <text x="385" y="184" text-anchor="middle" font-size="13" font-weight="600">iterate-on-docs</text> <text x="385" y="202" text-anchor="middle" font-size="11" class="muted">skills + README</text> <path class="arrow" d="M180 188 H288" marker-end="url(#ah)" stroke-dasharray="5 4"></path> <text x="235" y="180" text-anchor="middle" font-size="12">out of band</text> <text x="235" y="206" text-anchor="middle" font-size="11" class="muted">we edit, own commit</text> <text x="450" y="250" text-anchor="middle" font-size="12" class="muted">deploy carries the code; a Contract change travels beside it. If they disagree, the Contract wins.</text>
+        <rect class="box" x="20" y="40" width="160" height="70" rx="8"></rect> <text x="100" y="68" text-anchor="middle" font-size="13" font-weight="600" class="mono">html-with-comments</text> <text x="100" y="90" text-anchor="middle" font-size="11" class="muted">main: code, tests, yaks</text> <rect class="box now" x="290" y="40" width="190" height="70" rx="8"></rect> <text x="385" y="62" text-anchor="middle" font-size="13" font-weight="600">iterate-on-docs</text> <text x="385" y="80" text-anchor="middle" font-size="11" class="mono">html-revisor/</text> <text x="385" y="97" text-anchor="middle" font-size="11" class="muted">the copy you run</text> <rect class="box" x="590" y="40" width="130" height="70" rx="8"></rect> <text x="655" y="68" text-anchor="middle" font-size="13" font-weight="600">GitHub</text> <text x="655" y="90" text-anchor="middle" font-size="11" class="muted mono">tag v0.1.1</text> <rect class="box" x="770" y="40" width="115" height="70" rx="8"></rect> <text x="827" y="68" text-anchor="middle" font-size="13" font-weight="600">installed</text> <text x="827" y="90" text-anchor="middle" font-size="11" class="muted">plugins</text> <path class="arrow" d="M180 75 H288" marker-end="url(#ah)"></path> <text x="235" y="66" text-anchor="middle" font-size="13" class="mono">./deploy</text> <text x="235" y="94" text-anchor="middle" font-size="11" class="muted">plain copy,</text> <text x="235" y="108" text-anchor="middle" font-size="11" class="muted">tests, commit</text> <path class="arrow" d="M480 75 H588" marker-end="url(#ah)"></path> <text x="535" y="66" text-anchor="middle" font-size="13" class="mono">./release</text> <text x="535" y="94" text-anchor="middle" font-size="11" class="muted">bump, tag,</text> <text x="535" y="108" text-anchor="middle" font-size="11" class="muted mono">--push</text> <path class="arrow" d="M720 75 H768" marker-end="url(#ah)"></path> <rect class="box" x="20" y="160" width="160" height="56" rx="8"></rect> <text x="100" y="184" text-anchor="middle" font-size="13" font-weight="600">Contract</text> <text x="100" y="202" text-anchor="middle" font-size="11" class="muted">README table, incl. words</text> <rect class="box" x="290" y="160" width="190" height="56" rx="8"></rect> <text x="385" y="184" text-anchor="middle" font-size="13" font-weight="600">iterate-on-docs</text> <text x="385" y="202" text-anchor="middle" font-size="11" class="muted">skills + README</text> <path class="arrow" d="M180 188 H288" marker-end="url(#ah)" stroke-dasharray="5 4"></path> <text x="235" y="180" text-anchor="middle" font-size="12">out of band</text> <text x="235" y="206" text-anchor="middle" font-size="11" class="muted">we edit, own commit</text> <text x="450" y="250" text-anchor="middle" font-size="12" class="muted">deploy carries the code; a Contract change travels beside it. If they disagree, the Contract wins.</text>
       </svg>
       <p class="sub">
         <code>./deploy</code> runs from main only and refuses on a dirty tree. If the tests fail in the copy, it puts the copy back and commits nothing. Details: README, “Deploy” and “Contract with iterate-on-docs”.
@@ -160,7 +160,7 @@ first.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;one&lt;/li&gt;&lt;li&gt;two&lt;/li&gt;&lt;/u
               <p>
                 Normalize becomes its own command. The agent runs it after writing the page and fixes what it reports, before the human opens it. GET runs the same code. Validation rules are still to be chosen; one example:
               </p>
-              <pre>$ html-notes format OVERVIEW.html
+              <pre>$ html-revisor format OVERVIEW.html
 OVERVIEW.html:42  &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing content only</pre>
             </div>
           </div>
@@ -211,7 +211,7 @@ OVERVIEW.html:42  &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing cont
                 <pre>&lt;p data-n="4"&gt;Ship the …&lt;/p&gt;
 …
 &lt;script type="application/json"
-        id="hn-directives"&gt;
+        id="hrv-directives"&gt;
   {"4":"say why first"}
 &lt;/script&gt;</pre>
               </div>
@@ -246,7 +246,7 @@ OVERVIEW.html:42  &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing cont
   &lt;/head&gt;
   &lt;body&gt;
     … the page, stamped …
-<span class="add">    &lt;script type="application/json" id="hn-directives"
+<span class="add">    &lt;script type="application/json" id="hrv-directives"
             data-version="3f9a0c1b2d4e"&gt; {…} &lt;/script&gt;
     &lt;script&gt; hover · click · box · PUT &lt;/script&gt;</span>
   &lt;/body&gt;

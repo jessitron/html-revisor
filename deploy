@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # Copy this repo's committed output into iterate-on-docs and commit it there.
 # Usage: ./deploy [iterate-on-docs dir]   (default ~/code/jessitron/iterate-on-docs)
-# Writes only inside <dir>/html-with-comments/. Doesn't push or release;
+# Writes only inside <dir>/html-revisor/. Doesn't push or release;
 # iterate-on-docs has ./release for that.
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 target="${1:-$HOME/code/jessitron/iterate-on-docs}"
-dest="$target/html-with-comments"
+name=html-revisor
+dest="$target/$name"
 dev_only=(CLAUDE.md OVERVIEW.html PLAN.html .gitignore deploy)
 
 die() { echo "deploy: $*" >&2; exit 1; }
@@ -15,10 +16,12 @@ die() { echo "deploy: $*" >&2; exit 1; }
   die "uncommitted changes in $here; commit them first"
 git -C "$here" merge-base --is-ancestor HEAD main || die "HEAD is not on main; merge first"
 [ -d "$dest" ] || die "$dest not found"
-[ -z "$(git -C "$target" status --porcelain -- html-with-comments)" ] ||
+[ -z "$(git -C "$target" status --porcelain -- "$name")" ] ||
   die "uncommitted changes in $dest; commit or discard them first"
 
 hash="$(git -C "$here" rev-parse --short HEAD)"
+src="$here"
+case "$here" in "$HOME"/*) src="~${here#"$HOME"}" ;; esac
 
 find "$dest" -mindepth 1 -delete
 excludes=()
@@ -27,24 +30,24 @@ git -C "$here" archive HEAD -- . "${excludes[@]}" | tar -x -C "$dest"
 cat > "$dest/VENDORED.md" <<EOF
 # Vendored
 
-This directory is a copy of html-with-comments, kept here because its purpose is this plugin.
+This directory is a copy of html-revisor, kept here because its purpose is this plugin.
 Don't edit it here. Change the source, then run \`./deploy\` there; it replaces this directory.
 
-Source: \`~/code/jessitron/html-with-comments\` at \`$hash\`.
+Source: \`$src\` at \`$hash\`.
 EOF
 
 log="$(mktemp)"
 if ! (cd "$dest" && npm test --silent) > "$log" 2>&1; then
   cat "$log" >&2
-  git -C "$target" checkout -- html-with-comments
-  git -C "$target" clean -fdq -- html-with-comments
+  git -C "$target" checkout -- "$name"
+  git -C "$target" clean -fdq -- "$name"
   die "tests failed in $dest; restored it, nothing committed"
 fi
 
-git -C "$target" add -A -- html-with-comments
-if git -C "$target" diff --cached --quiet -- html-with-comments; then
+git -C "$target" add -A -- "$name"
+if git -C "$target" diff --cached --quiet -- "$name"; then
   echo "deploy: $dest already matches $hash; nothing to commit"
   exit 0
 fi
-git -C "$target" commit -q -m "Deploy html-with-comments at $hash" -- html-with-comments
-echo "deploy: committed html-with-comments at $hash in $target (not pushed, not released)"
+git -C "$target" commit -q -m "Deploy $name at $hash" -- "$name"
+echo "deploy: committed $name at $hash in $target (not pushed, not released)"
