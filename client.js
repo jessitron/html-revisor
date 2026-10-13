@@ -668,7 +668,7 @@
         edits[boxId] = textArea.value;
         scheduleSave('markdown', boxId);
       });
-      box.appendChild(label('Text'));
+      box.appendChild(label('Content'));
       box.appendChild(textArea);
       box.appendChild(label('Directive'));
     }
