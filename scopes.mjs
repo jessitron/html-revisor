@@ -6,7 +6,7 @@
 //
 // A scope is any block element, plus links, images, and spans. You pick it to leave a directive or to
 // edit its whole content as markdown: a section, a list, one list item, a table, one cell (Jess,
-// 2026-10-12, F2 in try-me.html#scopes). Other inline elements, like strong, belong to their
+// 2026-10-12, F2 in SCOPES-DESIGN.html#scopes). Other inline elements, like strong, belong to their
 // block. scopeMarkdown writes a scope as markdown and scopeFromMarkdown reads it back; saving
 // it unchanged gives back the same HTML, element IDs included (PLAN.html stage 5). Saving it
 // edited, each element keeps its ID (stage 6) and its directives (stage 7). test/roundtrip.test.mjs.
