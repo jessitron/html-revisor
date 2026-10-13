@@ -50,28 +50,13 @@
         <tbody>
           <tr>
             <td data-hrv="2861">Editing notation</td>
-            <td data-hrv="2862">
-              <!-- @AI: I do not want historical stuff in here. We do not corrupt the context with old stuff -->
-              Markdown, not contenteditable. Research in commit <code>8683442</code>.
-            </td>
+            <td data-hrv="2862">Markdown.</td>
             <td data-hrv="2863"><a data-hrv="2864" href="#a1">A1</a></td>
-          </tr>
-          <tr>
-            <td data-hrv="2865">
-              <!-- @AI: what does this mean? -->
-              The word
-            </td>
-            <td data-hrv="2866">
-              <!-- @AI: oh. again, the point of deciding is to REDUCE needed context. Delete this line -->
-              <strong>scope</strong>, not chunk.
-            </td>
-            <td data-hrv="2867"></td>
           </tr>
           <tr>
             <td data-hrv="2868">What can you pick to edit or direct?</td>
             <td data-hrv="2869">
-              <!-- @AI: continue removing any reference to old decisions -->
-              Any block: a section, a list, one item, a table, one cell, an svg text label. Each edits its whole content as markdown. Replaces "one chunk, nothing inside it", 2026-10-12.
+              Any block: a section, a list, one item, a table, one cell, an svg text label. Each edits its whole content as markdown.
             </td>
             <td data-hrv="2870">
               <a data-hrv="2871" href="#a1">A1</a>, <a data-hrv="2872" href="#c1">C1</a>, <a data-hrv="2873" href="#c6">C6</a>, <a data-hrv="2874" href="#d6">D6</a>
@@ -80,7 +65,7 @@
           <tr>
             <td data-hrv="2875">Inline elements: hover and directives?</td>
             <td data-hrv="2876">
-              Per element. <code>a</code> and <code>img</code>: yes. <code>strong</code>: no, it belongs to its block. <code>span</code>: no, not even a pill. A user expects a pill to be pickable on its own and a plain span not; we can't tell them apart, and this could go either way (Jess, 2026-10-13).
+              Per element. <code>a</code> and <code>img</code>: yes. <code>strong</code>: no, it belongs to its block. <code>span</code>: no, not even a pill. A user expects a pill to be pickable on its own and a plain span not; the tool can't tell them apart. This could go either way.
             </td>
             <td data-hrv="2877">
               <a data-hrv="2878" href="#b2">B2</a>, <a data-hrv="2879" href="#d2">D2</a>, <a data-hrv="2880" href="#e1">E1</a>, <a data-hrv="2881" href="#e2">E2</a>
@@ -114,7 +99,7 @@
           <tr>
             <td data-hrv="2897">Code blocks</td>
             <td data-hrv="2898">
-              A fenced block: backticks for <code>&lt;pre&gt;&lt;code&gt;</code>, tildes for a bare <code>&lt;pre&gt;</code>. A pre holding markup (highlighting) is HTML, so its spans survive (Jess, 2026-10-12).
+              A fenced block: backticks for <code>&lt;pre&gt;&lt;code&gt;</code>, tildes for a bare <code>&lt;pre&gt;</code>. A pre holding markup (highlighting) is HTML, so its spans survive.
             </td>
             <td data-hrv="2899">
               <a data-hrv="2900" href="#c11">C11</a>, <a data-hrv="2901" href="#d3">D3</a>
@@ -157,7 +142,7 @@
           <tr>
             <td data-hrv="2925">What isn't text</td>
             <td data-hrv="2926">
-              A stand-in: <code>⟦svg⟧</code>, <code>⟦script⟧</code>, restored in order from the prior HTML. A literal ⟦ is <code>\⟦</code>. Hidden elements used to be left out of the markdown, so saving would have dropped them (Jess, 2026-10-12).
+              A stand-in: <code>⟦svg⟧</code>, <code>⟦script⟧</code>, restored in order from the prior HTML. A literal ⟦ is <code>\⟦</code>. Hidden elements get stand-ins too, so a save keeps them.
             </td>
             <td data-hrv="2927">
               <a data-hrv="2928" href="#d1">D1</a>, <a data-hrv="2929" href="#d5">D5</a>, <a data-hrv="2930" href="#d7">D7</a>
@@ -184,7 +169,7 @@
           <tr>
             <td data-hrv="2942">Where markdown converts</td>
             <td data-hrv="2943">
-              On the server, where <code>scopes.mjs</code> and linkedom run; the client stays small. No live preview for now (Jess, 2026-10-12).
+              On the server, where <code>scopes.mjs</code> and linkedom run; the client stays small. No live preview.
             </td>
             <td data-hrv="2944"></td>
           </tr>
@@ -195,7 +180,7 @@
           </tr>
           <tr>
             <td data-hrv="2949">A directive whose element a markdown save deleted?</td>
-            <td data-hrv="2950">Goes with it (Jess, 2026-10-12).</td>
+            <td data-hrv="2950">Goes with it.</td>
             <td data-hrv="2951"></td>
           </tr>
         </tbody>
