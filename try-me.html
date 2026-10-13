@@ -33,13 +33,16 @@
     <p data-hrv="3">
       This page exercises html-revisor. Click anything to leave a directive on it.
     </p>
-    <h2 data-hrv="4">Text you can edit</h2>
+    <h2 data-hrv="4">
+      <!-- @AI: make this a section so that I can edit it as a whole -->
+      Text you can edit
+    </h2>
     <p data-hrv="5">This paragraph holds only text, so the box offers a Text field.</p>
     <p data-hrv="6">
       This one has <strong>bold</strong> and <em>emphasis</em> inside, so the paragraph itself gets only a directive. Click the bold word to edit just that word.
     </p>
     <p data-hrv="7">
-      Entities survive editing: Fish &amp; chips &lt;tasty&gt; cost&nbsp;$5.
+      Entities <strong>survive</strong> editing: Fish &amp; chips &lt;tasty&gt; cost&nbsp;$5.
     </p>
     <p data-hrv="8">
       A <a data-hrv="9" href="test/fixtures/other.html">plain click on this link</a> opens the directive box; ⌘-click navigates.
@@ -50,7 +53,10 @@
       <li data-hrv="13">Second item</li>
       <li data-hrv="14">Third item with <code>code</code> inside</li>
     </ul>
-    <h2 data-hrv="15">A table</h2>
+    <h2 data-hrv="15">
+      <!-- @AI: add margins around the table ? or padding? So that I can select the whole thing -->
+      A table
+    </h2>
     <table data-hrv="16">
       <thead>
         <tr>
@@ -89,6 +95,7 @@
       </p>
       <h3 data-hrv="33">A. Clear prose</h3>
       <div data-hrv="34" class="case">
+        <!-- @AI: Is there a reason this wasn't turned into a markdown table? I think in general, tables should be. -->
         <h4 data-hrv="35">A1. Plain paragraph</h4>
         <p data-hrv="36" class="ask">The baseline: one scope, edits as plain text.</p>
         <div data-hrv="37" class="ex">
@@ -323,6 +330,7 @@ October 2026</pre>
               <td data-hrv="1646">&lt;p&gt;</td>
               <td data-hrv="1647">markdown with HTML</td>
               <td data-hrv="1648">
+                <!-- @AI: now, here's a change I want, too. A link has a markdown representation. The HTML controls more than that, so I guess that's why it's rendered as HTML? But I want the Markdown link rendered, and then on save, reconciled against the original HTML to recover the other properties. -->
                 <pre data-hrv="1649">See &lt;a href="#scopes" title="this section" target="_blank" class="ref"&gt;the section&lt;/a&gt; and a &lt;span style="color: #bc4c00"&gt;warning-colored&lt;/span&gt; word.</pre>
               </td>
             </tr>
@@ -365,6 +373,7 @@ October 2026</pre>
               <td data-hrv="1661">&lt;p&gt;</td>
               <td data-hrv="1662">markdown with HTML</td>
               <td data-hrv="1663">
+                <!-- @AI: this one I like: span doesn't have a markdown representation, so we just put span here. -->
                 <pre data-hrv="1664">Split out the formatter &lt;span class="pill"&gt;stez&lt;/span&gt;, then decide scopes &lt;span class="pill"&gt;a17m&lt;/span&gt;.</pre>
               </td>
             </tr>
@@ -512,6 +521,7 @@ October 2026</pre>
         </table>
       </div>
       <div data-hrv="242" class="case">
+        <!-- @AI: The sections here are quite nice to edit. I want to add a bit to the instructions to the agents that says, if you put sections of the document in a tag (like section, say) with padding, then the user can edit them as a whole. -->
         <h4 data-hrv="243">C2. Nested list</h4>
         <p data-hrv="244" class="ask">
           The inner list sits inside the first item's text. Where's the boundary?
@@ -770,6 +780,7 @@ Opening and saving must change nothing.</pre>
           With paragraphs inside, the paragraphs are scopes. With bare text, the blockquote is.
         </p>
         <div data-hrv="363" class="ex">
+          <!-- @AI: ok why does the first blockquote get turned into &gt; and the second still has the html tag? This looks like a bug -->
           <blockquote data-hrv="364">
             <p data-hrv="365">The curious mind over the inventive mind.</p>
             <p data-hrv="366">— Clausewitz</p>
@@ -832,6 +843,7 @@ Opening and saving must change nothing.</pre>
           Each cell a scope? The header row too? A cell holding a list?
         </p>
         <div data-hrv="394" class="ex">
+          <!-- @AI: this should be a markdown table, again. -->
           <table data-hrv="395">
             <caption data-hrv="396">Stages</caption>
             <tbody>
@@ -1009,6 +1021,7 @@ Opening and saving must change nothing.</pre>
           The caption is prose; the figure is a container; the image is nonprose.
         </p>
         <div data-hrv="465" class="ex">
+          <!-- @AI: why <em&gt;path</em&gt; ? Is it because once you're in html, you're in html? -->
           <figure data-hrv="466">
             <svg data-hrv="467" viewBox="0 0 120 40" width="120">
               <rect data-hrv="468" x="1" y="1" width="118" height="38" rx="6" fill="none" stroke="#8250df"></rect><text data-hrv="469" x="60" y="25" text-anchor="middle" font-size="12">diagram</text>
@@ -1242,6 +1255,7 @@ echo $?
               <td data-hrv="1960">&lt;pre&gt;</td>
               <td data-hrv="1961">markdown with HTML</td>
               <td data-hrv="1962">
+                <!-- @AI: tweak for tryme: make these spans have a style instead of a class, so we can make them look different, then this example will be clearer -->
                 <pre data-hrv="1963">&lt;pre&gt;&lt;code&gt;&lt;span class="kw"&gt;const&lt;/span&gt; x = &lt;span class="num"&gt;1&lt;/span&gt;;&lt;/code&gt;&lt;/pre&gt;</pre>
               </td>
             </tr>
