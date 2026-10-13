@@ -98,10 +98,11 @@ html:not([data-hrv-review="off"]) [data-hrv]:not(html, body) { cursor: copy !imp
 /* The directive box opens beside its element; data-side says which side the box is on.
    The notch, a square of the material turned 45 degrees, sits on the edge facing the element,
    --hrv-notch along that edge, so it points at the element when the box shifts to stay in view.
-   Its two outer edges carry the ring; the inner half hides in the box. */
+   Its two outer edges carry the ring; the inner half hides in the box.
+   The box sits above markers (1), tips (2), and the docket (1): the box is what you're working in. */
 :is(#hrv-layer, .hrv-layer) .hrv-box {
   position: absolute; width: 320px; padding: 8px; background: var(--hrv-surface); color: var(--hrv-text);
-  box-shadow: var(--hrv-material);
+  box-shadow: var(--hrv-material); z-index: 3;
   --hrv-notch: 24px; --hrv-notch-size: 12px;
 }
 :is(#hrv-layer, .hrv-layer) .hrv-box[data-side]::before {
