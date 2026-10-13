@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-hrv-next="2853">
+<html data-hrv-next="2854">
   <head>
     <meta charset="utf-8">
     <title>Try me: html-revisor sample page</title>
@@ -12,6 +12,7 @@
   .case { border-left: 4px solid #8250df; padding: 0.25rem 0 0.25rem 1rem; margin: 1.5rem 0; }
   .case > h4 { margin: 0; }
   .ask { color: #656d76; font-size: 0.9rem; margin: 0.1rem 0 0.5rem; }
+  .decided { color: #1a7f37; font-size: 0.9rem; margin: 0.1rem 0 0.5rem; }
   .ex { border: 1px dashed #bbb; border-radius: 6px; padding: 0.25rem 0.75rem; }
   .pill { font: 0.75rem ui-monospace, monospace; color: #656d76; border: 1px solid #ccc; border-radius: 999px; padding: 0 0.4rem; }
   .stats { display: flex; gap: 1rem; }
@@ -1724,6 +1725,9 @@ node formatter.mjs try-me.html
         <h4 data-hrv="774">E2. A label row</h4>
         <p data-hrv="775" class="ask">
           Spans side by side in a flex row. One sentence, or three labels?
+        </p>
+        <p data-hrv="2853" class="decided">
+          <strong>Decided:</strong> one scope, the row. A span is never a scope on its own, not even the pill. A user expects to pick the pill and not the plain spans, but the tool can't tell them apart. This could go either way (Jess, 2026-10-13); E1 asks the same.
         </p>
         <div data-hrv="776" class="ex">
           <div data-hrv="777" class="row">
