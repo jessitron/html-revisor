@@ -36,10 +36,9 @@
     </p>
     <section data-hrv="2208" class="part">
       <h2 data-hrv="4">Text you can edit</h2>
-      <p data-hrv="5">This paragraph holds only text, so the box offers a Text field.</p>
+      <p data-hrv="5">Click any block to edit it: the box shows its content as markdown.</p>
       <p data-hrv="6">
-        <!-- @AI: Correct this, it's false -->
-        This one has <strong>bold</strong> and <em>emphasis</em> inside, so the paragraph itself gets only a directive. Click the bold word to edit just that word.
+        This one has <strong>bold</strong> and <em>emphasis</em> inside; the box shows them as <code>**bold**</code> and <code>*emphasis*</code>. The bold word belongs to its paragraph: click it and you get the paragraph.
       </p>
       <p data-hrv="7">
         Entities <strong>survive</strong> editing: Fish &amp; chips &lt;tasty&gt; cost&nbsp;$5.
@@ -57,7 +56,6 @@
       </ul>
     </section>
     <section data-hrv="2210" class="part">
-      <!-- @AI: ahh, he -->
       <h2 data-hrv="15">A table</h2>
       <p data-hrv="2852">A super-basic, well-formed table with no html attributes.</p>
       <table data-hrv="16">
@@ -203,7 +201,6 @@
         </table>
       </div>
       <div data-hrv="87" class="case">
-        <!-- @AI: let's make a yak for: pop out this directive box into a full-screen modal. Or maybe just the editor. I want to give them some way to make it bigger. -->
         <h4 data-hrv="88">A4. Line breaks</h4>
         <p data-hrv="89" class="ask">
           A <code>&lt;br&gt;</code> becomes a trailing backslash or two spaces in markdown. Which round-trips?
@@ -1024,10 +1021,7 @@ Opening and saving must change nothing.</pre>
         <div data-hrv="465" class="ex">
           <figure data-hrv="466">
             <svg data-hrv="467" viewBox="0 0 120 40" width="120">
-              <!-- @AI: oh NO, I edited the text and it disappeared! I probably made it too long.
-
-... oh wait! I reloaded the page and the text appeared, along with its marker icon. Can we trigger a redraw of the svg after a save of a child? -->
-              <rect data-hrv="468" x="1" y="1" width="118" height="38" rx="6" fill="none" stroke="#8250df"></rect><text data-hrv="469" x="60" y="25" text-anchor="middle" font-size="12"><!-- @AI: This text is editable, good. -->diagram yo</text>
+              <rect data-hrv="468" x="1" y="1" width="118" height="38" rx="6" fill="none" stroke="#8250df"></rect><text data-hrv="469" x="60" y="25" text-anchor="middle" font-size="12">diagram yo</text>
             </svg>
             <figcaption data-hrv="470">The <em>path</em>, as of today.</figcaption>
           </figure>
@@ -1605,7 +1599,7 @@ node formatter.mjs try-me.html
         </p>
         <div data-hrv="715" class="ex">
           <svg data-hrv="716" viewBox="0 0 240 40" width="240">
-            <text data-hrv="717" x="10" y="25" font-size="14">Formatter <tspan data-hrv="718" font-weight="700"><!-- @AI: oh no, this text isn't editable. Make a yak -->alone</tspan></text>
+            <text data-hrv="717" x="10" y="25" font-size="14">Formatter <tspan data-hrv="718" font-weight="700">alone</tspan></text>
           </svg>
         </div>
         <details data-hrv="2699" class="scope-report">
@@ -1640,7 +1634,6 @@ node formatter.mjs try-me.html
         </p>
         <div data-hrv="733" class="ex">
           <p data-hrv="734">
-            <!-- @AI: oh no, I can't edit the text on the button. Make a yak for this case, because there's something about having text in there that makes it special -->
             Show <input type="checkbox" checked> done stages, or <button>reset</button>.
           </p>
         </div>
@@ -1673,7 +1666,6 @@ node formatter.mjs try-me.html
       <div data-hrv="747" class="case">
         <h4 data-hrv="748">E1. Stat tiles</h4>
         <p data-hrv="749" class="ask">
-          <!-- @AI: yeah, this is the question. Some spans make sense to be a scope. Make a yak to consider this example, for a human -->
           All spans, so phrasing by the spec. But it's layout. Scopes per tile, per span, or none?
         </p>
         <div data-hrv="750" class="ex">
@@ -1735,7 +1727,6 @@ node formatter.mjs try-me.html
         </p>
         <div data-hrv="776" class="ex">
           <div data-hrv="777" class="row">
-            <!-- @AI: I observe that spans can't be selected on their own. As a user I expect that pill to be selectable, but I wouldn't expect it of the others. This is a design decision that can go either way. Document it -->
             <span class="pill">stage 1</span><span>Formatter</span><span>→ done</span>
           </div>
         </div>
@@ -1770,7 +1761,6 @@ node formatter.mjs try-me.html
           A card that's one big link. The link is the container; its heading and paragraph are scopes?
         </p>
         <div data-hrv="792" class="ex">
-          <!-- @AI: Now this is interesting. We have HTML with markdown inside it, here. What's the logic? -->
           <a data-hrv="793" class="tile" href="#scopes">
             <h4 data-hrv="794">DESIGN.html</h4>
             <p data-hrv="795">Everything the tool adds to a page.</p>
@@ -1986,7 +1976,6 @@ After a rule.</pre>
       <div data-hrv="898" class="case">
         <h4 data-hrv="899">F3. A list inside a paragraph</h4>
         <p data-hrv="900" class="ask">
-          <!-- @AI: if it's gonna close the p at the ul, why wouldn't it start it up again after it? -->
           Written as <code>&lt;p&gt;Before the list&lt;ul&gt;…&lt;/ul&gt;after the list&lt;/p&gt;</code>. The formatter does what a browser does: it closes the <code>p</code> at the <code>ul</code>, leaves the trailing text bare (C10), and turns the stray <code>&lt;/p&gt;</code> into an empty <code>p</code> (F1). Leave it, or should the formatter wrap the bare text?
         </p>
         <div data-hrv="901" class="ex">
