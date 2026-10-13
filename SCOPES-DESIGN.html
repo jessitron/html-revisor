@@ -51,18 +51,26 @@
           <tr>
             <td data-hrv="2861">Editing notation</td>
             <td data-hrv="2862">
+              <!-- @AI: I do not want historical stuff in here. We do not corrupt the context with old stuff -->
               Markdown, not contenteditable. Research in commit <code>8683442</code>.
             </td>
             <td data-hrv="2863"><a data-hrv="2864" href="#a1">A1</a></td>
           </tr>
           <tr>
-            <td data-hrv="2865">The word</td>
-            <td data-hrv="2866"><strong>scope</strong>, not chunk.</td>
+            <td data-hrv="2865">
+              <!-- @AI: what does this mean? -->
+              The word
+            </td>
+            <td data-hrv="2866">
+              <!-- @AI: oh. again, the point of deciding is to REDUCE needed context. Delete this line -->
+              <strong>scope</strong>, not chunk.
+            </td>
             <td data-hrv="2867"></td>
           </tr>
           <tr>
             <td data-hrv="2868">What can you pick to edit or direct?</td>
             <td data-hrv="2869">
+              <!-- @AI: continue removing any reference to old decisions -->
               Any block: a section, a list, one item, a table, one cell, an svg text label. Each edits its whole content as markdown. Replaces "one chunk, nothing inside it", 2026-10-12.
             </td>
             <td data-hrv="2870">
@@ -88,7 +96,7 @@
           <tr>
             <td data-hrv="2886">Line breaks and <code>&amp;nbsp;</code></td>
             <td data-hrv="2887">
-              A <code>&lt;br&gt;</code> is a newline, not a backslash. U+00A0 shows as the character.
+              A <code>&lt;br&gt;</code> is a newline. U+00A0 shows as the character.
             </td>
             <td data-hrv="2888">
               <a data-hrv="2889" href="#a4">A4</a>, <a data-hrv="2890" href="#a5">A5</a>
@@ -251,7 +259,7 @@
     <section data-hrv="29" id="scopes">
       <h2 data-hrv="30">What is a scope?</h2>
       <p data-hrv="31">
-        Cases for PLAN.html stage 2. A scope is any block you can pick: you leave a directive on it, or edit its whole content as markdown. Each case has the same four parts: its name, the question it asks in grey, the example HTML in a dashed box, and a table of the scopes the example would make. Disagree with a row? Leave a directive on it.
+        A scope is any block you can pick: you leave a directive on it, or edit its whole content as markdown. Each case has the same four parts: its name, the question it asks in grey, the example HTML in a dashed box, and a table of the scopes the example would make. Disagree with a row? Leave a directive on it.
       </p>
       <p data-hrv="2212" class="scope-report">
         Under each example: its HTML (click to open), then a row for each element you could pick, nested inside the element that holds it. The last column is the markdown you would edit if you picked that element. ⟦svg⟧ marks something that isn't text riding inside the markdown.
