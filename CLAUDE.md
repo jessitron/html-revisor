@@ -1,6 +1,6 @@
 # html-revisor: notes for agents
 
-Read `README.md` for usage. Build history is in git log; open work is in `yx`. `html-revisor-spec.md` is the original spec. `OVERVIEW.html` is the picture of the project for humans: architecture now and planned. `PLAN.html` is the path: order of work, what's decided, what's blocked. `DESIGN.html` shows everything the tool adds to a page; it links `client.css`, the same stylesheet the server inlines, so it can't drift. When a change alters the architecture or lands something marked directional there, update it in the same commit and tell Jess.
+Read `README.md` for usage. Build history is in git log; open work is in `yx`. `html-revisor-spec.md` is the original spec. `OVERVIEW.html` is the picture of the project for humans: architecture now and planned. `PLAN.html` is the path: order of work, what's decided, what's blocked; it goes away when the work is done. `try-me.html` is Jess's hand-test page and the permanent home of the scope and markdown-editing decisions: its Decided table at the top links to the cases in #scopes. `DESIGN.html` shows everything the tool adds to a page; it links `client.css`, the same stylesheet the server inlines, so it can't drift. When a change alters the architecture or lands something marked directional there, update it in the same commit and tell Jess.
 
 ## Where the code lives
 
@@ -10,7 +10,7 @@ The README's "Contract with iterate-on-docs" table lists everything iterate-on-d
 
 The domain word for an `<!-- @AI: ... -->` request is **directive**. Avoid note, comment, annotation ("HTML comment" still means the syntax).
 
-A **scope** is what you pick to direct or edit: any block element, plus links, images, and spans. Its whole content edits as markdown, and scopes nest. It replaced "prose chunk" (2026-10-12). `scopes.mjs` holds the rules; PLAN.html's Decided table holds the reasons.
+A **scope** is what you pick to direct or edit: any block element, plus links and images. Its whole content edits as markdown, and scopes nest. It replaced "prose chunk" (2026-10-12). `scopes.mjs` holds the rules; try-me.html's Decided table holds the reasons. A new scope decision goes in that table, with links to the cases that show it.
 
 ## What the HTML files are
 

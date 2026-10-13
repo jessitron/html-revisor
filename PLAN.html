@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-hrv-next="267" lang="en">
+<html data-hrv-next="246" lang="en">
   <head>
     <meta charset="utf-8">
     <title>html-revisor — the path</title>
@@ -326,9 +326,9 @@
             </td>
           </tr>
           <tr>
-            <td data-hrv="133">IDs after a markdown edit of a wider scope</td>
-            <td data-hrv="134">
-              Unchanged elements keep them, reconciled against the prior HTML. Intent; built with markdown editing.
+            <td data-hrv="243">Scopes and editing as markdown</td>
+            <td data-hrv="244">
+              Moved to <a data-hrv="245" href="try-me.html#decided">try-me.html</a>, beside the cases that show each one: those decisions outlive this plan.
             </td>
           </tr>
           <tr>
@@ -338,102 +338,8 @@
             </td>
           </tr>
           <tr>
-            <td data-hrv="137">Editing notation</td>
-            <td data-hrv="138">
-              Markdown, not contenteditable. Research in commit <code>8683442</code>.
-            </td>
-          </tr>
-          <tr>
             <td data-hrv="139">Formatter CLI in the contract?</td>
             <td data-hrv="140">Yes. iterate-on-docs changes with it.</td>
-          </tr>
-          <tr>
-            <td data-hrv="141">What can you pick to edit or direct?</td>
-            <td data-hrv="142">
-              Any block: a section, a list, one item, a table, one cell, an svg text label. Each edits its whole content as markdown. Replaces "one chunk, nothing inside it", 2026-10-12.
-            </td>
-          </tr>
-          <tr>
-            <td data-hrv="143">Lists</td>
-            <td data-hrv="144">
-              Markdown <code>- </code> lines, nested lists indented. Add and delete items by editing. A list holding paragraphs or tables: pick the inner blocks too.
-            </td>
-          </tr>
-          <tr>
-            <td data-hrv="145">Code blocks</td>
-            <td data-hrv="146">
-              A fenced block: backticks for <code>&lt;pre&gt;&lt;code&gt;</code>, tildes for a bare <code>&lt;pre&gt;</code>. A pre holding markup (highlighting) is HTML, so its spans survive (Jess, 2026-10-12).
-            </td>
-          </tr>
-          <tr>
-            <td data-hrv="147">Text beside blocks</td>
-            <td data-hrv="148">
-              Paragraphs in the enclosing scope's markdown: text, list, text edits as one. Text saved unchanged stays bare.
-            </td>
-          </tr>
-          <tr>
-            <td data-hrv="149">Tables</td>
-            <td data-hrv="150">
-              A table with a header row of plain cells is a markdown table; otherwise HTML. Each cell is a scope too.
-            </td>
-          </tr>
-          <tr>
-            <td data-hrv="151">What markdown can't say</td>
-            <td data-hrv="152">
-              Stays as inline HTML (<code>kbd</code>, <code>span class</code>, <code>a target</code>). Inside a bigger scope, a block with attributes is HTML too, inner markup and all, since markdown isn't read inside an HTML block. <span data-hrv="265" class="yak">f6im</span>
-            </td>
-          </tr>
-          <tr>
-            <td data-hrv="153">Headings</td>
-            <td data-hrv="154">
-              <code>#</code> inside a bigger scope; picked alone, only the text.
-            </td>
-          </tr>
-          <tr>
-            <td data-hrv="155">Line breaks and <code>&amp;nbsp;</code></td>
-            <td data-hrv="156">
-              A <code>&lt;br&gt;</code> is a newline, not a backslash. U+00A0 shows as the character.
-            </td>
-          </tr>
-          <tr>
-            <td data-hrv="157">Images</td>
-            <td data-hrv="158">
-              <code>![alt](src)</code>; saving takes the other attributes from the original.
-            </td>
-          </tr>
-          <tr>
-            <td data-hrv="159">
-              Unlikely shapes in HTML ⇄ markdown (empty paragraphs, <code>dl</code>, stat tiles)
-            </td>
-            <td data-hrv="160">May be ugly. Spend effort on the shapes agents write.</td>
-          </tr>
-          <tr>
-            <td data-hrv="161">Inline elements: hover and directives?</td>
-            <td data-hrv="162">
-              Per element. <code>a</code> and <code>img</code>: yes. <code>strong</code>: no, it belongs to its block. <code>span</code>: no, not even a pill. A user expects a pill to be pickable on its own and a plain span not; we can't tell them apart, and this could go either way (Jess, 2026-10-13). Stat tiles ask the same. <span class="yak">cwoo</span>
-            </td>
-          </tr>
-          <tr>
-            <td data-hrv="193">Writing markdown</td>
-            <td data-hrv="194">
-              Rules make it readable; each block and run of phrasing is checked against the parser, and written as HTML where it wouldn't come back the same. The round-trip holds by construction. <span data-hrv="266" class="yak">8hlj</span>
-            </td>
-          </tr>
-          <tr>
-            <td data-hrv="195">What isn't text</td>
-            <td data-hrv="196">
-              A stand-in: <code>⟦svg⟧</code>, <code>⟦script⟧</code>, restored in order from the prior HTML. A literal ⟦ is <code>\⟦</code>. Hidden elements used to be left out of the markdown, so saving would have dropped them (Jess, 2026-10-12).
-            </td>
-          </tr>
-          <tr>
-            <td data-hrv="197">Where markdown converts</td>
-            <td data-hrv="198">
-              On the server, where <code>scopes.mjs</code> and linkedom run; the client stays small. No live preview for now (Jess, 2026-10-12).
-            </td>
-          </tr>
-          <tr>
-            <td data-hrv="163">The word</td>
-            <td data-hrv="164"><strong>scope</strong>, not chunk.</td>
           </tr>
           <tr>
             <td data-hrv="165">Shipping</td>
@@ -444,10 +350,6 @@
           <tr>
             <td data-hrv="167">SVG commenting</td>
             <td data-hrv="168">Stays as is.</td>
-          </tr>
-          <tr>
-            <td data-hrv="237">A directive whose element a markdown save deleted?</td>
-            <td data-hrv="238">Goes with it (Jess, 2026-10-12).</td>
           </tr>
         </tbody>
       </table>
