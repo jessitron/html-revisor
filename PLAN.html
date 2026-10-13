@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-hrv-next="243" lang="en">
+<html data-hrv-next="267" lang="en">
   <head>
     <meta charset="utf-8">
     <title>html-revisor — the path</title>
@@ -67,7 +67,7 @@
         <div data-hrv="49" class="card">
           <h3 data-hrv="50">Decide what makes a scope</h3>
           <p data-hrv="51" class="why">
-            Started as "what makes a prose chunk". It became: you pick any block, from a section down to a list item or a cell, and edit its whole content as markdown. The decisions are in the table below. The tool is <code>scopes.mjs</code>; <code>--annotate</code> shows each case in <a data-hrv="52" href="try-me.html#scopes">try-me.html</a> as its HTML, scopes, and markdown. <span class="yak">p5pm</span>
+            Started as "what makes a prose chunk". It became: you pick any block, from a section down to a list item or a cell, and edit its whole content as markdown. The decisions are in the table below. The tool is <code>scopes.mjs</code>; <code>--annotate</code> shows each case in <a data-hrv="52" href="try-me.html#scopes">try-me.html</a> as its HTML, scopes, and markdown. <span data-hrv="243" class="yak">p5pm</span>
           </p>
         </div>
       </div>
@@ -76,7 +76,7 @@
         <div data-hrv="179" class="card">
           <h3 data-hrv="180">Element ID rewrite</h3>
           <p data-hrv="181" class="why">
-            IDs written into the file, so an edit that adds or removes elements shifts no one's ID. <span class="yak">a17m</span>
+            IDs written into the file, so an edit that adds or removes elements shifts no one's ID. <span data-hrv="244" class="yak">a17m</span>
           </p>
           <ul data-hrv="63">
             <li data-hrv="64">
@@ -89,10 +89,10 @@
               A save carries one change and the base it started from: <code>{id, base, directive}</code>, <code>{id, base, markdown}</code> for a scope. No file-wide version, no 409. A conflict is a 412.
             </li>
             <li data-hrv="67">
-              A conflict means turn-taking broke: the save shows an error and suggests a reload. <span class="yak">cqsh</span>
+              A conflict means turn-taking broke: the save shows an error and suggests a reload. <span data-hrv="245" class="yak">cqsh</span>
             </li>
             <li data-hrv="68">
-              The tab hears of outside changes on save, as a notice, never a block. <span class="yak">0so7</span> Live notice is in the polish lane.
+              The tab hears of outside changes on save, as a notice, never a block. <span data-hrv="246" class="yak">0so7</span> Live notice is in the polish lane.
             </li>
             <li data-hrv="69">
               Contract: agents leave <code>data-hrv</code> and <code>data-hrv-next</code> alone. In the README and in iterate-on-docs.
@@ -105,11 +105,11 @@
         <div data-hrv="56" class="card">
           <h3 data-hrv="57">Scopes</h3>
           <p data-hrv="58" class="why">
-            The rule from stage 2, in code, up to markdown. Every block element, link, and image takes directives. Scopes nest, so one edit can change the elements inside another scope. Offering each scope's markdown in the box is stage 5.
+            The rule from stage 2, in code, up to markdown. Every block element, link, image, and span takes directives. Scopes nest, so one edit can change the elements inside another scope. Offering each scope's markdown in the box is stage 5.
           </p>
           <ul data-hrv="59" class="yaks">
             <li data-hrv="61">
-              Inline elements, per element: <code>a</code> and <code>img</code> take hover and directives; <code>strong</code> doesn't. Only elements with an ID take them.
+              Inline elements, per element: <code>a</code>, <code>img</code>, and <code>span</code> take hover and directives; <code>strong</code> doesn’t. Only elements with an ID take them.
             </li>
           </ul>
         </div>
@@ -123,19 +123,19 @@
           </p>
           <ul data-hrv="75" class="yaks">
             <li data-hrv="170">
-              Done: the client script lives in <code>client.js</code>, so client work no longer collides with server work. <span class="yak">tl5y</span>
+              Done: the client script lives in <code>client.js</code>, so client work no longer collides with server work. <span data-hrv="247" class="yak">tl5y</span>
             </li>
             <li data-hrv="187">
-              <strong>Parser:</strong> markdown-it, vendored like linkedom. CommonMark with GFM tables; raw HTML passes through; a newline is <code>&lt;br&gt;</code> (A4). <strong>Writer:</strong> our own, in <code>scopes.mjs</code>: it carries the Decided rules, and turndown would need each one overridden. <span class="yak">6u05</span>
+              <strong>Parser:</strong> markdown-it, vendored like linkedom. CommonMark with GFM tables; raw HTML passes through; a newline is <code>&lt;br&gt;</code> (A4). <strong>Writer:</strong> our own, in <code>scopes.mjs</code>: it carries the Decided rules, and turndown would need each one overridden. <span data-hrv="248" class="yak">6u05</span>
             </li>
             <li data-hrv="188">
-              Done: the inverse, <code>scopeFromMarkdown</code>, and the property test, <code>test/roundtrip.test.mjs</code>: every scope in this repo's pages, and seeded pages full of <code>* _ ` [ # &amp;</code>, round-trip, IDs and directives aside. The writer checks each block and run of phrasing against markdown-it and writes HTML where markdown wouldn't read back the same. <span class="yak">s8s3</span>
+              Done: the inverse, <code>scopeFromMarkdown</code>, and the property test, <code>test/roundtrip.test.mjs</code>: every scope in this repo's pages, and seeded pages full of <code>* _ ` [ # &amp;</code>, round-trip, IDs and directives aside. The writer checks each block and run of phrasing against markdown-it and writes HTML where markdown wouldn't read back the same. <span data-hrv="249" class="yak">s8s3</span>
             </li>
             <li data-hrv="189">
-              Done: canonical forms. The formatter rewrites <code>b</code>→<code>strong</code>, <code>i</code>→<code>em</code>, puts table rows in <code>thead</code>/<code>tbody</code>, and drops whitespace beside <code>&lt;br&gt;</code>, so what markdown writes back is what the file holds. Formatting, not a validation rule: no agent hears of it. <span class="yak">w3yn</span>
+              Done: canonical forms. The formatter rewrites <code>b</code>→<code>strong</code>, <code>i</code>→<code>em</code>, puts table rows in <code>thead</code>/<code>tbody</code>, and drops whitespace beside <code>&lt;br&gt;</code>, so what markdown writes back is what the file holds. Formatting, not a validation rule: no agent hears of it. <span data-hrv="250" class="yak">w3yn</span>
             </li>
             <li data-hrv="190">
-              Done: stand-ins. <code>⟦svg⟧</code> and <code>⟦script⟧</code> come back as the original element; an image keeps its other attributes. <span class="yak">25ov</span>
+              Done: stand-ins. <code>⟦svg⟧</code> and <code>⟦script⟧</code> come back as the original element; an image keeps its other attributes. <span data-hrv="251" class="yak">25ov</span>
             </li>
           </ul>
         </div>
@@ -145,7 +145,7 @@
         <div data-hrv="216" class="card">
           <h3 data-hrv="217">Reconcile: IDs survive a save</h3>
           <p data-hrv="218" class="why">
-            Saving a list's markdown builds new HTML for everything inside the list. Those elements have no <code>data-hrv</code>, so the formatter gives each a new ID, edited or not. Directives, the open box, and the 412 check all find elements by ID. Reconcile matches the new elements to the prior ones: a match keeps its ID and the attributes markdown can't say (<code>img</code> width and height). An element with no match is new and gets a new ID. <span class="yak">eq9q</span>
+            Saving a list's markdown builds new HTML for everything inside the list. Those elements have no <code>data-hrv</code>, so the formatter gives each a new ID, edited or not. Directives, the open box, and the 412 check all find elements by ID. Reconcile matches the new elements to the prior ones: a match keeps its ID and the attributes markdown can't say (<code>img</code> width and height). An element with no match is new and gets a new ID. <span data-hrv="252" class="yak">eq9q</span>
           </p>
           <ul data-hrv="219" class="yaks">
             <li data-hrv="231">
@@ -165,7 +165,7 @@
         <div data-hrv="222" class="card">
           <h3 data-hrv="223">Directives ride along</h3>
           <p data-hrv="224" class="why">
-            A scope can hold directives on the elements inside it: one list item, a link. The markdown doesn't show them. A save puts each one back on the element reconcile paired with its own. <span class="yak">25ov</span>
+            A scope can hold directives on the elements inside it: one list item, a link. The markdown doesn't show them. A save puts each one back on the element reconcile paired with its own. <span data-hrv="253" class="yak">25ov</span>
           </p>
           <ul data-hrv="234" class="yaks">
             <li data-hrv="235">
@@ -182,7 +182,7 @@
         <div data-hrv="227" class="card">
           <h3 data-hrv="228">Markdown in the box</h3>
           <p data-hrv="229" class="why">
-            Click a paragraph with bold or a link: the box shows its markdown, and saving writes HTML back. The client sends PUT <code>{id, base, markdown}</code>; the server converts with <code>scopeFromMarkdown</code>, which reconciles, and writes the file. <code>scopeMarkdown(el)</code> replaced <code>isTextElement</code>, so every block gets a text field. <span class="yak">i12d</span>
+            Click a paragraph with bold or a link: the box shows its markdown, and saving writes HTML back. The client sends PUT <code>{id, base, markdown}</code>; the server converts with <code>scopeFromMarkdown</code>, which reconciles, and writes the file. <code>scopeMarkdown(el)</code> replaced <code>isTextElement</code>, so every block gets a text field. <span data-hrv="254" class="yak">i12d</span>
           </p>
           <ul data-hrv="239" class="yaks">
             <li data-hrv="240">
@@ -206,7 +206,7 @@
         <div data-hrv="89" class="card">
           <h3 data-hrv="90">Reset</h3>
           <p data-hrv="91" class="why">
-            Put a scope's text back to what it was when the page first loaded. Reset itself needs an undo. <span class="yak">x8yp</span>
+            Put a scope's text back to what it was when the page first loaded. Reset itself needs an undo. <span data-hrv="255" class="yak">x8yp</span>
           </p>
         </div>
       </div>
@@ -216,22 +216,22 @@
       <p data-hrv="94" class="sub">Any time; each ships with the next deploy.</p>
       <div data-hrv="95" class="lane">
         <div data-hrv="96" class="card">
-          <strong>Movable box</strong><br>see the element behind it. The box now opens beside its element; maybe not needed. <span class="yak">a8t2</span>
+          <strong>Movable box</strong><br>see the element behind it. The box now opens beside its element; maybe not needed. <span data-hrv="256" class="yak">a8t2</span>
         </div>
         <div data-hrv="97" class="card">
-          <strong>Client style guide</strong><br>box, marker, docket, hover, all in one material; OVERVIEW's mocks use it. Built: <a data-hrv="98" href="DESIGN.html">DESIGN.html</a>. Waits on Jess's review of the palette and type. <span class="yak">vrc3</span>
+          <strong>Client style guide</strong><br>box, marker, docket, hover, all in one material; OVERVIEW's mocks use it. Built: <a data-hrv="98" href="DESIGN.html">DESIGN.html</a>. Waits on Jess's review of the palette and type. <span data-hrv="257" class="yak">vrc3</span>
         </div>
         <div data-hrv="172" class="card">
-          <strong>Live notice</strong><br>the server watches the file and tells the open tab it changed, without waiting for a save. <span class="yak">b0zb</span>
+          <strong>Live notice</strong><br>the server watches the file and tells the open tab it changed, without waiting for a save. <span data-hrv="258" class="yak">b0zb</span>
         </div>
         <div data-hrv="173" class="card">
-          <strong>Bugs</strong><br>a stray click outside the box closes it mid-sentence, silently <span class="yak">wx09</span>; a marker click doesn't move the docket's stepping position <span class="yak">cfqz</span>
+          <strong>Bugs</strong><br>a stray click outside the box closes it mid-sentence, silently <span data-hrv="259" class="yak">wx09</span>; a marker click doesn't move the docket's stepping position <span data-hrv="260" class="yak">cfqz</span>
         </div>
         <div data-hrv="230" class="card">
-          <strong>Readable markdown</strong><br>correct today, ugly in spots. One mark that can't be markdown turns its whole run to HTML; make it only that element <span class="yak">8hlj</span>. A <code>dd</code>, <code>summary</code>, or <code>p class</code> inside a bigger scope shows its inside as HTML <span class="yak">f6im</span>.
+          <strong>Readable markdown</strong><br>correct today, ugly in spots. One mark that can't be markdown turns its whole run to HTML; make it only that element <span data-hrv="261" class="yak">8hlj</span>. A <code>dd</code>, <code>summary</code>, or <code>p class</code> inside a bigger scope shows its inside as HTML <span data-hrv="262" class="yak">f6im</span>.
         </div>
         <div data-hrv="174" class="card">
-          <strong>Next deploy</strong><br>carries the box and docket words into iterate-on-docs, a Contract change. <span class="yak">63ls</span>
+          <strong>Next deploy</strong><br>carries the box and docket words into iterate-on-docs, a Contract change. <span data-hrv="263" class="yak">63ls</span>
         </div>
       </div>
     </section>
@@ -334,7 +334,7 @@
           <tr>
             <td data-hrv="135">IDs on a page leaving the tool</td>
             <td data-hrv="136">
-              A cleanup script strips them, roughly the formatter in reverse. Pairs with squashing the commits. <span class="yak">41o3</span>
+              A cleanup script strips them, roughly the formatter in reverse. Pairs with squashing the commits. <span data-hrv="264" class="yak">41o3</span>
             </td>
           </tr>
           <tr>
@@ -380,7 +380,7 @@
           <tr>
             <td data-hrv="151">What markdown can't say</td>
             <td data-hrv="152">
-              Stays as inline HTML (<code>kbd</code>, <code>span class</code>, <code>a target</code>). Inside a bigger scope, a block with attributes is HTML too, inner markup and all, since markdown isn't read inside an HTML block. <span class="yak">f6im</span>
+              Stays as inline HTML (<code>kbd</code>, <code>span class</code>, <code>a target</code>). Inside a bigger scope, a block with attributes is HTML too, inner markup and all, since markdown isn't read inside an HTML block. <span data-hrv="265" class="yak">f6im</span>
             </td>
           </tr>
           <tr>
@@ -410,13 +410,13 @@
           <tr>
             <td data-hrv="161">Inline elements: hover and directives?</td>
             <td data-hrv="162">
-              Per element. <code>a</code> and <code>img</code>: yes. <code>strong</code>: no, it belongs to its block.
+              Per element. <code>a</code> and <code>img</code>: yes. <code>span</code>: yes, edited as its content, its tag kept; not inside a <code>pre</code>, where spans are highlighting, and not one that fills its parent, which it would hide (Jess, 2026-10-13). <code>strong</code>: no, it belongs to its block.
             </td>
           </tr>
           <tr>
             <td data-hrv="193">Writing markdown</td>
             <td data-hrv="194">
-              Rules make it readable; each block and run of phrasing is checked against the parser, and written as HTML where it wouldn't come back the same. The round-trip holds by construction. <span class="yak">8hlj</span>
+              Rules make it readable; each block and run of phrasing is checked against the parser, and written as HTML where it wouldn't come back the same. The round-trip holds by construction. <span data-hrv="266" class="yak">8hlj</span>
             </td>
           </tr>
           <tr>

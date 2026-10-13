@@ -4,7 +4,7 @@
 //   node scopes.mjs --annotate <file>   writes, under each .ex example, its HTML and a table
 //                                       of its scopes and their markdown (in place)
 //
-// A scope is any block element, plus links and images. You pick it to leave a directive or to
+// A scope is any block element, plus links, images, and spans. You pick it to leave a directive or to
 // edit its whole content as markdown: a section, a list, one list item, a table, one cell (Jess,
 // 2026-10-12, F2 in try-me.html#scopes). Other inline elements, like strong, belong to their
 // block. scopeMarkdown writes a scope as markdown and scopeFromMarkdown reads it back; saving
@@ -79,15 +79,24 @@ const hasAttrs = (el) => attrNames(el).length > 0;
 
 // ---- Scopes -------------------------------------------------------------
 
-// A scope: { el, markdown, children }. Every block element is one; so are links, images, and
-// svg <text> labels (D6). The children are the scopes nested inside it.
+// A scope: { el, markdown, children }. Every block element is one; so are links, images, spans,
+// and svg <text> labels (D6). The children are the scopes nested inside it.
 export function scopeOf(el) {
   return { el, markdown: scopeMarkdown(el), children: scopesWithin(el) };
 }
 
 const TABLE_ROWS = new Set(['thead', 'tbody', 'tfoot', 'tr']);
-// Inline elements you can pick, decided per element (Jess, 2026-10-12). strong: no.
+// Inline elements whose markdown is the element itself: [text](href), ![alt](src).
 const INLINE_SCOPES = new Set(['a', 'img']);
+// Inline elements you can pick, decided per element (Jess, 2026-10-12). strong: no. span: yes,
+// and it edits its content, like a block (Jess, 2026-10-13). Not inside a pre: those spans are
+// highlighting, and the pre is the scope. Not a span that fills its parent: every click would
+// land on it, and the parent, a link or a paragraph, could not be picked.
+const PICKABLE_INLINE = new Set([...INLINE_SCOPES, 'span']);
+const pickableInline = (el) =>
+  PICKABLE_INLINE.has(el.localName) &&
+  !isBlock(el) &&
+  (el.localName !== 'span' || (!el.closest('pre') && [...el.parentNode.childNodes].filter(meaningful).length > 1));
 
 export const scopesWithin = (el) => pickable(el).map(scopeOf);
 
@@ -96,7 +105,7 @@ function pickable(el) {
   return [...el.children].flatMap((c) => {
     if (HIDDEN.has(c.localName)) return [];
     if (c.localName === 'text' && c.closest('svg')) return [c];
-    if (INLINE_SCOPES.has(c.localName) && !isBlock(c)) return [c];
+    if (pickableInline(c)) return [c];
     if (c.localName === 'hr') return [];
     if (TABLE_ROWS.has(c.localName)) return pickable(c); // pick a cell or the table, not a row
     if (isBlock(c)) return [c];

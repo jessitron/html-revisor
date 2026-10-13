@@ -10,7 +10,7 @@ The README's "Contract with iterate-on-docs" table lists everything iterate-on-d
 
 The domain word for an `<!-- @AI: ... -->` request is **directive**. Avoid note, comment, annotation ("HTML comment" still means the syntax).
 
-A **scope** is what you pick to direct or edit: any block element, plus links and images. Its whole content edits as markdown, and scopes nest. It replaced "prose chunk" (2026-10-12). `scopes.mjs` holds the rules; PLAN.html's Decided table holds the reasons.
+A **scope** is what you pick to direct or edit: any block element, plus links, images, and spans. Its whole content edits as markdown, and scopes nest. It replaced "prose chunk" (2026-10-12). `scopes.mjs` holds the rules; PLAN.html's Decided table holds the reasons.
 
 ## What the HTML files are
 

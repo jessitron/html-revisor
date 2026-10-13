@@ -55,6 +55,20 @@ test('links and images are scopes; strong is not', () => {
   assert.deepEqual(p.children.map((s) => s.markdown), ['[there](#x)', '![Y](y.png)']);
 });
 
+test('a span is a scope of its content, keeping its tag; a span in a pre is not', () => {
+  const [p, pre] = scopesWithin(body('<p>Split <span class="pill">st<em>ez</em></span></p><pre><span class="k">const</span> x</pre>'));
+  assert.deepEqual(p.children.map((s) => s.markdown), ['st*ez*']);
+  assert.deepEqual(pre.children, []);
+  const [span] = scopeFromMarkdown(p.children[0].el, 'stez **now**');
+  assert.equal(span.outerHTML, '<span class="pill">stez <strong>now</strong></span>');
+});
+
+test('a span that fills its parent is not a scope, so the parent stays pickable', () => {
+  const [p] = scopesWithin(body('<p><a href="#x"><span>there</span></a> and <span>a</span><span>b</span></p>'));
+  assert.deepEqual(p.children.map((s) => s.el.localName), ['a', 'span', 'span']);
+  assert.deepEqual(p.children[0].children, []);
+});
+
 test('svg text is a scope of its own', () => {
   const scopes = scopesWithin(body('<svg><text>Hi <tspan font-weight="700">there</tspan></text></svg>'));
   assert.deepEqual(scopes.map((s) => s.markdown), ['Hi <tspan font-weight="700">there</tspan>']);

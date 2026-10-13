@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-hrv-next="379" lang="en">
+<html data-hrv-next="387" lang="en">
   <head>
     <meta charset="utf-8">
     <title>html-revisor — overview</title>
@@ -101,7 +101,7 @@
     </section>
     <section data-hrv="136" id="architecture-direction">
       <h2 data-hrv="137">
-        Architecture direction <span class="directional">directional</span>
+        Architecture direction <span data-hrv="379" class="directional">directional</span>
       </h2>
       <svg data-hrv="138" viewBox="0 0 900 290" role="img" aria-label="Planned GET and PUT pipelines, changes dashed">
         <text data-hrv="139" x="20" y="28" font-size="15" font-weight="600">GET page.html</text> <rect data-hrv="140" class="box" x="20" y="45" width="120" height="50" rx="8"></rect> <text data-hrv="141" x="80" y="75" text-anchor="middle" font-size="13">file on disk</text> <a data-hrv="142" href="#d-normalize"> <rect data-hrv="143" class="box dir" x="170" y="45" width="130" height="50" rx="8"></rect> <text data-hrv="144" x="235" y="67" text-anchor="middle" font-size="13">format</text> <text data-hrv="145" x="235" y="84" text-anchor="middle" font-size="11" class="dirtext">normalize + validate</text> </a> <a data-hrv="146" href="#d-ids"> <rect data-hrv="147" class="box now" x="330" y="45" width="130" height="50" rx="8"></rect> <text data-hrv="148" x="395" y="67" text-anchor="middle" font-size="13">assign IDs</text> <text data-hrv="149" x="395" y="84" text-anchor="middle" font-size="11" class="muted">in the file, never reused</text> </a> <a data-hrv="150" href="#d-lift"> <rect data-hrv="151" class="box now" x="490" y="45" width="130" height="50" rx="8"></rect> <text data-hrv="152" x="555" y="67" text-anchor="middle" font-size="13">lift directives</text> <text data-hrv="153" x="555" y="84" text-anchor="middle" font-size="11" class="muted">HTML comments → JSON</text> </a> <a data-hrv="154" href="#d-inject"> <rect data-hrv="155" class="box now" x="650" y="45" width="110" height="50" rx="8"></rect> <text data-hrv="156" x="705" y="67" text-anchor="middle" font-size="13">inject client</text> <text data-hrv="157" x="705" y="84" text-anchor="middle" font-size="11" class="muted">+ markdown editor</text> </a> <rect data-hrv="158" class="box" x="790" y="45" width="95" height="50" rx="8"></rect> <text data-hrv="159" x="837" y="75" text-anchor="middle" font-size="13">browser</text> <path data-hrv="160" class="arrow" d="M140 70 H168" marker-end="url(#ah)"></path> <path data-hrv="161" class="arrow" d="M300 70 H328" marker-end="url(#ah)"></path> <path data-hrv="162" class="arrow" d="M460 70 H488" marker-end="url(#ah)"></path> <path data-hrv="163" class="arrow" d="M620 70 H648" marker-end="url(#ah)"></path> <path data-hrv="164" class="arrow" d="M760 70 H788" marker-end="url(#ah)"></path> <text data-hrv="165" x="235" y="118" text-anchor="middle" font-size="12" class="dirtext">↑ 🤖 agent runs format too</text> <text data-hrv="166" x="20" y="168" font-size="15" font-weight="600">PUT page.html <tspan data-hrv="167" class="mono muted" font-size="12">{one change: id, base, directive or markdown}</tspan></text> <rect data-hrv="168" class="box" x="790" y="185" width="95" height="50" rx="8"></rect> <text data-hrv="169" x="837" y="215" text-anchor="middle" font-size="13">browser</text> <a data-hrv="170" href="#d-conflict"> <rect data-hrv="171" class="box now" x="650" y="185" width="110" height="50" rx="8"></rect> <text data-hrv="172" x="705" y="207" text-anchor="middle" font-size="13">conflict check</text> <text data-hrv="173" x="705" y="224" text-anchor="middle" font-size="11" class="muted">one scope, by base</text> </a> <a data-hrv="174" href="#d-texts"> <rect data-hrv="175" class="box now" x="490" y="185" width="130" height="50" rx="8"></rect> <text data-hrv="176" x="555" y="207" text-anchor="middle" font-size="13">set prose</text> <text data-hrv="177" x="555" y="224" text-anchor="middle" font-size="11" class="muted">markdown → HTML</text> </a> <a data-hrv="178" href="#d-place"> <rect data-hrv="179" class="box now" x="330" y="185" width="130" height="50" rx="8"></rect> <text data-hrv="180" x="395" y="207" text-anchor="middle" font-size="13">place directive</text> <text data-hrv="181" x="395" y="224" text-anchor="middle" font-size="11" class="muted">the one, by ID</text> </a> <a data-hrv="182" href="#d-serialize"> <rect data-hrv="183" class="box now" x="170" y="185" width="130" height="50" rx="8"></rect> <text data-hrv="184" x="235" y="207" text-anchor="middle" font-size="13">serialize</text> <text data-hrv="185" x="235" y="224" text-anchor="middle" font-size="11" class="muted">IDs stay in</text> </a> <rect data-hrv="186" class="box" x="20" y="185" width="120" height="50" rx="8"></rect> <text data-hrv="187" x="80" y="215" text-anchor="middle" font-size="13">file on disk</text> <path data-hrv="188" class="arrow" d="M790 210 H762" marker-end="url(#ah)"></path> <path data-hrv="189" class="arrow" d="M650 210 H622" marker-end="url(#ah)"></path> <path data-hrv="190" class="arrow" d="M490 210 H462" marker-end="url(#ah)"></path> <path data-hrv="191" class="arrow" d="M330 210 H302" marker-end="url(#ah)"></path> <path data-hrv="192" class="arrow" d="M170 210 H142" marker-end="url(#ah)"></path> <text data-hrv="193" x="450" y="275" text-anchor="middle" font-size="12" class="muted">Dashed purple = changes from today. Solid green = stays.</text>
@@ -110,7 +110,7 @@
     <section data-hrv="194" id="details">
       <h2 data-hrv="195">Step by step</h2>
       <p data-hrv="196" class="sub">
-        The diagrams above, stood on end. Green: today. Dashed purple: <span class="directional">directional</span>.
+        The diagrams above, stood on end. Green: today. Dashed purple: <span data-hrv="380" class="directional">directional</span>.
       </p>
       <div data-hrv="197" class="flowhead">GET page.html</div>
       <div data-hrv="198" class="flow">
@@ -155,7 +155,9 @@ first.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;one&lt;/li&gt;&lt;li&gt;two&lt;/li&gt;&lt;/u
               </div>
             </div>
             <div data-hrv="216" class="dirpart" id="d-format">
-              <h3 data-hrv="217">format <span class="directional">directional</span></h3>
+              <h3 data-hrv="217">
+                format <span data-hrv="381" class="directional">directional</span>
+              </h3>
               <p data-hrv="218">
                 Normalize is its own command, in <code>formatter.mjs</code>; GET runs the same code. The agent runs it after writing the page, before the human opens it. Directional: validation rules, for what normalizing can't fix. None yet; one a rule could report:
               </p>
@@ -283,7 +285,7 @@ OVERVIEW.html: &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing content
   base matches li 6        →  applied; answer has new bases
   base differs, or no li 6 →  412, nothing written: error, reload suggested</pre>
             <p data-hrv="274" class="sub">
-              A conflict means we weren't taking turns; it's an edge case. An agent's edit elsewhere doesn't block the save. The answer carries the file's hash before the save; if that isn't the page the tab loaded, the tab says "the page changed on disk; reload to see it". <span class="directional">directional</span> Later the tab hears of it live.
+              A conflict means we weren't taking turns; it's an edge case. An agent's edit elsewhere doesn't block the save. The answer carries the file's hash before the save; if that isn't the page the tab loaded, the tab says "the page changed on disk; reload to see it". <span data-hrv="382" class="directional">directional</span> Later the tab hears of it live.
             </p>
           </div>
         </div>
@@ -333,7 +335,7 @@ OVERVIEW.html: &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing content
               Write the canonical format, IDs and all. IDs are part of the file. The first format of each page is one noisy diff; after that a diff shows only new IDs.
             </p>
             <p data-hrv="300" class="sub">
-              <span class="directional">directional</span> Before a page leaves the tool, a cleanup script strips them.
+              <span data-hrv="383" class="directional">directional</span> Before a page leaves the tool, a cleanup script strips them.
             </p>
           </div>
         </div>
@@ -349,7 +351,7 @@ OVERVIEW.html: &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing content
       <h2 data-hrv="306">Prose editing</h2>
       <div data-hrv="307" class="grid">
         <div data-hrv="320" class="card">
-          <strong>Every scope edits as markdown</strong> <span class="current">current</span>
+          <strong>Every scope edits as markdown</strong> <span data-hrv="384" class="current">current</span>
           <div data-hrv="321" class="demo">
             <p data-hrv="322">
               A paragraph with <strong>bold</strong> and <a data-hrv="323" href="#prose">a link</a>.
@@ -357,7 +359,7 @@ OVERVIEW.html: &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing content
             <div data-hrv="324" class="hrv-layer">
               <div data-hrv="325" class="hrv-box" style="position: relative; width: 100%; max-width: 320px; margin-top: .5rem;">
                 <div data-hrv="326" class="hrv-head">
-                  <span class="hrv-icon"></span> <span class="hrv-what">p · A paragraph with bold and a link.</span>
+                  <span data-hrv="385" class="hrv-icon"></span> <span data-hrv="386" class="hrv-what">p · A paragraph with bold and a link.</span>
                 </div>
                 <div data-hrv="327" class="hrv-label">Text</div>
                 <textarea class="hrv-text" style="height: 60px;">A paragraph with **bold** and [a link](#prose).</textarea>
@@ -413,7 +415,7 @@ OVERVIEW.html: &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing content
         </dd>
         <dt data-hrv="356">scope</dt>
         <dd data-hrv="357">
-          The unit of editing and directives: any block you pick, plus links and images, edited as markdown as a whole. Scopes nest.
+          The unit of editing and directives: any block you pick, plus links, images, and spans, edited as markdown as a whole. Scopes nest.
         </dd>
         <dt data-hrv="358">Contract</dt>
         <dd data-hrv="359">
