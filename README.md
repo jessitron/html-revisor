@@ -2,7 +2,7 @@
 
 Review agent-generated HTML in a browser and leave directives on specific elements. Directives are saved in the HTML file itself as `<!-- @AI: ... -->` HTML comments. Nothing lives in the browser or a sidecar file.
 
-You can also edit the page directly. Click any block (a paragraph, a list, one item, a section, a table cell), a link, or an image: the box shows its content as markdown in a Text field above the directive. Typing saves into the file, and the page shows the result when the save answers. Elements you left or changed keep their IDs and directives.
+You can also edit the page directly. Click any block (a paragraph, a list, one item, a section, a table cell), a link, an image, or a span: the box shows its content as markdown in a Content field above the directive. Typing saves into the file, and the page shows the result when the save answers. Elements you left or changed keep their IDs and directives.
 
 This repo is where html-revisor is developed. Its built output ships inside the [iterate-on-docs](https://github.com/jessitron/iterate-on-docs) plugin, vendored at `iterate-on-docs/html-revisor/`. Make changes here, not in that copy.
 
@@ -115,8 +115,8 @@ Open `try-me.html` in a browser (see [Try it](#try-it)).
 - [ ] Clicking an element opens a directive box below its top edge, with focus in the textarea. While the box is open, the element has heavier crop marks and a hairline outline.
 - [ ] The box's header shows the pencil icon, the tag, and the start of the element's text (`h2 · Text you can edit`); an image shows its alt (`img · armadillo`), an `hr` only its tag.
 - [ ] A marker appears as soon as you type.
-- [ ] Every block, link, image, and span shows a Text field above the directive, holding its markdown in monospace: a paragraph with bold shows `**bold**`, a list its `-` lines. Clicking `<b>bold</b>` picks its paragraph: `strong`, `b` and the like are not scopes. An `hr` or an SVG shape shows only the directive.
-- [ ] Typing in the Text field changes the file within about half a second, and the page when the save answers. Blanking it changes nothing.
+- [ ] Every block, link, image, and span shows a Content field above the directive, holding its markdown in monospace: a paragraph with bold shows `**bold**`, a list its `-` lines. Clicking `<b>bold</b>` picks its paragraph: `strong`, `b` and the like are not scopes. An `hr` or an SVG shape shows only the directive.
+- [ ] Typing in the Content field changes the file within about half a second, and the page when the save answers. Blanking it changes nothing.
 - [ ] Put a directive on one list item, then edit the list's markdown: add a word to that item and a new item beside it. The item keeps its marker; the new one has none.
 - [ ] Type a list's markdown into one sentence: the list becomes a paragraph, the box stays open on it, and the list's own directive moves to it.
 - [ ] Both fields grow as you type more lines, up to about 240px, then scroll.

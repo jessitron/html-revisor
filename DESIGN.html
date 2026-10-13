@@ -84,7 +84,7 @@
             <strong>The box's words are true:</strong> Done, not Save, since typing saves; "saved" in the box's footer; a quieter Delete; a header with the icon and the element.
           </li>
           <li data-hrv="25">
-            The Text field holds the element's markdown, in monospace like the directive.
+            The Content field holds the element's markdown, in monospace like the directive.
           </li>
           <li data-hrv="26">
             <strong>The docket:</strong> bottom right, in the tool's material, with the icon. It counts the directives, steps through them, and holds the stale-file warning. Clicking it turns review mode off, to read the page clean.
@@ -317,7 +317,7 @@
     </div>
     <h2 data-hrv="173">Directive box</h2>
     <p data-hrv="174" class="note">
-      Opens beside its element: below, above, right, or left, the first side with room in the viewport. It keeps that side while it fits, so it doesn't flip as the element grows under typing. With no room on any side (a tall element, a phone), it pins to the viewport edge farthest from what shows of the element. Along the other axis it shifts to stay in view, and the notch slides along its edge to point at the element. 320px wide or the viewport less 16px. The header names the element: its tag and the start of its text, or its alt. Saves 0.4 s after typing stops, and the footer says so: "saving…", then "saved" for 2 s, or "not saved" when the file changed on disk. Done, ⌘↵ and esc close it. Delete is a text button; ⌥⌘⌫ does the same. Fields grow with their text up to 240px, then scroll. The Text field wears the element's font, its size held between 12 and 20px.
+      Opens beside its element: below, above, right, or left, the first side with room in the viewport. It keeps that side while it fits, so it doesn't flip as the element grows under typing. With no room on any side (a tall element, a phone), it pins to the viewport edge farthest from what shows of the element. Along the other axis it shifts to stay in view, and the notch slides along its edge to point at the element. 320px wide or the viewport less 16px. The header names the element: its tag and the start of its text, or its alt. Saves 0.4 s after typing stops, and the footer says so: "saving…", then "saved" for 2 s, or "not saved" when the file changed on disk. Done, ⌘↵ and esc close it. Delete is a text button; ⌥⌘⌫ does the same. Fields grow with their text up to 240px, then scroll. The Content field wears the element's font, its size held between 12 and 20px.
     </p>
     <div data-hrv="175" class="row">
       <div data-hrv="176">
@@ -465,7 +465,7 @@
     </div>
     <h2 data-hrv="253">Type</h2>
     <p data-hrv="254" class="note">
-      One size, 13px at line height 1.4, everywhere in the layer. <code>--hrv-font</code> is system-ui. The directive field is <code>--hrv-mono</code>, monospace, since a directive is an instruction headed into an HTML comment. Labels and the hint differ by color alone: muted; the save status that replaces the hint takes the text color. The Text field: the element's own font.
+      One size, 13px at line height 1.4, everywhere in the layer. <code>--hrv-font</code> is system-ui. The directive field is <code>--hrv-mono</code>, monospace, since a directive is an instruction headed into an HTML comment. Labels and the hint differ by color alone: muted; the save status that replaces the hint takes the text color. The Content field: the element's own font.
     </p>
     <script>
   for (const s of document.querySelectorAll('.swatch')) {
