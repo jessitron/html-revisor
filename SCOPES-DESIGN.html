@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-hrv-next="3643">
+<html data-hrv-next="3671">
   <head>
     <meta charset="utf-8">
     <title>Scopes design: html-revisor</title>
@@ -174,14 +174,82 @@
             <td data-hrv="2944"></td>
           </tr>
           <tr>
-            <td data-hrv="2945">IDs after a markdown edit of a wider scope</td>
-            <td data-hrv="2946">Unchanged elements keep them, reconciled against the prior HTML.</td>
+            <td data-hrv="3643">Parser and writer</td>
+            <td data-hrv="3644">
+              markdown-it parses. The writer is our own, in <code>scopes.mjs</code>, because it carries the rules in this table; a general HTML-to-markdown library would need each one overridden.
+            </td>
+            <td data-hrv="3645"></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+    <section data-hrv="3646" id="identity" class="part">
+      <h2 data-hrv="3647">Decided: element identity</h2>
+      <p data-hrv="3648">
+        Directives, the open box, and the conflict check find elements by ID. A markdown save rebuilds the HTML of its scope, so a save has to say which new element is which old one.
+      </p>
+      <table data-hrv="3649">
+        <thead>
+          <tr>
+            <th data-hrv="3650">question</th>
+            <th data-hrv="3651">answer</th>
+            <th data-hrv="3652">see</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-hrv="3653">Where does an element's ID live?</td>
+            <td data-hrv="3654">
+              In the file, as <code>data-hrv</code>. An edit that adds or removes elements shifts a tree path or an index; an ID in the file stays put.
+            </td>
+            <td data-hrv="3655"></td>
+          </tr>
+          <tr>
+            <td data-hrv="3656">What kind of ID?</td>
+            <td data-hrv="3657">
+              A counter, for short IDs, with its high-water mark in <code>&lt;html data-hrv-next&gt;</code>. Never reused; an ID lasts as long as its element. Copies of one ID all get fresh ones.
+            </td>
+            <td data-hrv="3658"></td>
+          </tr>
+          <tr>
+            <td data-hrv="3659">Who assigns them?</td>
+            <td data-hrv="3660">
+              The formatter, on every GET and first thing on every PUT. Agents leave both attributes alone; an element they add gets its ID on the next load.
+            </td>
+            <td data-hrv="3661"></td>
+          </tr>
+          <tr>
+            <td data-hrv="3662">Saves and conflicts</td>
+            <td data-hrv="3663">
+              One change per save, checked against the base of its own element. A change elsewhere in the file brings a notice and the save goes through. A conflict means turn-taking broke: the save fails with an error that suggests a reload.
+            </td>
+            <td data-hrv="3664"></td>
+          </tr>
+          <tr>
+            <td data-hrv="2945">IDs after a markdown save</td>
+            <td data-hrv="2946">
+              Reconciled against the prior HTML. Siblings pair the way a diff does: the ones that came back the same, then, between those, the most alike with the same tag. An edited element keeps its ID, a moved one keeps its own, and a new one gets a fresh ID from the formatter. A pair's children pair the same way.
+            </td>
             <td data-hrv="2947"><a data-hrv="2948" href="#c1">C1</a></td>
+          </tr>
+          <tr>
+            <td data-hrv="3665">Directives across a markdown save</td>
+            <td data-hrv="3666">
+              Each rides to its element's partner, in order. The markdown doesn't show them.
+            </td>
+            <td data-hrv="3667"></td>
           </tr>
           <tr>
             <td data-hrv="2949">A directive whose element a markdown save deleted?</td>
             <td data-hrv="2950">Goes with it.</td>
             <td data-hrv="2951"></td>
+          </tr>
+          <tr>
+            <td data-hrv="3668">IDs on a page leaving the tool</td>
+            <td data-hrv="3669">
+              A cleanup script strips them and the directives, the formatter in reverse, and the commits get squashed.
+            </td>
+            <td data-hrv="3670"></td>
           </tr>
         </tbody>
       </table>
