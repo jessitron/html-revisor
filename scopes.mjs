@@ -625,6 +625,12 @@ function pairUp(document, prior, nodes, partners) {
     const a = afterKeys.findIndex((k, x) => k === key && !pairs.has(x));
     if (a >= 0) pairs.set(a, b);
   }
+  // Bare text beside blocks, edited, comes back as a paragraph (C10): what was in it pairs with
+  // what is in the paragraph.
+  const paired = new Set(pairs.values());
+  const bare = before.filter((e, b) => !paired.has(b) && !isBlock(e));
+  const wrapped = after.filter((e, a) => !pairs.has(a) && e.localName === 'p' && !hasAttrs(e));
+  if (bare.length > 0 && wrapped.length > 0) pairUp(document, bare, wrapped.flatMap((p) => [...p.childNodes]), partners);
   for (const [a, b] of pairs) {
     if (before[b].hasAttribute(HRV)) after[a].setAttribute(HRV, before[b].getAttribute(HRV));
     partners.set(before[b], after[a]);

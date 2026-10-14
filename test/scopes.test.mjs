@@ -179,6 +179,13 @@ test('text bare beside blocks stays bare when saved unchanged; edited, it is a p
   assert.match(canonicalHTML(document, scopeFromMarkdown(el, 'before!\n\n- a\n\nafter')), /<p>before!<\/p>/);
 });
 
+test('a link bare beside blocks keeps its ID when its text is edited into a paragraph', () => {
+  const { document, el } = scopeIn('<div class="bar"><a class="logo" href="/">home page</a><div class="z"></div></div>');
+  const id = el.querySelector('a').getAttribute('data-hrv');
+  const saved = canonicalHTML(document, scopeFromMarkdown(el, scopeMarkdown(el).replace('home', 'yak')), { ids: true });
+  assert.match(saved, new RegExp(`<p><a data-hrv="${id}" class="logo" href="/">yak page</a></p>`));
+});
+
 test('two lists in a row stay two lists', () => {
   const { markdown, same } = saved('<section><ul><li>a</li></ul><ul><li>b</li></ul><ol><li>c</li></ol><ol><li>d</li></ol></section>');
   assert.equal(markdown, '- a\n\n* b\n\n1. c\n\n1) d');
