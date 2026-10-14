@@ -8,7 +8,7 @@ here="$(cd "$(dirname "$0")" && pwd)"
 target="${1:-$HOME/code/jessitron/iterate-on-docs}"
 name=html-revisor
 dest="$target/$name"
-dev_only=(CLAUDE.md OVERVIEW.html PLAN.html DESIGN.html design index.html .nojekyll .gitignore .claude deploy)
+dev_only=(CLAUDE.md OVERVIEW.html DESIGN.html design index.html .nojekyll .gitignore .claude deploy)
 
 die() { echo "deploy: $*" >&2; exit 1; }
 
