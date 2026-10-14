@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-hrv-next="497" lang="en">
+<html data-hrv-next="525" lang="en">
   <head>
     <meta charset="utf-8">
     <title>html-revisor — overview</title>
@@ -72,6 +72,9 @@
   .hl { outline: 2px solid var(--now); outline-offset: 1px; border-radius: 2px; }
   .off { color: var(--muted); }
   .page { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: .75rem 1rem; position: relative; }
+  .n { color: var(--warn); font-weight: 700; }
+  ul.hard { list-style: none; padding: 1.4rem 0 0; margin: 0; }
+  ul.hard li { margin: 0 0 .5rem; }
   dl { display: grid; grid-template-columns: max-content 1fr; gap: .4rem 1rem; }
   dt { font-weight: 600; }
   dd { margin: 0; }
@@ -347,10 +350,61 @@ first.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;one&lt;/li&gt;&lt;li&gt;two&lt;/li&gt;&lt;/u
       </div>
     </section>
     <section data-hrv="305" id="prose">
-      <h2 data-hrv="306">
-        <!-- @AI: We need to express that this is hard, and link to SCOPES-DESIGN for examples and decisions -->
-        Prose editing
-      </h2>
+      <h2 data-hrv="306">What makes this hard: prose editing</h2>
+      <div data-hrv="497" class="callout">
+        <span data-hrv="498" class="prop">Round trip is identity</span> <span data-hrv="499" class="prop">IDs survive a save</span> <span data-hrv="500" class="prop">Property-tested</span> <span data-hrv="501" class="say">Every scope edits as markdown, but the page is HTML that markdown can't fully say. Every case and decision: <a data-hrv="502" href="SCOPES-DESIGN.html#decided">SCOPES-DESIGN.html</a>.</span>
+      </div>
+      <div data-hrv="503" class="ba">
+        <div data-hrv="504">
+          <div data-hrv="505" class="label">on disk</div>
+          <pre data-hrv="506">&lt;section data-hrv="2"&gt;
+  &lt;h2 data-hrv="3"&gt;Plan&lt;/h2&gt;
+  &lt;p data-hrv="4"&gt;
+    &lt;!-- @AI: say why --&gt; <span class="n">③</span>
+    Press &lt;kbd&gt;⌘S&lt;/kbd&gt;, ship.
+  &lt;/p&gt;
+  &lt;svg data-hrv="5"&gt;…&lt;/svg&gt;
+&lt;/section&gt;</pre>
+        </div>
+        <div data-hrv="507">
+          <div data-hrv="508" class="label">in the box, edited</div>
+          <pre data-hrv="509">## Plan
+
+Press &lt;kbd&gt;⌘S&lt;/kbd&gt;, ship <span class="add">**today**</span>. <span class="n">①</span>
+
+<span class="add">Celebrate.</span>
+
+⟦svg⟧ <span class="n">②</span></pre>
+        </div>
+      </div>
+      <div data-hrv="510" class="ba">
+        <div data-hrv="511">
+          <div data-hrv="512" class="label">saved</div>
+          <pre data-hrv="513">&lt;section data-hrv="2"&gt;
+  &lt;h2 data-hrv="3"&gt;Plan&lt;/h2&gt;
+  &lt;p data-hrv="4"&gt; <span class="n">④</span>
+    &lt;!-- @AI: say why --&gt; <span class="n">③</span>
+    Press &lt;kbd&gt;⌘S&lt;/kbd&gt;, ship <span class="add">&lt;strong&gt;today&lt;/strong&gt;</span>.
+  &lt;/p&gt;
+  <span class="add">&lt;p data-hrv="7"&gt;Celebrate.&lt;/p&gt;</span> <span class="n">④</span>
+  &lt;svg data-hrv="5"&gt;…&lt;/svg&gt; <span class="n">②</span>
+&lt;/section&gt;</pre>
+        </div>
+        <ul data-hrv="514" class="hard">
+          <li data-hrv="515">
+            <span data-hrv="516" class="n">①</span> Markdown can't say <code>kbd</code>, so it stays HTML.
+          </li>
+          <li data-hrv="517">
+            <span data-hrv="518" class="n">②</span> An SVG isn't text: a stand-in, restored from the prior HTML.
+          </li>
+          <li data-hrv="519">
+            <span data-hrv="520" class="n">③</span> The directive isn't in the markdown, and stays on its element.
+          </li>
+          <li data-hrv="521">
+            <span data-hrv="522" class="n">④</span> The edited paragraph keeps its ID; the new one gets the next.
+          </li>
+        </ul>
+      </div>
       <div data-hrv="307" class="grid">
         <div data-hrv="320" class="card">
           <strong>Every scope edits as markdown</strong>
@@ -376,9 +430,6 @@ first.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;one&lt;/li&gt;&lt;li&gt;two&lt;/li&gt;&lt;/u
                 </div>
               </div>
             </div>
-            <p data-hrv="333" class="sub">
-              Pick the paragraph, the list, one item, or the section around them: each is a scope and edits as markdown. Saving sends the markdown; the server answers with the HTML, and the page swaps it in. Elements you left or changed keep their IDs and directives.
-            </p>
           </div>
         </div>
       </div>
@@ -436,26 +487,17 @@ first.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;one&lt;/li&gt;&lt;li&gt;two&lt;/li&gt;&lt;/u
     <section data-hrv="366" id="current-work">
       <h2 data-hrv="367">Current work</h2>
       <div data-hrv="368" class="grid">
-        <div data-hrv="369" class="card">
-          <!-- @AI: can we remove these? are they current? -->
-          <strong>Open questions</strong>
-          <ul data-hrv="370">
-            <li data-hrv="371">
-              What do we call the two kinds of element? The spec's "flow content" includes <code>&lt;p&gt;</code>.
-            </li>
-            <li data-hrv="372">Directives inside a scope you edit as markdown: where do they go?</li>
-          </ul>
-        </div>
         <div data-hrv="373" class="card">
           <strong>Tracker</strong>
           <p data-hrv="374">Work lives in <code>yx</code>. Run <code>yx list</code>.</p>
           <ul data-hrv="375">
-            <li data-hrv="376">
-              <!-- @AI: what! There is a separate spec document? We need to combine these. Well, make a yak for it, it won't happen tonight. -->
-              Spec: <code>html-revisor-spec.md</code>
+            <li data-hrv="376">Spec: <code>html-revisor-spec.md</code></li>
+            <li data-hrv="377">
+              Usage: <a data-hrv="523" href="https://github.com/jessitron/html-revisor#readme">README.md</a>
             </li>
-            <li data-hrv="377">Usage: <code>README.md</code></li>
-            <li data-hrv="378">Research notes: commit <code>8683442</code></li>
+            <li data-hrv="378">
+              Scope decisions: <a data-hrv="524" href="SCOPES-DESIGN.html#decided">SCOPES-DESIGN.html</a>
+            </li>
           </ul>
         </div>
       </div>
