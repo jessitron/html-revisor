@@ -5,17 +5,26 @@
     <title>html-revisor — overview</title>
     <link rel="stylesheet" href="client.css">
     <style>
-  :root { --ink: #1f2328; --muted: #656d76; --line: #d0d7de; --bg: #ffffff; --card: #f6f8fa;
+  :root { --ink: #1d2330; --muted: #646b78; --line: #e2ddd2; --bg: #ffffff; --card: #f8f6f1; --paper: #f3efe6;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Charter, Georgia, serif;
+    --lift: 0 1px 2px rgba(60, 45, 20, .06), 0 6px 24px rgba(60, 45, 20, .07);
     --now: #1a7f37; --dir: #8250df; --warn: #bc4c00; --accent: #0969da; --happy: #0e7c86; --happy-bg: #e3f8fa; --ext: #fff8e1; --ext-line: #d4a72c;
     --fidelity: #0969da; --ergonomics: #0f8a8a; --performance: #bc4c00; }
   @media (prefers-color-scheme: dark) {
-    :root { --ink: #e6edf3; --muted: #9198a1; --line: #3d444d; --bg: #0d1117; --card: #151b23;
+    :root { --ink: #e6edf3; --muted: #9198a1; --line: #2e3540; --bg: #141920; --card: #1b222c; --paper: #0b0e13;
+      --lift: 0 1px 2px rgba(0, 0, 0, .4), 0 6px 24px rgba(0, 0, 0, .35);
       --now: #3fb950; --dir: #ab7df8; --warn: #f0883e; --accent: #4493f8; --happy: #39c5cf; --happy-bg: #0b2a2e; --ext: #272115; --ext-line: #9e6a03;
       --fidelity: #4493f8; --ergonomics: #39c5bb; --performance: #f0883e; }
   }
-  body { font: 16px/1.5 system-ui, sans-serif; color: var(--ink); background: var(--bg); max-width: 960px; margin: 2rem auto; padding: 0 1rem; }
-  h1 { margin-bottom: 0; }
-  h2 { border-bottom: 1px solid var(--line); padding-bottom: .25rem; margin-top: 2.5rem; }
+  html { background: var(--paper); }
+  body { font: 16px/1.55 system-ui, sans-serif; color: var(--ink); background: var(--paper); max-width: 1000px; margin: 0 auto; padding: 3.5rem 1.25rem 4rem; counter-reset: sec; }
+  h1 { font: 600 3.4rem/1.05 var(--serif); letter-spacing: -.02em; margin: 0; }
+  h1::after { content: ""; display: block; width: 7rem; height: 5px; border-radius: 3px; margin-top: 1rem;
+    background: linear-gradient(90deg, var(--fidelity) 0 33%, var(--ergonomics) 33% 66%, var(--performance) 66%); }
+  h1 + .sub { font: 1.3rem/1.45 var(--serif); color: var(--ink); opacity: .8; max-width: 40rem; margin: 1rem 0 2.5rem; }
+  body > section { background: var(--bg); border-radius: 16px; box-shadow: var(--lift); padding: 1.75rem 2.25rem 2rem; margin: 0 0 1.75rem; }
+  h2 { font: 600 1.75rem/1.2 var(--serif); letter-spacing: -.01em; margin: 0 0 1.25rem; counter-increment: sec; }
+  h2::before { content: counter(sec, decimal-leading-zero); display: block; font: 700 .75rem/1 ui-monospace, monospace; letter-spacing: .12em; color: var(--happy); margin-bottom: .45rem; }
   h3 { margin: 0 0 .25rem; font-size: 1rem; }
   .sub { color: var(--muted); margin-top: .25rem; }
   svg { width: 100%; height: auto; display: block; }
@@ -48,11 +57,11 @@
   svg .house .roof { fill: var(--fidelity); stroke: none; }
   svg .shrine rect, svg .shrine path { fill: var(--ergonomics); }
   svg .landmark:hover { filter: drop-shadow(0 0 3px var(--hue, var(--ink))); }
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: .75rem 1rem; }
+  .grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 1rem 1.25rem; }
   a { color: var(--accent); }
   code { font-family: ui-monospace, monospace; font-size: .9em; }
-  pre { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: .6rem .8rem; overflow-x: auto; font-size: .85rem; margin: .25rem 0; }
+  pre { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: .6rem .8rem; overflow-x: auto; font-size: .85rem; margin: .25rem 0; }
   pre .add { color: var(--now); font-weight: 600; }
   .ba { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
   .ba > * { min-width: 0; }
@@ -84,7 +93,12 @@
   dl { display: grid; grid-template-columns: max-content 1fr; gap: .4rem 1rem; }
   dt { font-weight: 600; }
   dd { margin: 0; }
-  ul.inv li { margin: .3rem 0; }
+  ul.inv { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+  ul.inv li { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--now); border-radius: 10px; padding: .6rem .9rem; }
+  ul.inv li::before { content: "✓ "; color: var(--now); font-weight: 700; }
+  dl { row-gap: .7rem; }
+  dt { font-family: var(--serif); font-size: 1.05rem; }
+  @media (max-width: 700px) { body > section { padding: 1.25rem 1rem; } ul.inv, .ba { grid-template-columns: 1fr; } h1 { font-size: 2.6rem; } }
 </style>
   </head>
   <body data-hrv="1">
