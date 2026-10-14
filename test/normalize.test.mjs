@@ -32,6 +32,12 @@ test('inline-only block stays on one line', () => {
   assert.match(out, /^ {6}<li>Ship it<\/li>$/m);
 });
 
+test('an empty block stays on one line, however long its tag', () => {
+  const tag = `<div class="${Array.from({ length: 30 }, (_, i) => `w${i}`).join(' ')}">`;
+  const out = layout(page(`${tag} \n </div>`));
+  assert.match(out, new RegExp(`^ {4}${tag}</div>$`, 'm'));
+});
+
 test('long inline-only block takes three lines', () => {
   const long = 'word '.repeat(30).trim();
   const out = layout(page(`<p>${long}</p>`));

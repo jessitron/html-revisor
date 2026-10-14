@@ -286,7 +286,7 @@ function formatBlock(node, depth) {
     return [pad(depth) + open, ...formatChildren(node, depth + 1), pad(depth) + close];
   }
   const inner = trimAscii(inlineHTML(kids));
-  if ((open + inner + close).length < ONE_LINE_LIMIT) return [pad(depth) + open + inner + close];
+  if (!inner || (open + inner + close).length < ONE_LINE_LIMIT) return [pad(depth) + open + inner + close];
   return [pad(depth) + open, pad(depth + 1) + inner, pad(depth) + close];
 }
 

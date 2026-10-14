@@ -128,6 +128,11 @@ test('a card keeps its tag, with markdown inside', () => {
   assert.equal(saved('<section><div class="card"><p>a</p><ul><li>b</li></ul></div></section>').markdown, '<div class="card">\n\na\n\n- b\n\n</div>');
 });
 
+test('an empty element with long attributes round-trips: no blank line ends its HTML block', () => {
+  const icon = `<svg class="${Array.from({ length: 20 }, (_, i) => `icon${i}`).join(' ')}"> </svg>`;
+  assert.ok(saved(`<ul><li><a href="/"><div class="icon">${icon}</div>Home</a></li></ul>`).same); // a nav link
+});
+
 test('pre: backticks for <pre><code>, tildes for a bare <pre>, HTML when it holds markup', () => {
   assert.equal(saved('<section><pre><code class="language-js">a\n\nb</code></pre></section>').markdown, '```js\na\n\nb\n```');
   assert.equal(saved('<section><pre>a ``` b</pre></section>').markdown, '~~~\na ``` b\n~~~');
