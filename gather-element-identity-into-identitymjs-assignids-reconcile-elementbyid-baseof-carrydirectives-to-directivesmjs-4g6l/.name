@@ -1,0 +1,1 @@
+Gather element identity into identity.mjs: assignIds, reconcile, elementById, baseOf; carryDirectives to directives.mjs
