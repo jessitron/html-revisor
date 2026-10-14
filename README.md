@@ -115,7 +115,7 @@ Open `SCOPES-DESIGN.html` in a browser (see [Try it](#try-it)).
 
 - [ ] Hovering an element shows crop marks just outside its corners and a copy cursor; `html` and `body` show none. Try an SVG label and an SVG shape too.
 - [ ] Clicking an element opens a directive box below its top edge, with focus in the textarea. While the box is open, the element has heavier crop marks and a hairline outline.
-- [ ] The box's header shows the pencil icon, the tag, and the start of the element's text (`h2 · Text you can edit`); an image shows its alt (`img · armadillo`), an `hr` only its tag.
+- [ ] The box's header shows the pencil icon, the tag, and the start of the element's text (`h2 · Text you can edit`); an image shows its alt (`img · orange cat lying`), an `hr` only its tag.
 - [ ] A marker appears as soon as you type.
 - [ ] Every block, link, image, and span shows a Content field above the directive, holding its markdown in monospace: a paragraph with bold shows `**bold**`, a list its `-` lines. Clicking `<b>bold</b>` picks its paragraph: `strong`, `b` and the like are not scopes. An `hr` or an SVG shape shows only the directive.
 - [ ] Typing in the Content field changes the file within about half a second, and the page when the save answers. Blanking it changes nothing.
