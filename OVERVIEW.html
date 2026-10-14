@@ -17,14 +17,14 @@
       --fidelity: #4493f8; --ergonomics: #39c5bb; --performance: #f0883e; }
   }
   html { background: var(--paper); }
-  body { font: 16px/1.55 system-ui, sans-serif; color: var(--ink); background: var(--paper); max-width: 1000px; margin: 0 auto; padding: 3.5rem 1.25rem 4rem; counter-reset: sec; }
+  body { font: 16px/1.55 system-ui, sans-serif; color: var(--ink); background: var(--paper); max-width: 1000px; margin: 0 auto; padding: 3.5rem 1.25rem 4rem; }
   h1 { font: 600 3.4rem/1.05 var(--serif); letter-spacing: -.02em; margin: 0; }
   h1::after { content: ""; display: block; width: 7rem; height: 5px; border-radius: 3px; margin-top: 1rem;
     background: linear-gradient(90deg, var(--fidelity) 0 33%, var(--ergonomics) 33% 66%, var(--performance) 66%); }
   h1 + .sub { font: 1.3rem/1.45 var(--serif); color: var(--ink); opacity: .8; max-width: 40rem; margin: 1rem 0 2.5rem; }
   body > section { background: var(--bg); border-radius: 16px; box-shadow: var(--lift); padding: 1.75rem 2.25rem 2rem; margin: 0 0 1.75rem; }
-  h2 { font: 600 1.75rem/1.2 var(--serif); letter-spacing: -.01em; margin: 0 0 1.25rem; counter-increment: sec; }
-  h2::before { content: counter(sec, decimal-leading-zero); display: block; font: 700 .75rem/1 ui-monospace, monospace; letter-spacing: .12em; color: var(--happy); margin-bottom: .45rem; }
+  h2 { font: 600 1.75rem/1.2 var(--serif); letter-spacing: -.01em; margin: 0 0 1.25rem; }
+  h2::after { content: ""; display: block; width: 3rem; height: 3px; border-radius: 2px; background: var(--happy); margin-top: .6rem; }
   h3 { margin: 0 0 .25rem; font-size: 1rem; }
   .sub { color: var(--muted); margin-top: .25rem; }
   svg { width: 100%; height: auto; display: block; }
