@@ -133,6 +133,32 @@ test('an empty element with long attributes round-trips: no blank line ends its 
   assert.ok(saved(`<ul><li><a href="/"><div class="icon">${icon}</div>Home</a></li></ul>`).same); // a nav link
 });
 
+test('a style inside HTML is a token, so its blank lines stay out of the markdown', () => {
+  const { markdown, same } = saved('<section><div class="card"><style>a { color: red; }\n\nb { color: blue; }</style></div></section>');
+  assert.equal(markdown, '<div class="card">⟦style⟧</div>');
+  assert.ok(same);
+});
+
+test('a token inside HTML is the next of its kind, even beside a token that stands alone', () => {
+  const { document, el } = scopeIn(
+    '<section><div class="a"><style>a {}</style><div><p>x</p></div></div><style>b {}</style><p>y</p><div class="c"><span>z</span><style>c {}</style></div></section>',
+  );
+  const markdown = '<div class="a">\n  ⟦style⟧\n  <div>\n    <p>x</p>\n  </div>\n</div>\n\n⟦style⟧\n\ny\n\n<div class="c"><span>z</span>⟦style⟧</div>';
+  assert.equal(canonicalHTML(document, scopeFromMarkdown(el, markdown)), canonicalHTML(document, [el]));
+});
+
+test('tokens side by side between blocks each take one that stood between blocks', () => {
+  const { markdown, same } = saved('<section><p>x</p><style>a {}</style><style>b {}</style><div class="c"><span>z</span><style>c {}</style></div></section>');
+  assert.equal(markdown, 'x\n\n⟦style⟧ ⟦style⟧\n\n<div class="c"><span>z</span> ⟦style⟧</div>');
+  assert.ok(same);
+});
+
+test('in HTML, a ⟦ you typed stays text', () => {
+  const { markdown, same } = saved('<section><div class="card">⟦style⟧<style>a {}</style></div></section>');
+  assert.equal(markdown, '<div class="card">&#x27E6;style⟧ ⟦style⟧</div>');
+  assert.ok(same);
+});
+
 test('pre: backticks for <pre><code>, tildes for a bare <pre>, HTML when it holds markup', () => {
   assert.equal(saved('<section><pre><code class="language-js">a\n\nb</code></pre></section>').markdown, '```js\na\n\nb\n```');
   assert.equal(saved('<section><pre>a ``` b</pre></section>').markdown, '~~~\na ``` b\n~~~');

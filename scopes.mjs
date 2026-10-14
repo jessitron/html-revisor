@@ -210,8 +210,18 @@ function checked(el, md) {
 }
 
 // The element as HTML, the way the file has it: an HTML block, which markdown leaves alone.
+// What isn't shown is a token, as in prose: a style's blank lines would end the block. A ⟦ in
+// the HTML is an entity, so it can't read as a token.
 function rawBlock(el) {
-  const html = formatElement(bare(el));
+  const copy = bare(el);
+  for (const hidden of copy.querySelectorAll([...HIDDEN].join(','))) {
+    const mark = copy.ownerDocument.createElement(STAND_IN);
+    mark.setAttribute('name', hidden.localName);
+    hidden.replaceWith(mark);
+  }
+  const html = formatElement(copy)
+    .replace(/⟦/g, '&#x27E6;')
+    .replace(new RegExp(`<${STAND_IN} name="([a-z0-9-]+)"></${STAND_IN}>`, 'g'), '⟦$1⟧');
   // A blank line ends an HTML block. Inside a pre, &#10; is the same newline.
   const unbroken = html.replace(/\n{2,}/g, (nl) => `\n${'&#10;'.repeat(nl.length - 1)}`);
   // On one line, an HTML block must start with a block tag; on its own line, any tag will do.
@@ -471,7 +481,8 @@ function codeBlock(el, markdown) {
 // next svg, ⟦script⟧ the next script, and an image keeps the attributes markdown can't say (D2).
 // One that stood between blocks comes out of the paragraph markdown put it in. A token alone in
 // its paragraph takes the next one that stood between blocks, and one inside text the next one
-// that sat in text, so deleting an inline icon doesn't hand its place to a diagram.
+// that sat in text, so deleting an inline icon doesn't hand its place to a diagram. A token in an
+// HTML block takes the next of its kind, wherever that stood.
 function restore(prior, nodes) {
   const tokens = new Map();
   const images = [];
@@ -487,10 +498,12 @@ function restore(prior, nodes) {
   const holder = prior[0].ownerDocument.createElement('div');
   holder.append(...nodes);
   const alone = new Set();
-  for (const mark of holder.querySelectorAll(STAND_IN)) {
+  // Where each mark sits, before any is swapped: a swapped one is no longer a stand-in beside the next.
+  const marks = [...holder.querySelectorAll(STAND_IN)].map((mark) => [mark, inOwnParagraph(mark)]);
+  for (const [mark, ownParagraph] of marks) {
     const name = mark.getAttribute('name');
     const left = tokens.get(name) ?? [];
-    const at = left.findIndex((o) => standsAlone(o) === inOwnParagraph(mark));
+    const at = mark.hasAttribute('in-html') ? 0 : left.findIndex((o) => standsAlone(o) === ownParagraph);
     const [original] = left.splice(Math.max(at, 0), 1);
     if (!original) {
       mark.replaceWith(`⟦${name}⟧`); // nothing it stood for: the text you typed
@@ -875,6 +888,10 @@ markdownIt.inline.ruler.after('text', 'stand_in', (state, silent) => {
   return true;
 });
 markdownIt.renderer.rules.stand_in = (tokens, i) => `<${STAND_IN} name="${tokens[i].meta}"></${STAND_IN}>`;
+// Markdown leaves an HTML block alone, so a stand-in there is swapped in the block's text. It
+// sits where the HTML puts it, so it takes the next of its kind (see restore).
+markdownIt.renderer.rules.html_block = (tokens, i) =>
+  tokens[i].content.replace(/⟦([a-z][a-z0-9-]*)⟧/g, `<${STAND_IN} name="$1" in-html></${STAND_IN}>`);
 const render = (markdown) => markdownIt.render(markdown);
 const renderInline = (markdown) => markdownIt.renderInline(markdown);
 
