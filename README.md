@@ -6,6 +6,8 @@ You can also edit the page directly. Click any block (a paragraph, a list, one i
 
 This repo is where html-revisor is developed. Its built output ships inside the [iterate-on-docs](https://github.com/jessitron/iterate-on-docs) plugin, vendored at `iterate-on-docs/html-revisor/`. Make changes here, not in that copy.
 
+The [overview](https://jessitron.github.io/html-revisor/) and the pages it links are on GitHub Pages, published from `main` on GitHub. They show what's pushed, as plain pages: no box, no saving. `index.html` redirects to `OVERVIEW.html`, and `.nojekyll` tells Pages to serve the files as they are.
+
 ## Run
 
 ```
@@ -37,7 +39,7 @@ Your directives and markdown edits write into the file, so it shows as changed i
 Copies the committed files at HEAD into `<dir>/html-revisor/` (default `~/code/jessitron/iterate-on-docs`), runs the tests there, and commits there. It writes nothing else in iterate-on-docs, and it doesn't push. Users get the change when iterate-on-docs runs `./release`.
 
 - It refuses when this repo has uncommitted changes (except `SCOPES-DESIGN.html`), when HEAD is not on main, or when the copy has uncommitted changes.
-- It replaces the whole directory, leaving out dev-only files: `CLAUDE.md`, `OVERVIEW.html`, `PLAN.html`, `DESIGN.html`, `.gitignore`, `.claude/`, `deploy`. It writes `VENDORED.md` with the commit hash.
+- It replaces the whole directory, leaving out dev-only files: `CLAUDE.md`, `OVERVIEW.html`, `PLAN.html`, `DESIGN.html`, `index.html`, `.nojekyll`, `.gitignore`, `.claude/`, `deploy`. It writes `VENDORED.md` with the commit hash.
 - If the tests fail in the copy, it restores the directory and commits nothing.
 
 ## Contract with iterate-on-docs
