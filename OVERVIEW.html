@@ -1,30 +1,26 @@
 <!DOCTYPE html>
-<html data-hrv-next="441" lang="en">
+<html data-hrv-next="444" lang="en">
   <head>
     <meta charset="utf-8">
     <title>html-revisor — overview</title>
     <link rel="stylesheet" href="client.css">
     <style>
   :root { --ink: #1f2328; --muted: #656d76; --line: #d0d7de; --bg: #ffffff; --card: #f6f8fa;
-    --now: #1a7f37; --dir: #8250df; --warn: #bc4c00; --accent: #0969da; --pink: #d6336c; --ext: #fff8e1; --ext-line: #d4a72c; }
+    --now: #1a7f37; --warn: #bc4c00; --accent: #0969da; --ext: #fff8e1; --ext-line: #d4a72c; }
   @media (prefers-color-scheme: dark) {
     :root { --ink: #e6edf3; --muted: #9198a1; --line: #3d444d; --bg: #0d1117; --card: #151b23;
-      --now: #3fb950; --dir: #ab7df8; --warn: #f0883e; --accent: #4493f8; --ext: #272115; --ext-line: #9e6a03; }
+      --now: #3fb950; --warn: #f0883e; --accent: #4493f8; --ext: #272115; --ext-line: #9e6a03; }
   }
   body { font: 16px/1.5 system-ui, sans-serif; color: var(--ink); background: var(--bg); max-width: 960px; margin: 2rem auto; padding: 0 1rem; }
   h1 { margin-bottom: 0; }
   h2 { border-bottom: 1px solid var(--line); padding-bottom: .25rem; margin-top: 2.5rem; }
   h3 { margin: 0 0 .25rem; font-size: 1rem; }
   .sub { color: var(--muted); margin-top: .25rem; }
-  .directional { display: inline-block; font-size: .75rem; font-weight: 600; color: var(--dir); border: 1px solid var(--dir); border-radius: 999px; padding: 0 .5rem; vertical-align: middle; }
-  .current { display: inline-block; font-size: .75rem; font-weight: 600; color: var(--now); border: 1px solid var(--now); border-radius: 999px; padding: 0 .5rem; vertical-align: middle; }
   svg { width: 100%; height: auto; display: block; }
   svg text { fill: var(--ink); font-family: system-ui, sans-serif; }
   svg .muted { fill: var(--muted); }
   svg .box { fill: var(--card); stroke: var(--line); }
   svg .now { stroke: var(--now); }
-  svg .dir { stroke: var(--dir); stroke-dasharray: 6 4; stroke-width: 2; }
-  svg .dirtext { fill: var(--dir); }
   svg .warntext { fill: var(--warn); }
   svg .nowtext { fill: var(--now); }
   svg .ext { fill: var(--ext); stroke: var(--ext-line); }
@@ -52,11 +48,12 @@
   svg .landmark:hover { filter: drop-shadow(0 0 3px var(--hue, var(--ink))); }
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: .75rem 1rem; }
-  .card.dir { border: 1px dashed var(--dir); }
+  a { color: var(--accent); }
   code { font-family: ui-monospace, monospace; font-size: .9em; }
   pre { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: .6rem .8rem; overflow-x: auto; font-size: .85rem; margin: .25rem 0; }
   pre .add { color: var(--now); font-weight: 600; }
   .ba { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .ba > * { min-width: 0; }
   .label { font-size: .8rem; font-weight: 600; color: var(--muted); }
   .flowhead { font-weight: 600; margin: 1.5rem 0 .5rem; }
   .step { display: grid; grid-template-columns: 170px 1fr; gap: 1.25rem; }
@@ -65,19 +62,11 @@
   .step:last-child .rail::before { display: none; }
   .node { position: relative; background: var(--card); border: 1px solid var(--now); border-radius: 8px; padding: .5rem; text-align: center; font-size: .9rem; }
   .node.end { border-color: var(--line); }
-  .node.dir { border: 2px dashed var(--dir); margin-top: .4rem; color: var(--dir); }
-  .body { padding-bottom: 1.5rem; }
-  .body .dirpart { border-left: 3px dashed var(--dir); padding-left: .75rem; margin-top: .75rem; }
+  .body { padding-bottom: 1.5rem; min-width: 0; }
   .demo p { margin: .25rem 0; }
   .hl { outline: 2px solid var(--now); outline-offset: 1px; border-radius: 2px; }
   .off { color: var(--muted); }
   .page { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: .75rem 1rem; position: relative; }
-  .noted-wrap { position: relative; }
-  .noted { box-shadow: inset 3px 0 0 var(--pink); padding-left: .6rem; margin: 0; }
-  .marker { position: absolute; left: -9px; top: -9px; z-index: 1; }
-  .marker summary { list-style: none; width: 18px; height: 18px; border-radius: 50%; background: var(--pink); color: #fff; text-align: center; font-size: 11px; line-height: 18px; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.35); }
-  .marker summary::-webkit-details-marker { display: none; }
-  .marker .pop { position: absolute; left: 24px; top: -4px; white-space: nowrap; background: var(--card); border: 1px solid var(--pink); border-radius: 6px; padding: .2rem .5rem; font-size: .8rem; }
   dl { display: grid; grid-template-columns: max-content 1fr; gap: .4rem 1rem; }
   dt { font-weight: 600; }
   dd { margin: 0; }
@@ -121,9 +110,7 @@
     </section>
     <section data-hrv="194" id="details">
       <h2 data-hrv="195">Step by step</h2>
-      <p data-hrv="196" class="sub">
-        The pipelines above, stood on end. Green: today. Dashed purple: <span data-hrv="380" class="directional">directional</span>.
-      </p>
+      <p data-hrv="196" class="sub">The pipelines above, stood on end.</p>
       <div data-hrv="197" class="flowhead">GET page.html</div>
       <div data-hrv="198" class="flow">
         <div data-hrv="199" class="step">
@@ -135,10 +122,6 @@
         <div data-hrv="203" class="step" id="d-normalize">
           <div data-hrv="204" class="rail">
             <div data-hrv="205" class="node">parse, normalize</div>
-            <div data-hrv="206" class="node dir">
-              <!-- @AI: why is this directional? ... this whole diagram needs to be brought up, like you did the architecture -->
-              format
-            </div>
           </div>
           <div data-hrv="207" class="body">
             <p data-hrv="208">
@@ -159,7 +142,7 @@ first.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;one&lt;/li&gt;&lt;li&gt;two&lt;/li&gt;&lt;/u
   &lt;head&gt;&lt;/head&gt;
   &lt;body&gt;
     &lt;h1&gt;Plan&lt;/h1&gt;
-    &lt;p&gt;Ship the &lt;b&gt;formatter&lt;/b&gt; first.&lt;/p&gt;
+    &lt;p&gt;Ship the &lt;strong&gt;formatter&lt;/strong&gt; first.&lt;/p&gt;
     &lt;ul&gt;
       &lt;li&gt;one&lt;/li&gt;
       &lt;li&gt;two&lt;/li&gt;
@@ -169,16 +152,9 @@ first.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;one&lt;/li&gt;&lt;li&gt;two&lt;/li&gt;&lt;/u
 &lt;/html&gt;</pre>
               </div>
             </div>
-            <div data-hrv="216" class="dirpart" id="d-format">
-              <h3 data-hrv="217">
-                format <span data-hrv="381" class="directional">directional</span>
-              </h3>
-              <p data-hrv="218">
-                Normalize is its own command, in <code>formatter.mjs</code>; GET runs the same code. The agent runs it after writing the page, before the human opens it. Directional: validation rules, for what normalizing can't fix. None yet; one a rule could report:
-              </p>
-              <pre data-hrv="219">$ node formatter.mjs OVERVIEW.html
-OVERVIEW.html: &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing content only</pre>
-            </div>
+            <p data-hrv="218" class="sub">
+              The same code runs from the command line, <code>node formatter.mjs page.html</code>. The agent runs it before each commit, so a page load finds nothing to rewrite.
+            </p>
           </div>
         </div>
         <div data-hrv="220" class="step" id="d-ids">
@@ -187,12 +163,12 @@ OVERVIEW.html: &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing content
           </div>
           <div data-hrv="223" class="body">
             <p data-hrv="224">
-              One <strong>element ID</strong> per scope (every block), and per link, image, <code>hr</code>, and part of an SVG. The formatter writes them into the file, from a counter whose high-water mark sits on <code>&lt;html&gt;</code>, so an edit can't shift them. It assigns IDs on every GET and first thing on every PUT. An ID never changes and is never reused; duplicates (an agent's copy-paste) retire the ID, and every copy gets a fresh one.
+              One <strong>element ID</strong> per scope (every block, link, image, and span), per <code>hr</code>, and per element of an SVG. The formatter writes them into the file, from a counter whose high-water mark sits on <code>&lt;html&gt;</code>, so an edit can't shift them. It assigns IDs on every GET and first thing on every PUT. An ID never changes and is never reused; duplicates (an agent's copy-paste) retire the ID, and every copy gets a fresh one.
             </p>
             <div data-hrv="225" class="label">on disk</div>
             <pre data-hrv="226">&lt;html data-hrv-next="8"&gt;
 …
-&lt;p data-hrv="4"&gt;Ship the &lt;b&gt;formatter&lt;/b&gt; first.&lt;/p&gt;
+&lt;p data-hrv="4"&gt;Ship the &lt;strong&gt;formatter&lt;/strong&gt; first.&lt;/p&gt;
 &lt;ul data-hrv="5"&gt;
   &lt;li data-hrv="6"&gt;one&lt;/li&gt;
   &lt;li data-hrv="7"&gt;two&lt;/li&gt;
@@ -209,7 +185,7 @@ OVERVIEW.html: &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing content
                 <div data-hrv="233" class="label">on disk</div>
                 <pre data-hrv="234">&lt;p&gt;
   &lt;!-- @AI: say why first --&gt;
-  Ship the &lt;b&gt;formatter&lt;/b&gt; first.
+  Ship the &lt;strong&gt;formatter&lt;/strong&gt; first.
 &lt;/p&gt;</pre>
               </div>
               <div data-hrv="235">
@@ -226,44 +202,40 @@ OVERVIEW.html: &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing content
               Like an HTML comment, a <code>type="application/json"</code> script is inert: the browser never runs it. The client reads it with <code>JSON.parse(el.textContent)</code>.
             </p>
             <div data-hrv="239" class="label">in the browser</div>
-            <div data-hrv="240" class="page">
-              <div data-hrv="241" class="noted-wrap">
-                <details data-hrv="242" class="marker" title="yep, this is the marker that shows a directive is here">
-                  <summary data-hrv="243">✎</summary>
-                  <div data-hrv="244" class="pop">
-                    yep, this is the marker that shows a directive is here
-                  </div>
-                </details>
-                <p data-hrv="245" class="noted">Ship the <strong>formatter</strong> first.</p>
+            <div data-hrv="240" class="page" style="padding-left: 2.25rem;">
+              <p data-hrv="245">Ship the <strong>formatter</strong> first.</p>
+              <div data-hrv="441" class="hrv-layer">
+                <div data-hrv="442" class="hrv-marker" style="left: 6px; top: 12px;"></div>
+                <div data-hrv="443" class="hrv-tip" style="left: 250px; top: 10px;">say why first</div>
               </div>
             </div>
             <p data-hrv="246" class="sub">
-              ⌘-click the marker. Clicking a real one opens its directive.
+              The marker, from <code>client.css</code>. Hover a real one for its directive, as shown; click it to open the box.
             </p>
           </div>
         </div>
         <div data-hrv="247" class="step" id="d-inject">
           <div data-hrv="248" class="rail">
             <div data-hrv="249" class="node">inject client</div>
-            <div data-hrv="250" class="node dir">+ markdown editor</div>
           </div>
           <div data-hrv="251" class="body">
             <div data-hrv="252" class="label">served</div>
             <pre data-hrv="253">&lt;html&gt;
   &lt;head&gt;
     … the page's head …
-<span class="add">    &lt;style&gt; hover, markers, box &lt;/style&gt;</span>
+<span class="add">    &lt;style&gt; client.css &lt;/style&gt;</span>
   &lt;/head&gt;
   &lt;body&gt;
     … the page, with its IDs …
 <span class="add">    &lt;script type="application/json" id="hrv-directives"
             data-version="3f9a0c1b2d4e"&gt; {…} &lt;/script&gt;
     &lt;script type="application/json" id="hrv-bases"&gt; {"4":"a1c4…"} &lt;/script&gt;
-    &lt;script&gt; hover · click · box · PUT &lt;/script&gt;</span>
+    &lt;script type="application/json" id="hrv-markdown"&gt; {"4":"Ship the **formatter** first."} &lt;/script&gt;
+    &lt;script&gt; client.js: hover · box · docket · PUT &lt;/script&gt;</span>
   &lt;/body&gt;
 &lt;/html&gt;</pre>
             <p data-hrv="254" class="sub">
-              The green lines exist only in the served copy, never in the file, so the client's own elements have no ID and can't take a directive. <code>data-version</code> fingerprints the file on disk; a save's answer says whether the file changed (see <a data-hrv="255" href="#d-conflict">conflict check</a>). <code>hrv-bases</code> holds each element's base, which a save sends back.
+              The green lines exist only in the served copy, never in the file, so the client's own elements have no ID and can't take a directive. <code>data-version</code> fingerprints the file on disk; a save's answer says whether the file changed (see <a data-hrv="255" href="#d-conflict">conflict check</a>). <code>hrv-bases</code> holds each element's base, which a save sends back. <code>hrv-markdown</code> holds each scope's markdown, for the box's Content field.
             </p>
           </div>
         </div>
@@ -300,7 +272,7 @@ OVERVIEW.html: &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing content
   base matches li 6        →  applied; answer has new bases
   base differs, or no li 6 →  412, nothing written: error, reload suggested</pre>
             <p data-hrv="274" class="sub">
-              A conflict means we weren't taking turns; it's an edge case. An agent's edit elsewhere doesn't block the save. The answer carries the file's hash before the save; if that isn't the page the tab loaded, the tab says "the page changed on disk; reload to see it". <span data-hrv="382" class="directional">directional</span> Later the tab hears of it live.
+              A conflict means we weren't taking turns; it's an edge case. An agent's edit elsewhere doesn't block the save. The answer carries the file's hash before the save; if that isn't the page the tab loaded, the tab says "the page changed on disk; reload to see it".
             </p>
           </div>
         </div>
@@ -335,7 +307,7 @@ OVERVIEW.html: &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing content
             <div data-hrv="293" class="label">on disk</div>
             <pre data-hrv="294">&lt;p&gt;
   &lt;!-- @AI: say why first --&gt;
-  Ship the &lt;b&gt;formatter&lt;/b&gt; first.
+  Ship the &lt;strong&gt;formatter&lt;/strong&gt; first.
 &lt;/p&gt;
 &lt;!-- @AI: needs alt text --&gt;
 &lt;img src="map.png"&gt;</pre>
@@ -348,9 +320,6 @@ OVERVIEW.html: &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing content
           <div data-hrv="298" class="body">
             <p data-hrv="299">
               Write the canonical format, IDs and all. IDs are part of the file. The first format of each page is one noisy diff; after that a diff shows only new IDs.
-            </p>
-            <p data-hrv="300" class="sub">
-              <span data-hrv="383" class="directional">directional</span> Before a page leaves the tool, a cleanup script strips them.
             </p>
           </div>
         </div>
@@ -366,7 +335,7 @@ OVERVIEW.html: &lt;p&gt; holds a &lt;div&gt;; a paragraph holds phrasing content
       <h2 data-hrv="306">Prose editing</h2>
       <div data-hrv="307" class="grid">
         <div data-hrv="320" class="card">
-          <strong>Every scope edits as markdown</strong> <span data-hrv="384" class="current">current</span>
+          <strong>Every scope edits as markdown</strong>
           <div data-hrv="321" class="demo">
             <p data-hrv="322">
               A paragraph with <strong>bold</strong> and <a data-hrv="323" href="#prose">a link</a>.
