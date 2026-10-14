@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-hrv-next="525" lang="en">
+<html data-hrv-next="536" lang="en">
   <head>
     <meta charset="utf-8">
     <title>html-revisor — overview</title>
@@ -68,6 +68,10 @@
   .prop::before { content: "✦ "; }
   .node.end { border-color: var(--line); }
   .body { padding-bottom: 1.5rem; min-width: 0; }
+  .target { position: relative; display: inline-block; margin: .6rem 0 0 4px; }
+  .target p { margin: 0; }
+  ol.does { margin: 0; padding-left: 1.4rem; }
+  ol.does li { margin: 0 0 .6rem; }
   .demo p { margin: .25rem 0; }
   .hl { outline: 2px solid var(--now); outline-offset: 1px; border-radius: 2px; }
   .off { color: var(--muted); }
@@ -92,6 +96,52 @@
         <defs data-hrv="7"> <marker data-hrv="8" id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"> <path data-hrv="9" d="M0 0 L10 5 L0 10 z" fill="#888"></path> </marker> </defs> <rect data-hrv="10" class="box" x="20" y="90" width="170" height="80" rx="10"></rect> <text data-hrv="11" x="105" y="125" text-anchor="middle" font-size="22">🤖 agent</text> <text data-hrv="12" x="105" y="150" text-anchor="middle" font-size="13" class="muted">writes, then reads the diff</text> <rect data-hrv="13" class="box" x="365" y="90" width="170" height="80" rx="10"></rect> <text data-hrv="14" x="450" y="125" text-anchor="middle" font-size="18" class="mono">OVERVIEW.html</text> <text data-hrv="15" x="450" y="150" text-anchor="middle" font-size="13" class="muted">the only record</text> <rect data-hrv="16" class="box" x="710" y="90" width="170" height="80" rx="10"></rect> <text data-hrv="17" x="795" y="125" text-anchor="middle" font-size="22">👩🏽‍🦱 human</text> <text data-hrv="18" x="795" y="150" text-anchor="middle" font-size="13" class="muted">in the browser</text> <path data-hrv="19" class="arrow" d="M190 110 Q280 60 365 110" marker-end="url(#ah)"></path> <text data-hrv="20" x="278" y="62" text-anchor="middle" font-size="13">agent generates</text> <path data-hrv="21" class="arrow" d="M365 150 Q280 200 190 150" marker-end="url(#ah)"></path> <text data-hrv="22" x="278" y="215" text-anchor="middle" font-size="13">grep directives · git diff</text> <path data-hrv="23" class="arrow" d="M535 110 Q620 60 710 110" marker-end="url(#ah)"></path> <text data-hrv="24" x="622" y="62" text-anchor="middle" font-size="13">html-revisor formats, serves</text> <path data-hrv="25" class="arrow" d="M710 150 Q620 200 535 150" marker-end="url(#ah)"></path> <text data-hrv="26" x="622" y="215" text-anchor="middle" font-size="13">directives + prose edits</text> <text data-hrv="27" x="450" y="250" text-anchor="middle" font-size="13" class="muted">The tool owns the file's shape: it may reformat, restrict, and rewrite it in place.</text>
       </svg>
     </section>
+    <section data-hrv="525" id="what-it-does">
+      <h2 data-hrv="526">What it does</h2>
+      <div data-hrv="527" class="ba does">
+        <div data-hrv="320" class="card">
+          <strong>Every scope edits as markdown</strong>
+          <div data-hrv="321" class="demo">
+            <div data-hrv="528" class="target">
+              <p data-hrv="322">
+                A paragraph with <strong>bold</strong> and <a data-hrv="323" href="#prose">a link</a>.
+              </p>
+              <div data-hrv="529" class="hrv-layer">
+                <div data-hrv="530" class="hrv-crop hrv-selected" style="left: -4px; top: -4px; right: -4px; bottom: -4px;"></div>
+              </div>
+            </div>
+            <div data-hrv="324" class="hrv-layer">
+              <div data-side="below" data-hrv="325" class="hrv-box" style="position: relative; width: 100%; max-width: 320px; margin-top: 14px;">
+                <div data-hrv="326" class="hrv-head">
+                  <span data-hrv="385" class="hrv-icon"></span> <span data-hrv="386" class="hrv-what">p · A paragraph with bold and a link.</span>
+                </div>
+                <div data-hrv="327" class="hrv-label">Content</div>
+                <textarea class="hrv-text" style="height: 60px;">A paragraph with **bold** and [a link](#prose).</textarea>
+                <div data-hrv="328" class="hrv-label">Directive</div>
+                <textarea class="hrv-directive" placeholder="Directive for this element">Say why this comes first.</textarea>
+                <div data-hrv="329" class="hrv-row">
+                  <div data-hrv="330" class="hrv-hint">⌘↵ or esc to close</div>
+                  <div data-hrv="331" class="hrv-btn hrv-quiet" title="Delete the directive (⌥⌘⌫)">
+                    Delete
+                  </div>
+                  <div data-hrv="332" class="hrv-btn hrv-done">Done</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <ol data-hrv="531" class="does">
+          <li data-hrv="532">
+            <strong>Click</strong> any block. Crop marks show what you picked.
+          </li>
+          <li data-hrv="533"><strong>Content</strong> holds its words as markdown. Edit them.</li>
+          <li data-hrv="534"><strong>Directive</strong> asks the agent for something.</li>
+          <li data-hrv="535">
+            Both save into the HTML file as you type. The agent reads the diff and the directives.
+          </li>
+        </ol>
+      </div>
+    </section>
     <section data-hrv="28" id="direction">
       <h2 data-hrv="29">Where it's headed</h2>
       <svg data-hrv="432" viewBox="0 0 900 378" role="img" aria-label="Three mountains: Fidelity, Ergonomics, and Performance, with example yaks on the trail up each">
@@ -115,6 +165,63 @@
       <p data-hrv="135" class="sub">
         <code>./deploy</code> runs from main only and refuses on a dirty tree. If the tests fail in the copy, it puts the copy back and commits nothing. Details: README, <a data-hrv="439" href="https://github.com/jessitron/html-revisor#deploy">Deploy</a> and <a data-hrv="440" href="https://github.com/jessitron/html-revisor#contract-with-iterate-on-docs">Contract with iterate-on-docs</a>.
       </p>
+    </section>
+    <section data-hrv="305" id="prose">
+      <h2 data-hrv="306">What makes this hard: prose editing</h2>
+      <div data-hrv="497" class="callout">
+        <span data-hrv="498" class="prop">Round trip is identity</span> <span data-hrv="499" class="prop">IDs survive a save</span> <span data-hrv="500" class="prop">Property-tested</span> <span data-hrv="501" class="say">Every scope edits as markdown, but the page is HTML that markdown can't fully say. Every case and decision: <a data-hrv="502" href="SCOPES-DESIGN.html#decided">SCOPES-DESIGN.html</a>.</span>
+      </div>
+      <div data-hrv="503" class="ba">
+        <div data-hrv="504">
+          <div data-hrv="505" class="label">on disk</div>
+          <pre data-hrv="506">&lt;section data-hrv="2"&gt;
+  &lt;h2 data-hrv="3"&gt;Plan&lt;/h2&gt;
+  &lt;p data-hrv="4"&gt;
+    &lt;!-- @AI: say why --&gt; <span class="n">③</span>
+    Press &lt;kbd&gt;⌘S&lt;/kbd&gt;, ship.
+  &lt;/p&gt;
+  &lt;svg data-hrv="5"&gt;…&lt;/svg&gt;
+&lt;/section&gt;</pre>
+        </div>
+        <div data-hrv="507">
+          <div data-hrv="508" class="label">in the box, edited</div>
+          <pre data-hrv="509">## Plan
+
+Press &lt;kbd&gt;⌘S&lt;/kbd&gt;, ship <span class="add">**today**</span>. <span class="n">①</span>
+
+<span class="add">Celebrate.</span>
+
+⟦svg⟧ <span class="n">②</span></pre>
+        </div>
+      </div>
+      <div data-hrv="510" class="ba">
+        <div data-hrv="511">
+          <div data-hrv="512" class="label">saved</div>
+          <pre data-hrv="513">&lt;section data-hrv="2"&gt;
+  &lt;h2 data-hrv="3"&gt;Plan&lt;/h2&gt;
+  &lt;p data-hrv="4"&gt; <span class="n">④</span>
+    &lt;!-- @AI: say why --&gt; <span class="n">③</span>
+    Press &lt;kbd&gt;⌘S&lt;/kbd&gt;, ship <span class="add">&lt;strong&gt;today&lt;/strong&gt;</span>.
+  &lt;/p&gt;
+  <span class="add">&lt;p data-hrv="7"&gt;Celebrate.&lt;/p&gt;</span> <span class="n">④</span>
+  &lt;svg data-hrv="5"&gt;…&lt;/svg&gt; <span class="n">②</span>
+&lt;/section&gt;</pre>
+        </div>
+        <ul data-hrv="514" class="hard">
+          <li data-hrv="515">
+            <span data-hrv="516" class="n">①</span> Markdown can't say <code>kbd</code>, so it stays HTML.
+          </li>
+          <li data-hrv="517">
+            <span data-hrv="518" class="n">②</span> An SVG isn't text: a stand-in, restored from the prior HTML.
+          </li>
+          <li data-hrv="519">
+            <span data-hrv="520" class="n">③</span> The directive isn't in the markdown, and stays on its element.
+          </li>
+          <li data-hrv="521">
+            <span data-hrv="522" class="n">④</span> The edited paragraph keeps its ID; the new one gets the next.
+          </li>
+        </ul>
+      </div>
     </section>
     <section data-hrv="194" id="details">
       <h2 data-hrv="195">Step by step</h2>
@@ -346,95 +453,6 @@ first.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;one&lt;/li&gt;&lt;li&gt;two&lt;/li&gt;&lt;/u
             <div data-hrv="303" class="node end">file on disk</div>
           </div>
           <div data-hrv="304" class="body"></div>
-        </div>
-      </div>
-    </section>
-    <section data-hrv="305" id="prose">
-      <h2 data-hrv="306">
-        <!-- @AI: let's move this section up, above the detailed steps. -->
-        What makes this hard: prose editing
-      </h2>
-      <div data-hrv="497" class="callout">
-        <span data-hrv="498" class="prop">Round trip is identity</span> <span data-hrv="499" class="prop">IDs survive a save</span> <span data-hrv="500" class="prop">Property-tested</span> <span data-hrv="501" class="say">Every scope edits as markdown, but the page is HTML that markdown can't fully say. Every case and decision: <a data-hrv="502" href="SCOPES-DESIGN.html#decided">SCOPES-DESIGN.html</a>.</span>
-      </div>
-      <div data-hrv="503" class="ba">
-        <div data-hrv="504">
-          <div data-hrv="505" class="label">on disk</div>
-          <pre data-hrv="506">&lt;section data-hrv="2"&gt;
-  &lt;h2 data-hrv="3"&gt;Plan&lt;/h2&gt;
-  &lt;p data-hrv="4"&gt;
-    &lt;!-- @AI: say why --&gt; <span class="n">③</span>
-    Press &lt;kbd&gt;⌘S&lt;/kbd&gt;, ship.
-  &lt;/p&gt;
-  &lt;svg data-hrv="5"&gt;…&lt;/svg&gt;
-&lt;/section&gt;</pre>
-        </div>
-        <div data-hrv="507">
-          <div data-hrv="508" class="label">in the box, edited</div>
-          <pre data-hrv="509">## Plan
-
-Press &lt;kbd&gt;⌘S&lt;/kbd&gt;, ship <span class="add">**today**</span>. <span class="n">①</span>
-
-<span class="add">Celebrate.</span>
-
-⟦svg⟧ <span class="n">②</span></pre>
-        </div>
-      </div>
-      <div data-hrv="510" class="ba">
-        <div data-hrv="511">
-          <div data-hrv="512" class="label">saved</div>
-          <pre data-hrv="513">&lt;section data-hrv="2"&gt;
-  &lt;h2 data-hrv="3"&gt;Plan&lt;/h2&gt;
-  &lt;p data-hrv="4"&gt; <span class="n">④</span>
-    &lt;!-- @AI: say why --&gt; <span class="n">③</span>
-    Press &lt;kbd&gt;⌘S&lt;/kbd&gt;, ship <span class="add">&lt;strong&gt;today&lt;/strong&gt;</span>.
-  &lt;/p&gt;
-  <span class="add">&lt;p data-hrv="7"&gt;Celebrate.&lt;/p&gt;</span> <span class="n">④</span>
-  &lt;svg data-hrv="5"&gt;…&lt;/svg&gt; <span class="n">②</span>
-&lt;/section&gt;</pre>
-        </div>
-        <ul data-hrv="514" class="hard">
-          <li data-hrv="515">
-            <span data-hrv="516" class="n">①</span> Markdown can't say <code>kbd</code>, so it stays HTML.
-          </li>
-          <li data-hrv="517">
-            <span data-hrv="518" class="n">②</span> An SVG isn't text: a stand-in, restored from the prior HTML.
-          </li>
-          <li data-hrv="519">
-            <span data-hrv="520" class="n">③</span> The directive isn't in the markdown, and stays on its element.
-          </li>
-          <li data-hrv="521">
-            <span data-hrv="522" class="n">④</span> The edited paragraph keeps its ID; the new one gets the next.
-          </li>
-        </ul>
-      </div>
-      <div data-hrv="307" class="grid">
-        <div data-hrv="320" class="card">
-          <!-- @AI: I want this part at the top. Like right below the purpose. And draw the crop marks on the paragraph that the box is editing. This illustrates what the project actually does. -->
-          <strong>Every scope edits as markdown</strong>
-          <div data-hrv="321" class="demo">
-            <p data-hrv="322">
-              A paragraph with <strong>bold</strong> and <a data-hrv="323" href="#prose">a link</a>.
-            </p>
-            <div data-hrv="324" class="hrv-layer">
-              <div data-hrv="325" class="hrv-box" style="position: relative; width: 100%; max-width: 320px; margin-top: .5rem;">
-                <div data-hrv="326" class="hrv-head">
-                  <span data-hrv="385" class="hrv-icon"></span> <span data-hrv="386" class="hrv-what">p · A paragraph with bold and a link.</span>
-                </div>
-                <div data-hrv="327" class="hrv-label">Content</div>
-                <textarea class="hrv-text" style="height: 60px;">A paragraph with **bold** and [a link](#prose).</textarea>
-                <div data-hrv="328" class="hrv-label">Directive</div>
-                <textarea class="hrv-directive" placeholder="Directive for this element"></textarea>
-                <div data-hrv="329" class="hrv-row">
-                  <div data-hrv="330" class="hrv-hint">⌘↵ or esc to close</div>
-                  <div data-hrv="331" class="hrv-btn hrv-quiet" title="Delete the directive (⌥⌘⌫)">
-                    Delete
-                  </div>
-                  <div data-hrv="332" class="hrv-btn hrv-done">Done</div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </section>
