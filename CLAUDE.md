@@ -54,6 +54,7 @@ This project tracks work with `yx`, a git-backed TODO CLI (`yx help` for full co
 
 - yx makes each yak directory in `.yaks` read-only, so `git worktree remove` and `rm -rf` fail with "Permission denied" on a worktree that ran `yx`. Run `chmod -R u+w <worktree>` first. The cache is safe to delete; `yx reset` rebuilds it.
 - A blocker on a parent yak does not block its children. In yx, children are work toward the parent, so `--ready` lists a blocked parent's children. When a whole stage waits, put the blocker on each child that waits.
+- A blocker that is done still blocks: `yx start` refuses, and `--ready` leaves the yak out. Clear it with `yx blocker rm <yak> --by <blocker>`, both full IDs; the four-character suffix gets "not found".
 - `yx list` shows children in alphabetical order, not the order you added them. To make one child go first, block its siblings on it.
 - `yx rename` keeps the old ID, and the ID holds the old name's words. For a clean ID, add a new yak, `yx move` the children under it, then `yx remove` the old one; blockers move with the children.
 - `yx context <id> <<< "..."` replaces the whole context, and other sessions write the same yaks. Read it right before writing, and write it back whole. `yx rename` keeps the old ID; `yx context` then needs the full ID (`<slug>-cqsh`), not the four-character suffix.
