@@ -110,7 +110,10 @@
     </section>
     <section data-hrv="194" id="details">
       <h2 data-hrv="195">Step by step</h2>
-      <p data-hrv="196" class="sub">The pipelines above, stood on end.</p>
+      <p data-hrv="196" class="sub">
+        <!-- @AI: above needs to link to the section -->
+        The pipelines above, stood on end.
+      </p>
       <div data-hrv="197" class="flowhead">GET page.html</div>
       <div data-hrv="198" class="flow">
         <div data-hrv="199" class="step">
@@ -125,6 +128,9 @@
           </div>
           <div data-hrv="207" class="body">
             <p data-hrv="208">
+              <!-- @AI: how can we get less text on the page... can this be more steps in the flow instead of text? like smaller ones or substeps or something. I'm looking for more pictures. 
+
+"Idempotent!" is a property to call out tho -->
               Parse with linkedom, rewrite into canonical shape: add <code>html/head/body</code> if missing, <code>b</code>→<code>strong</code> and the other forms markdown writes back, one block per line, inline runs on one line, whitespace collapsed, two-space indent. Idempotent. Writes to disk when it differs.
             </p>
             <div data-hrv="209" class="ba">
@@ -153,7 +159,8 @@ first.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;one&lt;/li&gt;&lt;li&gt;two&lt;/li&gt;&lt;/u
               </div>
             </div>
             <p data-hrv="218" class="sub">
-              The same code runs from the command line, <code>node formatter.mjs page.html</code>. The agent runs it before each commit, so a page load finds nothing to rewrite.
+              <!-- @AI: can this be cuter. Like, can it be like a callout that points at the parse/normalize step, and is in a happy color -->
+              The same code runs from the command line, <code>node formatter.mjs page.html</code>. The agent runs it before each commit.
             </p>
           </div>
         </div>
