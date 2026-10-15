@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-hrv-next="87" lang="en">
+<html data-hrv-next="135" lang="en">
   <head>
     <meta charset="utf-8">
     <title>html-revisor: observability</title>
@@ -25,15 +25,98 @@
 </style>
   </head>
   <body data-hrv="1">
-    <h1 data-hrv="2">html-revisor: observability</h1>
+    <h1 data-hrv="2">
+      <!-- @AI: I wonder if we can make these documents prettier. it doesn't matter, don't do anything there. -->
+      html-revisor: observability
+    </h1>
     <p data-hrv="3" class="lede">
       What html-revisor tells Honeycomb about a save, from your keystroke to the file on disk and back, and the queries that show it.
     </p>
-    <h2 data-hrv="4">Turn it on</h2>
+    <h2 data-hrv="4">
+      <!-- @AI: I do need to add a skill somewhere that gets you to make sections here, so I can edit a section at a time. Make a yak for that -->
+      Turn it on
+    </h2>
     <pre data-hrv="5">HRV_TELEMETRY=1 OTEL_EXPORTER_OTLP_ENDPOINT=https://api.honeycomb.io OTEL_EXPORTER_OTLP_HEADERS=x-honeycomb-team=&lt;ingest key&gt; ./run</pre>
     <p data-hrv="6">
-      <code>HRV_TELEMETRY</code> is the switch. Without it the server sends nothing, whatever <code>OTEL_*</code> variables it inherits. With it, the standard variables say where spans go. Spans land in team modernity, environment local, dataset <code>html-revisor</code> (the service name). <code>.be</code> in this repo holds the key and the variables.
+      <!-- @AI: also, make a yak for: if I add paragraphs in md, make them new <p&gt;s when that makes sense -->
+      <code>HRV_TELEMETRY</code> is the switch. Without it the server sends nothing, whatever <code>OTEL_*</code> variables it inherits. With it, the standard variables say where spans go. Spans land in team modernity, environment local, dataset <code>html-revisor</code> (the service name). <code>.be</code> in this repo holds the key and the variables.<br><br>This is me changing something. You can delete this change, or leave it, whatever.<br><br>Oh this is interesting. I edited a
     </p>
+    <p data-hrv="133">
+      , with newlines, and got<br>s. Also the page is getting weird behind the box... it's the &lt; and &gt; symbols ... on man this is a BUG<br><br>Add a test for what happens when text like this is added!
+    </p>
+    <p data-hrv="134"></p>
+    <p data-hrv="131">
+      , with newlines, and got<br>s. Also the page is getting weird behind the box... it's the &lt; and &gt; symbols ... on man this is a BUG<br><br>Add a test for
+    </p>
+    <p data-hrv="132"></p>
+    <p data-hrv="129">
+      , with newlines, and got<br>s. Also the page is getting weird behind the box... it's the &lt; and &gt; symbols ... on man this is a BUG
+    </p>
+    <p data-hrv="130"></p>
+    <p data-hrv="127">
+      , with newlines, and got<br>s. Also the page is getting weird behind the box... it's the &lt; and &gt; symbols ...
+    </p>
+    <p data-hrv="128"></p>
+    <p data-hrv="125">
+      , with newlines, and got<br>s. Also the page is getting weird behind the box... it's the &lt; and &gt; symbols
+    </p>
+    <p data-hrv="126"></p>
+    <p data-hrv="123">
+      , with newlines, and got<br>s. Also the page is getting weird behind the box... it's the &lt; and &gt; symbols
+    </p>
+    <p data-hrv="124"></p>
+    <p data-hrv="121">
+      , with newlines, and got<br>s. Also the page is getting weird behind the box... it's the &lt; and &amp;t
+    </p>
+    <p data-hrv="122"></p>
+    <p data-hrv="119">
+      , with newlines, and got<br>s. Also the page is getting weird behind the box... it's the &lt; and &amp;
+    </p>
+    <p data-hrv="120"></p>
+    <p data-hrv="117">
+      , with newlines, and got<br>s. Also the page is getting weird behind the box... it's the
+    </p>
+    <p data-hrv="118"></p>
+    <p data-hrv="115">
+      , with newlines, and got<br>s. Also the page is getting weird behind the box... it's the $lt; and
+    </p>
+    <p data-hrv="116"></p>
+    <p data-hrv="113">
+      , with newlines, and got<br>s. Also the page is getting weird behind the box... it's the $lt; and
+    </p>
+    <p data-hrv="114"></p>
+    <p data-hrv="111">
+      , with newlines, and got<br>s. Also the page is getting weird behind the box... it's the
+    </p>
+    <p data-hrv="112"></p>
+    <p data-hrv="109">
+      , with newlines, and got<br>s. Also the page is getting weird behind the box... i
+    </p>
+    <p data-hrv="110"></p>
+    <p data-hrv="107">
+      , with newlines, and got<br>s. Also the page is getting weird behind the box...
+    </p>
+    <p data-hrv="108"></p>
+    <p data-hrv="105">, with newlines, and got<br>s. Also the page is getting weird</p>
+    <p data-hrv="106"></p>
+    <p data-hrv="103">, with newlines, and got<br>s.</p>
+    <p data-hrv="104"></p>
+    <p data-hrv="101">, with newlines, and got<br>s.</p>
+    <p data-hrv="102"></p>
+    <p data-hrv="99">, with newlines, and got<br>s.</p>
+    <p data-hrv="100"></p>
+    <p data-hrv="97">, with newlines, and got<br>s.</p>
+    <p data-hrv="98"></p>
+    <p data-hrv="95">, with newlines, and got<br>s.</p>
+    <p data-hrv="96"></p>
+    <p data-hrv="93">, with newlines, and got<br>s.</p>
+    <p data-hrv="94"></p>
+    <p data-hrv="91">, with newlines, and got<br>s. Make</p>
+    <p data-hrv="92"></p>
+    <p data-hrv="89">, with newlines, and got &lt;br</p>
+    <p data-hrv="90"></p>
+    <p data-hrv="87">,</p>
+    <p data-hrv="88"></p>
     <p data-hrv="7">
       The server tells the page that telemetry is on, and only then does the browser record spans. A failed export prints <code>telemetry export failed</code> on the server's stderr.
     </p>
