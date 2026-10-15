@@ -105,6 +105,7 @@
             The rules that place the box and the markers: built (see below), waiting on Jess's review.
           </li>
           <li>Fonts, sizes, and spacing inside the box.</li>
+          <li><a href="#revert">Revert</a>: proposed below.</li>
         </ul>
       </div>
     </div>
@@ -361,6 +362,64 @@
         <p class="note">
           A directive box with editor, for a scope: its field holds the scope's markdown. Above it, the notch below.
         </p>
+      </div>
+    </div>
+    <h2 id="revert">Revert (proposed)</h2>
+    <p class="note">
+      For "oh no, I didn't mean to delete that": put a scope's content back to what it held when the page loaded. Not built; yak <code>undo-for-text-edits-x8yp</code>.
+    </p>
+    <div class="row">
+      <div>
+        <div class="stage" style="height: 36px; padding-top: 330px;">
+          <h3 data-mark="selected">Where it's headed</h3>
+          <div class="hrv-layer">
+            <div class="hrv-box" data-side="above" style="left: 24px; top: 24px; --hrv-notch: 60px;">
+              <div class="hrv-head">
+                <span class="hrv-icon"></span> <span class="hrv-what">section · Where it's headed</span>
+              </div>
+              <div class="hrv-label">Content</div>
+              <textarea class="hrv-text">## Where it's headed
+
+Three mountains: fidelity, ergonomics, performance.</textarea>
+              <div class="hrv-label">Directive</div>
+              <textarea class="hrv-directive" placeholder="Directive for this element"></textarea>
+              <div class="hrv-row">
+                <div class="hrv-btn hrv-quiet" title="Put back the content this had when the page loaded">
+                  Revert
+                </div>
+                <div class="hrv-hint hrv-status">saved</div>
+                <div class="hrv-btn hrv-quiet" title="Delete the directive (⌥⌘⌫)">Delete</div>
+                <div class="hrv-btn hrv-done">Done</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="note">
+          A section whose second paragraph was just deleted. Revert sits at the far left, away from Done.
+        </p>
+      </div>
+      <div>
+        <ul>
+          <li>
+            <strong>Shows only when the content differs from how it loaded.</strong> Its presence says "you changed this."
+          </li>
+          <li>
+            <strong>It types for you.</strong> Revert puts the loaded markdown into the Content field as if typed: it saves like typing, and ⌘Z undoes the revert.
+          </li>
+          <li>
+            <strong>A deleted element comes back from the scope around it.</strong> Deleting a paragraph means editing its parent's markdown; that parent's box has the Revert. Reverting a bigger scope also undoes the other edits inside it.
+          </li>
+          <li><strong>Content only.</strong> Directives stay as they are.</li>
+          <li>
+            <strong>No page-wide revert.</strong> <code>git checkout</code> does that, and a one-click "throw it all away" is too easy to hit by mistake.
+          </li>
+          <li>
+            <strong>Named Revert,</strong> as in git. "Reset" reads as a form reset, "Undo" as one step back. Second choice: "Start over."
+          </li>
+          <li>
+            <strong>Open: revert to what?</strong> The text as this tab loaded it is lost on reload, the panic move. Keeping it in <code>sessionStorage</code> survives a reload in the same tab. The last commit survives everything, and in an iterate loop it is the start of this turn.
+          </li>
+        </ul>
       </div>
     </div>
     <h2>Icon</h2>
