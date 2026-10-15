@@ -4,7 +4,8 @@
 //   Tier I   orchestration: CLI, request routing, the GET and PUT flows
 //   Tier II  domain: markdown edits, element identity (pure functions over a DOM);
 //            directives.mjs, formatter.mjs, and scopes.mjs are Tier II too
-//   Tier III interface: filesystem gateway, content types, listings, client assets
+//   Tier III interface: filesystem gateway, content types, listings, client assets;
+//            telemetry.mjs is Tier III too
 import crypto from 'node:crypto';
 import http from 'node:http';
 import fs from 'node:fs/promises';
@@ -13,6 +14,7 @@ import { pathToFileURL } from 'node:url';
 import { formatFiles, parse, normalize, serialize, assignIds, formatElement, ID, trimAscii, escapeText } from './formatter.mjs';
 import { collectDirectives, removeDirectives, setDirective } from './directives.mjs';
 import { scopeElements, scopeMarkdown, scopeFromMarkdown } from './scopes.mjs';
+import { trace, inSpan, requestSpan, startTelemetry } from './telemetry.mjs';
 
 // ======================================================================
 // Tier I: orchestration
@@ -31,25 +33,33 @@ export function parseArgs(argv) {
 }
 
 export function createServer({ root, author }) {
-  return http.createServer((req, res) => {
-    route(req, res, { root: path.resolve(root), author }).catch((err) => sendError(res, err));
-  });
+  return http.createServer((req, res) =>
+    requestSpan(req, res, (span) =>
+      route(req, res, { root: path.resolve(root), author }).catch((err) => {
+        span.recordException(err);
+        sendError(res, err);
+      }),
+    ),
+  );
 }
 
 async function route(req, res, config) {
   const urlPath = decodeRequestPath(req.url);
   const file = resolveUnderRoot(config.root, urlPath);
   const isHtml = /\.html?$/i.test(urlPath);
+  const named = (what) => trace.getActiveSpan()?.updateName(`${req.method} ${what}`);
 
-  if (req.method === 'PUT' && isHtml) return putChange(req, res, file, urlPath, config);
+  if (req.method === 'PUT' && isHtml) return named('change'), putChange(req, res, file, urlPath, config);
   if (req.method !== 'GET' && req.method !== 'HEAD') throw new HttpError(405, 'method not allowed');
 
   const stat = await fs.stat(file);
   if (stat.isDirectory()) {
-    if (!urlPath.endsWith('/')) return redirect(res, urlPath + '/');
+    if (!urlPath.endsWith('/')) return named('redirect'), redirect(res, urlPath + '/');
+    named('listing');
     return sendHtml(res, directoryListing(urlPath, await fs.readdir(file, { withFileTypes: true })));
   }
-  if (isHtml) return getPage(res, file, urlPath, config);
+  if (isHtml) return named('page'), getPage(res, file, urlPath, config);
+  named('asset');
   res.writeHead(200, { 'Content-Type': contentTypeFor(file) });
   res.end(await fs.readFile(file));
 }
@@ -58,20 +68,35 @@ async function route(req, res, config) {
 // out into JSON, the base of every element so the tab can send it back with a change, and the
 // markdown of every scope for the box to edit.
 async function getPage(res, file, urlPath, { author }) {
-  const onDisk = await fs.readFile(file, 'utf8');
-  const formatted = normalize(onDisk);
+  const span = trace.getActiveSpan();
+  const onDisk = await inSpan('read file', {}, () => fs.readFile(file, 'utf8'));
+  const formatted = inSpan('normalize', {}, () => normalize(onDisk));
+  span?.setAttributes({ 'hrv.page': urlPath, 'hrv.page.bytes': onDisk.length, 'hrv.normalized': formatted !== onDisk });
   if (formatted !== onDisk) {
-    await fs.writeFile(file, formatted);
+    await inSpan('write file', {}, () => fs.writeFile(file, formatted));
     console.log(`${urlPath} (normalized)`);
   }
-  const document = parse(formatted);
-  const directives = collectDirectives(document, author);
-  removeDirectives(document, author);
-  const bases = basesOf(document.querySelectorAll(`[${ID}]`), author);
-  const markdowns = markdownsOf(scopeElements(document));
-  injectClient(document, { directives, bases, markdowns }, versionOf(formatted), await readClientAssets());
+  const document = inSpan('parse', {}, () => parse(formatted));
+  const directives = inSpan('directives', {}, () => {
+    const found = collectDirectives(document, author);
+    removeDirectives(document, author);
+    return found;
+  });
+  const bases = inSpan('bases', {}, () => basesOf(document.querySelectorAll(`[${ID}]`), author));
+  const markdowns = inSpan('markdowns', {}, () => markdownsOf(scopeElements(document)));
+  const assets = await readClientAssets();
+  const html = inSpan('serialize', {}, () => {
+    injectClient(document, { directives, bases, markdowns }, versionOf(formatted), assets);
+    return document.toString();
+  });
+  span?.setAttributes({
+    'hrv.directive.count': Object.keys(directives).length,
+    'hrv.element.count': Object.keys(bases).length,
+    'hrv.scope.count': Object.keys(markdowns).length,
+    'hrv.answer.bytes': html.length,
+  });
   console.log(`${urlPath} — ${Object.keys(directives).length} pending directives`);
-  sendHtml(res, document.toString());
+  sendHtml(res, html);
 }
 
 // A short fingerprint. Of the file bytes, it lets the tab notice that the page changed on disk.
@@ -97,40 +122,57 @@ async function putChange(req, res, file, urlPath, { author }) {
   if (typeof id !== 'string' || typeof base !== 'string' || (typeof directive === 'string') === (typeof markdown === 'string')) {
     throw new HttpError(400, 'body must look like {"id": "<id>", "base": "<base>", "directive": "text"} or {"id", "base", "markdown"}');
   }
-  const onDisk = await fs.readFile(file, 'utf8');
-  const document = parse(onDisk);
-  assignIds(document);
+  const kind = typeof directive === 'string' ? 'directive' : 'markdown';
+  const span = trace.getActiveSpan();
+  span?.setAttributes({ 'hrv.page': urlPath, 'hrv.change.kind': kind, 'hrv.scope.id': id, 'hrv.change.bytes': (directive ?? markdown).length });
+  const onDisk = await inSpan('read file', {}, () => fs.readFile(file, 'utf8'));
+  span?.setAttribute('hrv.page.bytes', onDisk.length);
+  const document = inSpan('parse', {}, () => {
+    const doc = parse(onDisk);
+    assignIds(doc);
+    return doc;
+  });
   const el = elementById(document, id);
-  if (!el || baseOf(el, author) !== base) {
+  if (!el || inSpan('check base', {}, () => baseOf(el, author)) !== base) {
+    span?.setAttribute('hrv.conflict', el ? 'changed on disk' : 'no such element');
     console.log(`${urlPath} — conflict on element ${id} (${el ? 'it changed on disk' : 'no such element'})`);
     res.writeHead(412, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({ ok: false, error: el ? 'that element changed on disk' : 'that element is gone from the file' }));
   }
   let changed, answer = {};
-  if (typeof directive === 'string') {
-    setDirective(el, directive, author);
+  if (kind === 'directive') {
+    inSpan('set directive', {}, () => setDirective(el, directive, author));
     changed = around([el]);
   } else {
-    const nodes = saveMarkdown(el, markdown);
+    const nodes = inSpan('save markdown', {}, () => saveMarkdown(el, markdown));
     if (!nodes) throw new HttpError(400, 'markdown edits need a scope and non-blank markdown');
     changed = around(nodes.filter((n) => n.nodeType === 1));
-    answer = { html: servedHTML(nodes, author), id: holderOf(nodes, id, new Set(scopeElements(document))) };
+    answer = inSpan('served html', {}, () => ({ html: servedHTML(nodes, author), id: holderOf(nodes, id, new Set(scopeElements(document))) }));
   }
-  const written = serialize(document);
-  if (written !== onDisk) await fs.writeFile(file, written);
+  const written = inSpan('serialize', {}, () => serialize(document));
+  if (written !== onDisk) await inSpan('write file', {}, () => fs.writeFile(file, written));
   const count = Object.keys(collectDirectives(document, author)).length;
   // Bases and markdown as a reload would serve them: from the file in canonical layout.
-  const served = parse(written);
-  removeDirectives(served, author);
+  const served = inSpan('reparse', {}, () => {
+    const doc = parse(written);
+    removeDirectives(doc, author);
+    return doc;
+  });
   const now = changed.map((e) => elementById(served, e.getAttribute(ID))).filter(Boolean);
-  answer.bases = basesOf(now, author);
-  if (typeof markdown === 'string') {
-    const scopes = new Set(scopeElements(served));
-    answer.markdowns = markdownsOf(now.filter((e) => scopes.has(e)));
+  answer.bases = inSpan('bases', { 'hrv.element.count': now.length }, () => basesOf(now, author));
+  if (kind === 'markdown') {
+    answer.markdowns = inSpan('markdowns', {}, (child) => {
+      const scopes = new Set(scopeElements(served));
+      const mine = now.filter((e) => scopes.has(e));
+      child.setAttribute('hrv.scope.count', mine.length);
+      return markdownsOf(mine);
+    });
   }
-  console.log(`${urlPath} — saved ${typeof directive === 'string' ? 'directive' : 'markdown'} on ${id}`);
+  const body = JSON.stringify({ ok: true, count, ...answer, before: versionOf(onDisk), after: versionOf(written) });
+  span?.setAttributes({ 'hrv.directive.count': count, 'hrv.answer.bytes': body.length });
+  console.log(`${urlPath} — saved ${kind} on ${id}`);
   res.writeHead(200, { 'Content-Type': 'application/json' });
-  res.end(JSON.stringify({ ok: true, count, ...answer, before: versionOf(onDisk), after: versionOf(written) }));
+  res.end(body);
 }
 
 function sendError(res, err) {
@@ -151,6 +193,13 @@ async function main() {
     if (status !== 0) process.exit(status);
     page = encodeURIComponent(path.basename(config.root));
     config.root = path.dirname(config.root);
+  }
+  const stopTelemetry = await startTelemetry();
+  if (stopTelemetry) {
+    console.log(`html-revisor: telemetry on, to ${process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4318'}`);
+    for (const signal of ['SIGINT', 'SIGTERM']) {
+      process.once(signal, () => stopTelemetry().finally(() => process.exit(0)));
+    }
   }
   const server = createServer(config);
   server.listen(config.port, '127.0.0.1', () => {
