@@ -58,7 +58,7 @@
         </div>
         <div data-hrv="11"><code>acceptance.test.mjs</code></div>
         <div data-hrv="12" class="bar" title="acceptance.test.mjs: 28 tests, 2.3 s">
-          <span data-hrv="13" style="width: 3.5%"></span>2.3 s
+          <span data-hrv="13" style="width: 3.5%"><!-- @AI: hmm I wonder what the components are of this. Still, it isn't worth even looking at while the other bar is so long. --></span>2.3 s
         </div>
         <div data-hrv="14"><code>formatter-cli.test.mjs</code></div>
         <div data-hrv="15" class="bar" title="formatter-cli.test.mjs: 6 tests, 0.47 s">
@@ -110,7 +110,10 @@
           <tr>
             <td data-hrv="40"><code>roundtrip.test.mjs</code></td>
             <td data-hrv="41" class="n">22</td>
-            <td data-hrv="42">Properties, checked on every scope of many pages. Below.</td>
+            <td data-hrv="42">
+              <!-- @AI: could link to it -->
+              Properties, checked on every scope of many pages. Below.
+            </td>
           </tr>
           <tr>
             <td data-hrv="43"><code>normalize.test.mjs</code></td>
@@ -135,6 +138,7 @@
         </tbody>
       </table>
       <p data-hrv="55">
+        <!-- @AI: Why does release run them? Does it run them on the copied files to make sure we didn't miss a copy? -->
         Every ship runs the suite three times: once by hand, once in <code>./deploy</code>, once in iterate-on-docs' <code>release</code>. That's three minutes of waiting, on the same commit.
       </p>
     </section>
@@ -175,12 +179,18 @@
         </thead>
         <tbody>
           <tr>
-            <td data-hrv="72">Generated, 150 seeds, tidy and wild</td>
+            <td data-hrv="72">
+              <!-- @AI: ah let's break the property tests out from the specific-file ones -->
+              Generated, 150 seeds, tidy and wild
+            </td>
             <td data-hrv="73">
               Shapes and characters markdown reads as syntax, more than any real page holds
             </td>
             <td data-hrv="74" class="n">4.1 s</td>
-            <td data-hrv="75" class="n">8.4 s</td>
+            <td data-hrv="75" class="n">
+              <!-- @AI: 150 * 5, this doesn't seem ridiculous -->
+              8.4 s
+            </td>
           </tr>
           <tr>
             <td data-hrv="76"><code>test/pages/</code>: OVERVIEW, DESIGN, SCOPES-DESIGN</td>
@@ -194,7 +204,10 @@
               A published docs page, anonymized: divs nested deep, inline styles, a toast holding a <code>&lt;style&gt;</code>. The test case for save performance.
             </td>
             <td data-hrv="82" class="n">5.3 s</td>
-            <td data-hrv="83" class="n">30.6 s</td>
+            <td data-hrv="83" class="n">
+              <!-- @AI: here's the long bar, clearly. What if we randomly did 10% of these? -->
+              30.6 s
+            </td>
           </tr>
           <tr>
             <td data-hrv="84"><code>test/fixtures/</code></td>
@@ -235,6 +248,7 @@
         </div>
       </div>
       <p data-hrv="110">
+        <!-- @AI: are some of the other tests running in parallel? -->
         One page, 64% of the suite. Its six tests run one after another in one process, while 13 other cores sit idle.
       </p>
       <h3 data-hrv="111">Why that page costs so much</h3>
@@ -293,15 +307,21 @@
       <div data-hrv="145" class="tiles">
         <div data-hrv="146" class="tile">
           <div data-hrv="147" class="big">2%</div>
-          <p data-hrv="148">of mintlify's scopes are 50 KB or more: 15 of 717.</p>
+          <p data-hrv="148">
+            <!-- @AI: OK also, before we do anything else, we should limit the size of a scope. Let's work on that: graph the distribution of scope sizes that are tested. (probably get it to print out the size so you can graph it?)
+Then let's pick a size that makes sense to cut it off at -->
+            of mintlify's scopes are 50 KB or more: 15 of 717.
+          </p>
         </div>
         <div data-hrv="149" class="tile">
+          <!-- @AI: we're gonna cut out more than these 15. 50KB is unreasonable. 5KB is unreasonable. Maybe 1KB is unreasonable, we'll see -->
           <div data-hrv="150" class="big">85%</div>
           <p data-hrv="151">of its markdown time goes to those 15.</p>
         </div>
         <div data-hrv="152" class="tile">
           <div data-hrv="153" class="big">0</div>
           <p data-hrv="154">
+            <!-- @AI: ooh that's great info! So we won't cut it off below that -->
             of the three bugs this page caught needed a big scope. The smallest failing scope was a 1 KB <code>&lt;li&gt;</code>.
           </p>
         </div>
@@ -350,12 +370,14 @@
       <h2 data-hrv="178">Recommendations</h2>
       <ol data-hrv="179" class="recs">
         <li data-hrv="180">
+          <!-- @AI: This isn't ridiculous but does kinda hide the problem that we're testing way too big of stuff, like stuff that I don't even wanna support. -->
           <strong>Split <code>roundtrip.test.mjs</code> into files.</strong> Move the generators and checks into <code>test/roundtrip-lib.mjs</code>, and give each property-and-page pair its own small test file: mintlify round-trip, mintlify reconcile per edit, the repo's pages, generated pages. <code>node --test</code> runs them side by side. Same tests, same coverage. <span data-hrv="181" class="win">Wall time ~10 s</span>, set by the slowest mintlify edit (6.6–8 s). An estimate; measure it after.
         </li>
         <li data-hrv="182">
           <strong>Reconcile small scopes on the frozen pages; round-trip all of them.</strong> The round-trip test keeps every scope, the wrappers too. The five edit tests skip scopes over 50 KB. My guess: a big scope runs the same matching a small one does, on more elements. The page's bug history agrees; nothing in the code proves it. <span data-hrv="183" class="win">Saves ~26 s of CPU</span>; with the split, the suite waits on the slowest generated-page test, about 3 s by estimate.
         </li>
         <li data-hrv="184">
+          <!-- @AI: yes this -->
           <strong>Do the yak "Limit the size of what counts as a scope".</strong> A product decision, not a test one: nobody edits 288 KB of markdown in a textarea. When the wrappers stop being scopes, saves on deep pages get faster and so do these tests. The yak asks that the round-trip property keep running on big elements anyway; recommendation 2 is that part.
         </li>
         <li data-hrv="185">
