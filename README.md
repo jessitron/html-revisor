@@ -20,7 +20,22 @@ The [overview](https://jessitron.github.io/html-revisor/) and the pages it links
 - First load normalizes the file's formatting and rewrites it on disk. It also adds `<html>`, `<head>` and `<body>` if the file lacks them, the way a browser would. These files are agent-generated documents we control, so the tool rewrites them into the shape it needs.
 - Loading also writes an element ID, `data-hrv="<n>"`, on each element you can pick, and the next unused number on `<html data-hrv-next="<n>">`. The first load of a page makes one noisy diff; after that a diff shows only new IDs.
 
-Needs Node 20 or later. No `npm install`: the two dependencies, linkedom and markdown-it, are bundled into `vendor/`.
+Needs Node 20 or later. No `npm install`: the dependencies, linkedom, markdown-it, and OpenTelemetry, are bundled into `vendor/`.
+
+## Telemetry
+
+```
+HRV_TELEMETRY=1 OTEL_EXPORTER_OTLP_ENDPOINT=https://api.honeycomb.io OTEL_EXPORTER_OTLP_HEADERS=x-honeycomb-team=<ingest key> ./run
+```
+
+`HRV_TELEMETRY` turns on OpenTelemetry traces; without it the server sends nothing, even with `OTEL_*` variables set (Claude Code reads those for its own telemetry, so they can leak into a server an agent starts). Once it's on, the standard variables say where spans go: `OTEL_EXPORTER_OTLP_ENDPOINT` (default `http://localhost:4318`), `OTEL_EXPORTER_OTLP_HEADERS`, `OTEL_SERVICE_NAME` (default `html-revisor`, which is the Honeycomb dataset), `OTEL_RESOURCE_ATTRIBUTES`. A failed export prints `telemetry export failed` on stderr.
+
+What it traces:
+
+- **GET and PUT**: a span per request, continuing any `traceparent`, with a child span per step (read file, normalize, parse, check base, save markdown, serialize, write file, …) and attributes `hrv.page`, `hrv.page.bytes`, `hrv.change.kind`, `hrv.scope.id`, `hrv.answer.bytes`, and counts.
+- **The box's saves**, recorded in the browser. Each change is a trace: `save directive` or `save markdown` runs from the first keystroke to the answer applied (`hrv.edits` keystrokes went into it), with children `wait` (until the PUT goes), `PUT` (until it's answered; the server's `PUT change` nests under it), and `apply`. `close box` runs from Done (or Escape, a click away; `hrv.close.by`) until every save still going is confirmed (`hrv.pending` at the click). The client posts its spans to `/.hrv/spans`; the server sends them on with the same IDs, tagged `hrv.side=browser`.
+
+`test/telemetry.test.mjs` checks it against a stand-in collector, and against Honeycomb when the shell's `OTEL_EXPORTER_OTLP_HEADERS` carries a key: that test prints the run's `hrv.test.run` and trace ID, for finding the spans in dataset `html-revisor-test`.
 
 ## Clean up
 
@@ -158,7 +173,7 @@ The HTML parser is [linkedom](https://github.com/WebReflection/linkedom), bundle
 - **Cleanup**: `cleanup.mjs`. Tier II is `cleanup`: parse, remove directives and element IDs, serialize. Tier I is its CLI (see [Clean up](#clean-up)).
 - **Scopes**: `scopes.mjs`. A scope is what you pick to direct or edit: any block, plus links and images; its whole content edits as markdown. Tier II is `scopeElements` (which elements get IDs), `scopesWithin`, `scopeMarkdown` (a scope as markdown), and `scopeFromMarkdown` (the HTML its markdown saves as). Saving a scope's markdown unchanged gives back the same HTML, element IDs included; saving it edited, each element you left, moved, or changed keeps its ID and its directives, and a new one gets none. A directive on an element the edit deleted goes with it. `test/roundtrip.test.mjs` checks both on every page here and on generated ones. What markdown can't say comes out as HTML, and what isn't text (an svg, a script) rides along as a stand-in, `⟦svg⟧`. `node scopes.mjs --annotate SCOPES-DESIGN.html` writes each case's HTML, scopes, and markdown under it in [SCOPES-DESIGN.html#scopes](SCOPES-DESIGN.html#scopes).
 - **Tier II, domain**: pure functions. The formatter (imported from `formatter.mjs`), the directives language in `directives.mjs` (`collectDirectives`, `removeDirectives`, `placeDirective`, the placement rule, escaping), markdown edits (`markdownsOf`, `saveMarkdown`, `servedHTML`), and element identity: `elementById`, and `baseOf`, the hash of an element in canonical layout with directives and IDs stripped. A directive coming or going changes no base; a changed child changes its parent's. The IDs themselves come from the formatter's `assignIds`: `data-hrv` from a counter, never changed, never reused, and copies of one ID all get fresh ones.
-- **Tier III, interface**: the filesystem gateway (paths under the root, 403 on escape), content types, directory listing, and the client assets injected into served pages: `client.css` and `client.js`, read on each GET, so a change shows on reload without a restart.
+- **Tier III, interface**: the filesystem gateway (paths under the root, 403 on escape), content types, directory listing, and the client assets injected into served pages: `client.css` and `client.js`, read on each GET, so a change shows on reload without a restart. `telemetry.mjs` too: the OTel API, always loaded and a no-op until the SDK registers, which it loads only with `HRV_TELEMETRY` (see [Telemetry](#telemetry)).
 - **Markdown edits**: GET serves every scope's markdown in `#hrv-markdown`, for the box. A PUT with `markdown` replaces the scope with what `scopeFromMarkdown` builds, which reconciles: elements you left or changed keep their IDs and directives. An element that isn't a scope (`hr`, an SVG shape), `body`, and blank markdown get 400. The tab doesn't render markdown: it swaps in the `html` the answer carries.
 - **Files it serves**: agent-generated documents whose generation we control. The tool may require things of them, limit what they contain, and rewrite them on disk. When a file shape causes trouble, normalize it into a shape the tool handles rather than supporting every HTML a browser accepts. If a requirement can't be met by normalizing, add it to the agent instructions above.
 - **Deviation from the spec**: element IDs live in the file, and a PUT carries one change with its base instead of the whole set of directives. The served page carries the file's hash as `data-version` on the `#hrv-directives` script, every element's base in `#hrv-bases`, and every scope's markdown in `#hrv-markdown`.
@@ -166,5 +181,5 @@ The HTML parser is [linkedom](https://github.com/WebReflection/linkedom), bundle
 ## Gotchas for maintainers
 
 - linkedom doesn't create a missing `<html>`/`<head>`/`<body>`. It makes the first element the root, and reading `document.head` or `document.body` silently creates empty ones inside that root. Go through `parse()` in `formatter.mjs`, never `parseHTML` directly.
-- `vendor/linkedom.mjs` and `vendor/markdown-it.mjs` are generated bundles. Don't edit them. After changing either version, run `npm run vendor`.
+- Everything in `vendor/` is a generated bundle. Don't edit it. After changing a version, run `npm run vendor`.
 - GET normalizes the file in place. To try the server by hand, serve a temp copy of `test/fixtures`, not the directory itself.
