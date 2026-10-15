@@ -207,6 +207,9 @@
     tip.style.display = 'none';
   }
 
+  // A tip from stepping stays until the next click.
+  document.addEventListener('mousedown', hideTip, true);
+
   // Above the marker, left edges aligned; below it with no room above. Kept inside the window.
   function positionTip() {
     var marker = tipId && markers[tipId];
@@ -408,7 +411,8 @@
   }
 
   // Scroll the next (dir 1) or previous (dir -1) directive's element to the middle of the window
-  // and show its crop marks for a moment. Wraps around at the ends.
+  // and show its crop marks for a moment. Its marker's tip shows what it says, until the next click,
+  // so you can read through the directives without opening each one. Wraps around at the ends.
   function step(dir) {
     var els = directiveElements();
     if (!els.length) return;
@@ -426,6 +430,7 @@
     target.scrollIntoView({ block: 'center', behavior: 'smooth' });
     flashed = target;
     positionHover();
+    showTip(current);
     clearTimeout(flashTimer);
     flashTimer = setTimeout(function () {
       flashed = null;
