@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-hrv-next="187" lang="en">
+<html data-hrv-next="355" lang="en">
   <head>
     <meta charset="utf-8">
     <title>html-revisor — how we test</title>
@@ -58,7 +58,7 @@
         </div>
         <div data-hrv="11"><code>acceptance.test.mjs</code></div>
         <div data-hrv="12" class="bar" title="acceptance.test.mjs: 28 tests, 2.3 s">
-          <span data-hrv="13" style="width: 3.5%"><!-- @AI: hmm I wonder what the components are of this. Still, it isn't worth even looking at while the other bar is so long. --></span>2.3 s
+          <span data-hrv="13" style="width: 3.5%"></span>2.3 s
         </div>
         <div data-hrv="14"><code>formatter-cli.test.mjs</code></div>
         <div data-hrv="15" class="bar" title="formatter-cli.test.mjs: 6 tests, 0.47 s">
@@ -82,7 +82,7 @@
         </div>
       </div>
       <p data-hrv="29" class="note">
-        Each file run alone on a 14-core Mac, Node 25.6. The whole suite together: 56.6 s wall, 64 s CPU.
+        Each file run alone on a 14-core Mac, Node 25.6. The whole suite together: 56.6 s wall, 64 s CPU. Acceptance's 2.3 s is 28 tests at about 80 ms each, most of it starting a server process per test.
       </p>
       <table data-hrv="30">
         <thead>
@@ -111,8 +111,7 @@
             <td data-hrv="40"><code>roundtrip.test.mjs</code></td>
             <td data-hrv="41" class="n">22</td>
             <td data-hrv="42">
-              <!-- @AI: could link to it -->
-              Properties, checked on every scope of many pages. Below.
+              Properties, checked on every scope of many pages. <a data-hrv="187" href="#roundtrip">Below.</a>
             </td>
           </tr>
           <tr>
@@ -138,8 +137,7 @@
         </tbody>
       </table>
       <p data-hrv="55">
-        <!-- @AI: Why does release run them? Does it run them on the copied files to make sure we didn't miss a copy? -->
-        Every ship runs the suite three times: once by hand, once in <code>./deploy</code>, once in iterate-on-docs' <code>release</code>. That's three minutes of waiting, on the same commit.
+        Every ship runs the suite three times: once by hand, once in <code>./deploy</code>, once in iterate-on-docs' <code>release</code>. That's three minutes of waiting, on the same commit. Deploy and release both test the copied files in <code>iterate-on-docs/html-revisor/</code>, so a file deploy missed fails there. Deploy tests the copy before it commits it; release tests it again. Release's run catches a hand edit to the copy, or a release with no deploy in front of it.
       </p>
     </section>
     <section data-hrv="56" id="roundtrip">
@@ -167,7 +165,34 @@
           </p>
         </div>
       </div>
-      <p data-hrv="66">The pages come from two places:</p>
+      <p data-hrv="66">
+        The same checks run two ways: as property tests on generated pages, and on specific files.
+      </p>
+      <h3 data-hrv="188">Property tests: generated pages</h3>
+      <table data-hrv="189">
+        <thead>
+          <tr>
+            <th data-hrv="190">Pages</th>
+            <th data-hrv="191">Why</th>
+            <th data-hrv="192" class="n">Round-trip</th>
+            <th data-hrv="193" class="n">Reconcile, 5 edits</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-hrv="72">Generated, 150 seeds, tidy and wild</td>
+            <td data-hrv="73">
+              Shapes and characters markdown reads as syntax, more than any real page holds
+            </td>
+            <td data-hrv="74" class="n">4.1 s</td>
+            <td data-hrv="75" class="n">8.4 s</td>
+          </tr>
+        </tbody>
+      </table>
+      <p data-hrv="194" class="note">
+        Tidy markdown runs on these pages too: 0.7 s more. 150 seeds times 5 edits in 8.4 s: fine as it is.
+      </p>
+      <h3 data-hrv="195">Specific files</h3>
       <table data-hrv="67">
         <thead>
           <tr>
@@ -178,20 +203,6 @@
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td data-hrv="72">
-              <!-- @AI: ah let's break the property tests out from the specific-file ones -->
-              Generated, 150 seeds, tidy and wild
-            </td>
-            <td data-hrv="73">
-              Shapes and characters markdown reads as syntax, more than any real page holds
-            </td>
-            <td data-hrv="74" class="n">4.1 s</td>
-            <td data-hrv="75" class="n">
-              <!-- @AI: 150 * 5, this doesn't seem ridiculous -->
-              8.4 s
-            </td>
-          </tr>
           <tr>
             <td data-hrv="76"><code>test/pages/</code>: OVERVIEW, DESIGN, SCOPES-DESIGN</td>
             <td data-hrv="77">Frozen copies of this repo's pages: the shapes Jess's agents write</td>
@@ -204,10 +215,7 @@
               A published docs page, anonymized: divs nested deep, inline styles, a toast holding a <code>&lt;style&gt;</code>. The test case for save performance.
             </td>
             <td data-hrv="82" class="n">5.3 s</td>
-            <td data-hrv="83" class="n">
-              <!-- @AI: here's the long bar, clearly. What if we randomly did 10% of these? -->
-              30.6 s
-            </td>
+            <td data-hrv="83" class="n">30.6 s</td>
           </tr>
           <tr>
             <td data-hrv="84"><code>test/fixtures/</code></td>
@@ -217,7 +225,6 @@
           </tr>
         </tbody>
       </table>
-      <p data-hrv="88" class="note">Tidy markdown runs on the generated pages: 0.7 s more.</p>
     </section>
     <section data-hrv="89" id="time">
       <h2 data-hrv="90">Where the 57 seconds go</h2>
@@ -248,8 +255,7 @@
         </div>
       </div>
       <p data-hrv="110">
-        <!-- @AI: are some of the other tests running in parallel? -->
-        One page, 64% of the suite. Its six tests run one after another in one process, while 13 other cores sit idle.
+        One page, 64% of the suite. The other six test files do run in parallel with this one, and they're done in 2.3 s. Inside <code>roundtrip.test.mjs</code>, all 22 tests run one after another in one process, so for the remaining 55 s, 13 cores sit idle.
       </p>
       <h3 data-hrv="111">Why that page costs so much</h3>
       <p data-hrv="112">
@@ -307,21 +313,15 @@
       <div data-hrv="145" class="tiles">
         <div data-hrv="146" class="tile">
           <div data-hrv="147" class="big">2%</div>
-          <p data-hrv="148">
-            <!-- @AI: OK also, before we do anything else, we should limit the size of a scope. Let's work on that: graph the distribution of scope sizes that are tested. (probably get it to print out the size so you can graph it?)
-Then let's pick a size that makes sense to cut it off at -->
-            of mintlify's scopes are 50 KB or more: 15 of 717.
-          </p>
+          <p data-hrv="148">of mintlify's scopes are 50 KB or more: 15 of 717.</p>
         </div>
         <div data-hrv="149" class="tile">
-          <!-- @AI: we're gonna cut out more than these 15. 50KB is unreasonable. 5KB is unreasonable. Maybe 1KB is unreasonable, we'll see -->
           <div data-hrv="150" class="big">85%</div>
           <p data-hrv="151">of its markdown time goes to those 15.</p>
         </div>
         <div data-hrv="152" class="tile">
           <div data-hrv="153" class="big">0</div>
           <p data-hrv="154">
-            <!-- @AI: ooh that's great info! So we won't cut it off below that -->
             of the three bugs this page caught needed a big scope. The smallest failing scope was a 1 KB <code>&lt;li&gt;</code>.
           </p>
         </div>
@@ -366,19 +366,277 @@ Then let's pick a size that makes sense to cut it off at -->
         A correction: the yak that fixed this page recorded the suite growing from 22 s to 36 s when it arrived. Those runs were failing, and a failing page test stops at its first bad scope. The commit that made the page pass takes 60 s today, same as main. The suite hasn't slowed since.
       </p>
     </section>
+    <section data-hrv="196" id="sizes">
+      <h2 data-hrv="197">Scope sizes</h2>
+      <p data-hrv="198">
+        Every scope the round-trip tests visit: 7,806 of them. Size is the length of the scope's markdown, what the box shows. Work is the scope's HTML bytes, which the test time follows.
+      </p>
+      <table data-hrv="199" class="hist">
+        <thead>
+          <tr>
+            <th data-hrv="200">Markdown</th>
+            <th data-hrv="201" class="n">Own pages</th>
+            <th data-hrv="202" class="n">Mintlify</th>
+            <th data-hrv="203" class="n">Generated</th>
+            <th data-hrv="204" class="n">Fixtures</th>
+            <th data-hrv="205">Share of the work</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-hrv="206">under 256 B</td>
+            <td data-hrv="207" class="n">1,295</td>
+            <td data-hrv="208" class="n">380</td>
+            <td data-hrv="209" class="n">4,790</td>
+            <td data-hrv="210" class="n">65</td>
+            <td data-hrv="211">
+              <div data-hrv="212" class="bar" title="under 256 B: 14.5% of the work">
+                <span data-hrv="213" style="width: 38%"></span>14.5%
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="214">256–512 B</td>
+            <td data-hrv="215" class="n">102</td>
+            <td data-hrv="216" class="n">22</td>
+            <td data-hrv="217" class="n">370</td>
+            <td data-hrv="218" class="n">4</td>
+            <td data-hrv="219">
+              <div data-hrv="220" class="bar" title="256–512 B: 5.7% of the work">
+                <span data-hrv="221" style="width: 15%"></span>5.7%
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="222">512 B–1 KB</td>
+            <td data-hrv="223" class="n">72</td>
+            <td data-hrv="224" class="n">98</td>
+            <td data-hrv="225" class="n">211</td>
+            <td data-hrv="226" class="n">0</td>
+            <td data-hrv="227">
+              <div data-hrv="228" class="bar" title="512 B–1 KB: 8.2% of the work">
+                <span data-hrv="229" style="width: 21.6%"></span>8.2%
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="230">1–2 KB</td>
+            <td data-hrv="231" class="n">30</td>
+            <td data-hrv="232" class="n">116</td>
+            <td data-hrv="233" class="n">99</td>
+            <td data-hrv="234" class="n">3</td>
+            <td data-hrv="235">
+              <div data-hrv="236" class="bar" title="1–2 KB: 9.1% of the work">
+                <span data-hrv="237" style="width: 24%"></span>9.1%
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="238">2–4 KB</td>
+            <td data-hrv="239" class="n">8</td>
+            <td data-hrv="240" class="n">34</td>
+            <td data-hrv="241" class="n">29</td>
+            <td data-hrv="242" class="n">0</td>
+            <td data-hrv="243">
+              <div data-hrv="244" class="bar" title="2–4 KB: 4.7% of the work">
+                <span data-hrv="245" style="width: 12.4%"></span>4.7%
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="246">4–8 KB</td>
+            <td data-hrv="247" class="n">2</td>
+            <td data-hrv="248" class="n">28</td>
+            <td data-hrv="249" class="n">4</td>
+            <td data-hrv="250" class="n">0</td>
+            <td data-hrv="251">
+              <div data-hrv="252" class="bar" title="4–8 KB: 4.3% of the work">
+                <span data-hrv="253" style="width: 11.3%"></span>4.3%
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="254">8–16 KB</td>
+            <td data-hrv="255" class="n">2</td>
+            <td data-hrv="256" class="n">23</td>
+            <td data-hrv="257" class="n">0</td>
+            <td data-hrv="258" class="n">0</td>
+            <td data-hrv="259">
+              <div data-hrv="260" class="bar" title="8–16 KB: 6.4% of the work">
+                <span data-hrv="261" style="width: 16.8%"></span>6.4%
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="262">16–32 KB</td>
+            <td data-hrv="263" class="n">1</td>
+            <td data-hrv="264" class="n">1</td>
+            <td data-hrv="265" class="n">0</td>
+            <td data-hrv="266" class="n">0</td>
+            <td data-hrv="267">
+              <div data-hrv="268" class="bar" title="16–32 KB: 0.9% of the work">
+                <span data-hrv="269" style="width: 2.4%"></span>0.9%
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="270">32–64 KB</td>
+            <td data-hrv="271" class="n">2</td>
+            <td data-hrv="272" class="n">6</td>
+            <td data-hrv="273" class="n">0</td>
+            <td data-hrv="274" class="n">0</td>
+            <td data-hrv="275">
+              <div data-hrv="276" class="bar" title="32–64 KB: 8.1% of the work">
+                <span data-hrv="277" style="width: 21.3%"></span>8.1%
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td data-hrv="278">64 KB and up</td>
+            <td data-hrv="279" class="n">0</td>
+            <td data-hrv="280" class="n">9</td>
+            <td data-hrv="281" class="n">0</td>
+            <td data-hrv="282" class="n">0</td>
+            <td data-hrv="283">
+              <div data-hrv="284" class="bar" title="64 KB and up: 38.0% of the work">
+                <span data-hrv="285" style="width: 100%"></span>38.0%
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p data-hrv="286">
+        Most scopes are small: 84% are under 256 characters of markdown. The work sits at the other end: scopes of 1 KB and up are 5% of the scopes and 72% of the work.
+      </p>
+      <h3 data-hrv="287">Where to cut</h3>
+      <p data-hrv="288">
+        Floor: 1 KB. Each bug the mintlify page caught showed up in a scope that size or smaller. An element over the cap stops being a scope: no Content field, no round-trip test. It can still take a directive.
+      </p>
+      <table data-hrv="289">
+        <thead>
+          <tr>
+            <th data-hrv="290">Cap on markdown</th>
+            <th data-hrv="291" class="n">Own pages lose</th>
+            <th data-hrv="292" class="n">Mintlify loses</th>
+            <th data-hrv="293" class="n">Generated lose</th>
+            <th data-hrv="294" class="n">Work left</th>
+            <th data-hrv="295" class="n">Round-trip file, rough</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-hrv="296">1 KB</td>
+            <td data-hrv="297" class="n">45 of 1,514</td>
+            <td data-hrv="298" class="n">217 of 717</td>
+            <td data-hrv="299" class="n">132 of 5,503</td>
+            <td data-hrv="300" class="n">29%</td>
+            <td data-hrv="301" class="n">~16 s</td>
+          </tr>
+          <tr>
+            <td data-hrv="302">2 KB</td>
+            <td data-hrv="303" class="n">15</td>
+            <td data-hrv="304" class="n">101</td>
+            <td data-hrv="305" class="n">33</td>
+            <td data-hrv="306" class="n">38%</td>
+            <td data-hrv="307" class="n">~21 s</td>
+          </tr>
+          <tr>
+            <td data-hrv="308">4 KB</td>
+            <td data-hrv="309" class="n">7</td>
+            <td data-hrv="310" class="n">67</td>
+            <td data-hrv="311" class="n">4</td>
+            <td data-hrv="312" class="n">42%</td>
+            <td data-hrv="313" class="n">~24 s</td>
+          </tr>
+          <tr>
+            <td data-hrv="314">8 KB</td>
+            <td data-hrv="315" class="n">5</td>
+            <td data-hrv="316" class="n">39</td>
+            <td data-hrv="317" class="n">0</td>
+            <td data-hrv="318" class="n">47%</td>
+            <td data-hrv="319" class="n">~27 s</td>
+          </tr>
+        </tbody>
+      </table>
+      <p data-hrv="320" class="note">
+        "Rough" is 57 s times the work left, run serially as today. Splitting the file (recommendation 2) divides that again.
+      </p>
+      <p data-hrv="321">What your own pages lose:</p>
+      <table data-hrv="322">
+        <thead>
+          <tr>
+            <th data-hrv="323">Scope</th>
+            <th data-hrv="324" class="n">Markdown</th>
+            <th data-hrv="325">Lost at</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-hrv="326">
+              SCOPES-DESIGN <code>&lt;body&gt;</code>, and its <code>section#scopes</code>
+            </td>
+            <td data-hrv="327" class="n">39 KB, 38 KB</td>
+            <td data-hrv="328">every cap</td>
+          </tr>
+          <tr>
+            <td data-hrv="329">DESIGN <code>&lt;body&gt;</code></td>
+            <td data-hrv="330" class="n">19 KB</td>
+            <td data-hrv="331">every cap</td>
+          </tr>
+          <tr>
+            <td data-hrv="332">OVERVIEW <code>&lt;body&gt;</code></td>
+            <td data-hrv="333" class="n">14 KB</td>
+            <td data-hrv="334">every cap</td>
+          </tr>
+          <tr>
+            <td data-hrv="335">OVERVIEW <code>section#details</code></td>
+            <td data-hrv="336" class="n">8.4 KB</td>
+            <td data-hrv="337">every cap</td>
+          </tr>
+          <tr>
+            <td data-hrv="338">
+              DESIGN <code>div.grounds</code> (the stress test), OVERVIEW <code>div.flow</code>
+            </td>
+            <td data-hrv="339" class="n">4.7 KB, 4.6 KB</td>
+            <td data-hrv="340">4 KB and under</td>
+          </tr>
+          <tr>
+            <td data-hrv="341">
+              OVERVIEW's second <code>div.flow</code>, a SCOPES-DESIGN <code>div.case</code>, DESIGN <code>div.row</code>, a <code>table.scope-report</code>, OVERVIEW <code>section#prose</code> and <code>div.grid</code>, a DESIGN <code>div</code> and <code>ul</code>
+            </td>
+            <td data-hrv="342" class="n">2.1–3.4 KB</td>
+            <td data-hrv="343">2 KB and under</td>
+          </tr>
+          <tr>
+            <td data-hrv="344">30 more: SCOPES-DESIGN cases, scope tables, OVERVIEW cards</td>
+            <td data-hrv="345" class="n">1–2 KB</td>
+            <td data-hrv="346">1 KB</td>
+          </tr>
+        </tbody>
+      </table>
+      <p data-hrv="347">
+        My lean: 2 KB, about 30 lines in the box. It takes every body and every whole section, and keeps most cases, cards, and tables.
+      </p>
+      <h3 data-hrv="348">Which length</h3>
+      <p data-hrv="349">
+        HTML size and markdown size part ways around an SVG. OVERVIEW's <code>#architecture-now</code> is 4.7 KB of HTML and 123 characters of markdown: the diagram is one token in the box. A cap on markdown keeps it a scope; a cap on HTML cuts it.
+      </p>
+      <p data-hrv="350">
+        Measuring markdown means rendering it, and rendering a giant wrapper is the cost we're cutting. Text length (<code>textContent</code>) is cheap and might track markdown well enough. To check before deciding.
+      </p>
+      <h3 data-hrv="351">Sampling 10% instead</h3>
+      <p data-hrv="352">
+        Sampling 10% of mintlify's scopes would cut its 30.6 s of reconcile to about 3 s on average. But the 9 scopes of 64 KB and up hold 38% of the work, so the time swings with whether the sample picks one. And it keeps testing scopes we don't want to support. With a cap in place, the long bar shrinks anyway; sample after that if it's still long.
+      </p>
+    </section>
     <section data-hrv="177" id="recommendations">
       <h2 data-hrv="178">Recommendations</h2>
       <ol data-hrv="179" class="recs">
-        <li data-hrv="180">
-          <!-- @AI: This isn't ridiculous but does kinda hide the problem that we're testing way too big of stuff, like stuff that I don't even wanna support. -->
-          <strong>Split <code>roundtrip.test.mjs</code> into files.</strong> Move the generators and checks into <code>test/roundtrip-lib.mjs</code>, and give each property-and-page pair its own small test file: mintlify round-trip, mintlify reconcile per edit, the repo's pages, generated pages. <code>node --test</code> runs them side by side. Same tests, same coverage. <span data-hrv="181" class="win">Wall time ~10 s</span>, set by the slowest mintlify edit (6.6–8 s). An estimate; measure it after.
-        </li>
-        <li data-hrv="182">
-          <strong>Reconcile small scopes on the frozen pages; round-trip all of them.</strong> The round-trip test keeps every scope, the wrappers too. The five edit tests skip scopes over 50 KB. My guess: a big scope runs the same matching a small one does, on more elements. The page's bug history agrees; nothing in the code proves it. <span data-hrv="183" class="win">Saves ~26 s of CPU</span>; with the split, the suite waits on the slowest generated-page test, about 3 s by estimate.
-        </li>
         <li data-hrv="184">
-          <!-- @AI: yes this -->
-          <strong>Do the yak "Limit the size of what counts as a scope".</strong> A product decision, not a test one: nobody edits 288 KB of markdown in a textarea. When the wrappers stop being scopes, saves on deep pages get faster and so do these tests. The yak asks that the round-trip property keep running on big elements anyway; recommendation 2 is that part.
+          <strong>First: limit the size of what counts as a scope.</strong> A product decision, and the tests follow it: nobody edits 288 KB of markdown in a textarea, so the tests stop checking it. Pick the cap from <a data-hrv="353" href="#sizes">Scope sizes</a>, 1 KB or more. Saves on deep pages get faster too. The yak's note asks to keep round-trip running on big elements anyway; drop that, since we don't support them. The yak waits on Telemetry today. <span data-hrv="354" class="win">Round-trip file ~16–27 s</span>, by the cap.
+        </li>
+        <li data-hrv="180">
+          <strong>Then split <code>roundtrip.test.mjs</code> into files.</strong> Property tests on generated pages in one file, tests on specific files in another, with shared generators and checks in <code>test/roundtrip-lib.mjs</code>. Split further if one file still runs long. <code>node --test</code> runs files side by side, so the suite waits on the longest. Same tests, same coverage. Measure after the cap; the cap decides how much this buys.
         </li>
         <li data-hrv="185">
           <strong>Run the suite once per ship.</strong> Deploy and release test the same commit back to back. Release could skip its run when the vendored commit hasn't changed since the deploy that tested it. That change lives in iterate-on-docs.
