@@ -432,8 +432,7 @@ Three mountains: fidelity, ergonomics, performance.</textarea>
             <strong>Back to the last commit,</strong> not to the page load. A reload, the panic move, doesn't lose it, and in an iterate loop the last commit is the start of this turn.
           </li>
           <li data-hrv="299">
-            <!-- @AI: I don't understand this -->
-            <strong>Open: matching a scope to the commit.</strong> The server finds the scope in the committed file by its element ID. An iterate loop commits the IDs; doc pages here are committed without them. A scope with no committed match gets no Revert.
+            <strong>Finding the scope in the commit.</strong> To revert this section, the server reads the committed file and looks for the same section in it. Text can't find it, since the text is what changed. The element ID can: each element carries a number, <code>data-hrv</code>, that edits don't change. A commit made mid-loop holds those numbers. A page committed clean has none, but the server numbers a page the same way every time, so it numbers the committed copy and gets the numbers the page got when you opened it. A scope added since the commit has no match, so it gets no Revert.
           </li>
         </ul>
       </div>
