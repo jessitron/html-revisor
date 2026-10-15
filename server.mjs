@@ -164,7 +164,7 @@ async function putChange(req, res, file, urlPath, { author }) {
     inSpan('set directive', {}, () => setDirective(el, directive, author));
     changed = around([el]);
   } else {
-    const nodes = inSpan('save markdown', {}, () => saveMarkdown(el, markdown));
+    const nodes = inSpan('set markdown', {}, () => saveMarkdown(el, markdown));
     if (!nodes) throw new HttpError(400, 'markdown edits need a scope and non-blank markdown');
     changed = around(nodes.filter((n) => n.nodeType === 1));
     answer = inSpan('served html', {}, () => ({ html: servedHTML(nodes, author), id: holderOf(nodes, id, new Set(scopeElements(document))) }));
