@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-hrv-next="299" lang="en">
+<html data-hrv-next="300" lang="en">
   <head>
     <meta charset="utf-8">
     <title>html-revisor: design</title>
@@ -374,7 +374,7 @@
     </div>
     <h2 data-hrv="204" id="revert">Revert (proposed)</h2>
     <p data-hrv="205" class="note">
-      For "oh no, I didn't mean to delete that": put a scope's content back to what it held when the page loaded. Not built; yak <code>undo-for-text-edits-x8yp</code>.
+      For "oh no, I didn't mean to delete that": put a scope's content back to what it held at the last commit. Not built; yak <code>undo-for-text-edits-x8yp</code>.
     </p>
     <div data-hrv="206" class="row">
       <div data-hrv="207">
@@ -392,7 +392,7 @@ Three mountains: fidelity, ergonomics, performance.</textarea>
               <div data-hrv="216" class="hrv-label">Directive</div>
               <textarea class="hrv-directive" placeholder="Directive for this element"></textarea>
               <div data-hrv="217" class="hrv-row">
-                <div data-hrv="218" class="hrv-btn hrv-quiet" title="Put back the content this had when the page loaded">
+                <div data-hrv="218" class="hrv-btn hrv-quiet" title="Put back the content this had at the last commit">
                   Revert
                 </div>
                 <div data-hrv="219" class="hrv-hint hrv-status">saved</div>
@@ -411,10 +411,10 @@ Three mountains: fidelity, ergonomics, performance.</textarea>
       <div data-hrv="223">
         <ul data-hrv="224">
           <li data-hrv="225">
-            <strong>Shows only when the content differs from how it loaded.</strong> Its presence says "you changed this."
+            <strong>Shows only when the content differs from the last commit.</strong> Its presence says "you changed this."
           </li>
           <li data-hrv="226">
-            <strong>It types for you.</strong> Revert puts the loaded markdown into the Content field as if typed: it saves like typing, and ⌘Z undoes the revert.
+            <strong>It types for you.</strong> Revert puts the committed markdown into the Content field as if typed: it saves like typing, and ⌘Z undoes the revert.
           </li>
           <li data-hrv="227">
             <strong>A deleted element comes back from the scope around it.</strong> Deleting a paragraph means editing its parent's markdown; that parent's box has the Revert. Reverting a bigger scope also undoes the other edits inside it.
@@ -424,10 +424,13 @@ Three mountains: fidelity, ergonomics, performance.</textarea>
             <strong>No page-wide revert.</strong> <code>git checkout</code> does that, and a one-click "throw it all away" is too easy to hit by mistake.
           </li>
           <li data-hrv="230">
-            <strong>Named Revert,</strong> as in git. "Reset" reads as a form reset, "Undo" as one step back. Second choice: "Start over."
+            <strong>Named Revert,</strong> as in git. "Reset" reads as a form reset, "Undo" as one step back.
           </li>
           <li data-hrv="231">
-            <strong>Open: revert to what?</strong> The text as this tab loaded it is lost on reload, the panic move. Keeping it in <code>sessionStorage</code> survives a reload in the same tab. The last commit survives everything, and in an iterate loop it is the start of this turn.
+            <strong>Back to the last commit,</strong> not to the page load. A reload, the panic move, doesn't lose it, and in an iterate loop the last commit is the start of this turn.
+          </li>
+          <li data-hrv="299">
+            <strong>Open: matching a scope to the commit.</strong> The server finds the scope in the committed file by its element ID. An iterate loop commits the IDs; doc pages here are committed without them. A scope with no committed match gets no Revert.
           </li>
         </ul>
       </div>
