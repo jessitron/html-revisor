@@ -272,6 +272,13 @@
       </table>
     </section>
     <section class="part">
+      <h2>A diagram</h2>
+      <p>Click a label to edit its text. After the save, the drawing should still show it.</p>
+      <svg viewBox="0 0 520 150" width="520">
+        <defs> <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#555"></path></marker> </defs> <g> <rect x="10" y="40" width="130" height="50" rx="8" fill="#ddf4ff" stroke="#0969da"></rect> <text x="75" y="70" text-anchor="middle" font-size="14">Browser</text> </g> <g> <rect x="195" y="40" width="130" height="50" rx="8" fill="#fff8c5" stroke="#9a6700"></rect> <text x="260" y="70" text-anchor="middle" font-size="14">Server</text> </g> <g> <rect x="380" y="40" width="130" height="50" rx="8" fill="#dafbe1" stroke="#1a7f37"></rect> <text x="445" y="70" text-anchor="middle" font-size="14">File on disk</text> </g> <line x1="140" y1="55" x2="195" y2="55" stroke="#555" marker-end="url(#arrow)"></line> <line x1="195" y1="75" x2="140" y2="75" stroke="#555" marker-end="url(#arrow)"></line> <line x1="325" y1="65" x2="380" y2="65" stroke="#555" marker-end="url(#arrow)"></line> <text x="167" y="30" text-anchor="middle" font-size="11" fill="#656d76">PUT a change</text> <text x="167" y="110" text-anchor="middle" font-size="11" fill="#656d76">new HTML back</text> <text x="352" y="30" text-anchor="middle" font-size="11" fill="#656d76">write</text> <text x="260" y="140" text-anchor="middle" font-size="12">One change per PUT, one PUT at a time.</text>
+      </svg>
+    </section>
+    <section class="part">
       <h2>Elements whose directives sit beside them</h2>
       <hr>
       <pre>  preformatted text
