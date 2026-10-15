@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>html-revisor — how we test</title>
+    <style>
+  :root { --ink: #1d2330; --muted: #646b78; --line: #e2ddd2; --bg: #ffffff; --card: #f8f6f1; --paper: #f3efe6;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Charter, Georgia, serif;
+    --lift: 0 1px 2px rgba(60, 45, 20, .06), 0 6px 24px rgba(60, 45, 20, .07);
+    --bar: #bc4c00; --bar-soft: #f3d3bd; --happy: #0e7c86; --accent: #0969da; --now: #1a7f37; }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink: #e6edf3; --muted: #9198a1; --line: #2e3540; --bg: #141920; --card: #1b222c; --paper: #0b0e13;
+      --lift: 0 1px 2px rgba(0, 0, 0, .4), 0 6px 24px rgba(0, 0, 0, .35);
+      --bar: #f0883e; --bar-soft: #4a2c17; --happy: #39c5cf; --accent: #4493f8; --now: #3fb950; }
+  }
+  html { background: var(--paper); }
+  body { font: 16px/1.55 system-ui, sans-serif; color: var(--ink); background: var(--paper); max-width: 1000px; margin: 0 auto; padding: 3.5rem 1.25rem 4rem; }
+  h1 { font: 600 3.4rem/1.05 var(--serif); letter-spacing: -.02em; margin: 0; }
+  h1 + p { font: 1.3rem/1.45 var(--serif); opacity: .8; max-width: 44rem; margin: 1rem 0 2.5rem; }
+  body > section { background: var(--bg); border-radius: 16px; box-shadow: var(--lift); padding: 1.75rem 2.25rem 2rem; margin: 0 0 1.75rem; }
+  h2 { font: 600 1.75rem/1.2 var(--serif); letter-spacing: -.01em; margin: 0 0 1.25rem; }
+  h2::after { content: ""; display: block; width: 3rem; height: 3px; border-radius: 2px; background: var(--happy); margin-top: .6rem; }
+  h3 { margin: 1.5rem 0 .5rem; font-size: 1rem; }
+  a { color: var(--accent); }
+  code { font-family: ui-monospace, monospace; font-size: .9em; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; }
+  th, td { text-align: left; padding: .35rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: .8rem; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .bars { display: grid; grid-template-columns: minmax(10rem, 16rem) 1fr; gap: .45rem 1rem; align-items: center; font-size: .92rem; }
+  .bar { display: flex; align-items: center; gap: .5rem; font-variant-numeric: tabular-nums; }
+  .bar span { display: block; height: 14px; border-radius: 0 4px 4px 0; background: var(--bar); min-width: 2px; }
+  .bar:hover span { filter: brightness(1.15); }
+  .note { color: var(--muted); font-size: .9rem; }
+  .big { font: 600 2.6rem/1 var(--serif); color: var(--bar); }
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: .5rem 0 1rem; }
+  .tile { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 1rem 1.25rem; }
+  .tile p { margin: .4rem 0 0; }
+  ol.recs > li { margin: 0 0 1.1rem; }
+  ol.recs > li > strong { font-size: 1.05rem; }
+  .win { color: var(--now); font-weight: 600; }
+</style>
+  </head>
+  <body>
+    <h1>How we test</h1>
+    <p>
+      136 tests, all passing, in 57 seconds. One test file holds 56 of those seconds, and one page in it holds 36.
+    </p>
+    <section id="suite">
+      <h2>The suite</h2>
+      <p>
+        <code>npm test</code> is <code>node --test</code>. It runs each file under <code>test/</code> in its own process, several at once, so the suite takes as long as its slowest file. No dependencies: deploy runs these tests inside iterate-on-docs, where <code>npm install</code> can't run.
+      </p>
+      <div class="bars" role="img" aria-label="Wall time per test file, run alone">
+        <div><code>roundtrip.test.mjs</code></div>
+        <div class="bar" title="roundtrip.test.mjs: 22 tests, 57.2 s">
+          <span style="width: 88%"></span>57.2 s
+        </div>
+        <div><code>acceptance.test.mjs</code></div>
+        <div class="bar" title="acceptance.test.mjs: 28 tests, 2.3 s">
+          <span style="width: 3.5%"></span>2.3 s
+        </div>
+        <div><code>formatter-cli.test.mjs</code></div>
+        <div class="bar" title="formatter-cli.test.mjs: 6 tests, 0.47 s">
+          <span style="width: .7%"></span>0.47 s
+        </div>
+        <div><code>cleanup.test.mjs</code></div>
+        <div class="bar" title="cleanup.test.mjs: 10 tests, 0.43 s">
+          <span style="width: .7%"></span>0.43 s
+        </div>
+        <div><code>scopes.test.mjs</code></div>
+        <div class="bar" title="scopes.test.mjs: 43 tests, 0.14 s">
+          <span style="width: .3%"></span>0.14 s
+        </div>
+        <div><code>ids.test.mjs</code></div>
+        <div class="bar" title="ids.test.mjs: 6 tests, 0.11 s">
+          <span style="width: .3%"></span>0.11 s
+        </div>
+        <div><code>normalize.test.mjs</code></div>
+        <div class="bar" title="normalize.test.mjs: 21 tests, 0.11 s">
+          <span style="width: .3%"></span>0.11 s
+        </div>
+      </div>
+      <p class="note">
+        Each file run alone on a 14-core Mac, Node 25.6. The whole suite together: 56.6 s wall, 64 s CPU.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>File</th>
+            <th class="n">Tests</th>
+            <th>What it holds</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>scopes.test.mjs</code></td>
+            <td class="n">43</td>
+            <td>
+              Examples: one shape of HTML, its markdown, and back. The cases SCOPES-DESIGN draws.
+            </td>
+          </tr>
+          <tr>
+            <td><code>acceptance.test.mjs</code></td>
+            <td class="n">28</td>
+            <td>
+              The server: GET, PUT, directives placed in the file, IDs stable across a save, escaping, stale saves.
+            </td>
+          </tr>
+          <tr>
+            <td><code>roundtrip.test.mjs</code></td>
+            <td class="n">22</td>
+            <td>Properties, checked on every scope of many pages. Below.</td>
+          </tr>
+          <tr>
+            <td><code>normalize.test.mjs</code></td>
+            <td class="n">21</td>
+            <td>The formatter's layout, and that it's idempotent on each fixture.</td>
+          </tr>
+          <tr>
+            <td><code>cleanup.test.mjs</code></td>
+            <td class="n">10</td>
+            <td>Stripping directives and IDs when iterating is done; its CLI.</td>
+          </tr>
+          <tr>
+            <td><code>ids.test.mjs</code></td>
+            <td class="n">6</td>
+            <td>Element IDs: which elements get them, numbering, retiring copies.</td>
+          </tr>
+          <tr>
+            <td><code>formatter-cli.test.mjs</code></td>
+            <td class="n">6</td>
+            <td>The formatter's command line.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        Every ship runs the suite three times: once by hand, once in <code>./deploy</code>, once in iterate-on-docs' <code>release</code>. That's three minutes of waiting, on the same commit.
+      </p>
+    </section>
+    <section id="roundtrip">
+      <h2>What the round-trip file checks</h2>
+      <p>
+        Two properties. Each runs over every scope of every page it's given: no examples, no picking.
+      </p>
+      <div class="tiles">
+        <div class="tile">
+          <strong>Round-trip</strong>
+          <p>
+            Scope → markdown → scope gives back the same HTML, IDs and directives included. Opening a box and saving it unchanged leaves the file unchanged.
+          </p>
+        </div>
+        <div class="tile">
+          <strong>Reconcile</strong>
+          <p>
+            Edit a scope (change a word, insert, remove, swap, or word and insert), save its markdown over the old one. Each element keeps its ID and its directive.
+          </p>
+        </div>
+        <div class="tile">
+          <strong>Tidy markdown</strong>
+          <p>
+            Pages in the shapes agents write most come out as markdown, HTML only for section and card tags.
+          </p>
+        </div>
+      </div>
+      <p>The pages come from two places:</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Pages</th>
+            <th>Why</th>
+            <th class="n">Round-trip</th>
+            <th class="n">Reconcile, 5 edits</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Generated, 150 seeds, tidy and wild</td>
+            <td>Shapes and characters markdown reads as syntax, more than any real page holds</td>
+            <td class="n">4.1 s</td>
+            <td class="n">8.4 s</td>
+          </tr>
+          <tr>
+            <td><code>test/pages/</code>: OVERVIEW, DESIGN, SCOPES-DESIGN</td>
+            <td>Frozen copies of this repo's pages: the shapes Jess's agents write</td>
+            <td class="n">1.3 s</td>
+            <td class="n">6.3 s</td>
+          </tr>
+          <tr>
+            <td><code>test/pages/mintlify-animal-fables.html</code></td>
+            <td>
+              A published docs page, anonymized: divs nested deep, inline styles, a toast holding a <code>&lt;style&gt;</code>. The test case for save performance.
+            </td>
+            <td class="n">5.3 s</td>
+            <td class="n">30.6 s</td>
+          </tr>
+          <tr>
+            <td><code>test/fixtures/</code></td>
+            <td>The small pages the server tests use</td>
+            <td class="n">0.05 s</td>
+            <td class="n">0.1 s</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note">Tidy markdown runs on the generated pages: 0.7 s more.</p>
+    </section>
+    <section id="time">
+      <h2>Where the 57 seconds go</h2>
+      <div class="bars" role="img" aria-label="Seconds in roundtrip.test.mjs, by page">
+        <div>mintlify-animal-fables</div>
+        <div class="bar" title="mintlify-animal-fables.html: 35.9 s (round-trip 5.3 s, reconcile 30.6 s)">
+          <span style="width: 88%"></span>35.9 s
+        </div>
+        <div>Generated pages</div>
+        <div class="bar" title="Generated pages: 13.2 s over 8 tests">
+          <span style="width: 32%"></span>13.2 s
+        </div>
+        <div>SCOPES-DESIGN</div>
+        <div class="bar" title="SCOPES-DESIGN.html: 5.2 s">
+          <span style="width: 12.7%"></span>5.2 s
+        </div>
+        <div>OVERVIEW</div>
+        <div class="bar" title="OVERVIEW.html: 1.4 s">
+          <span style="width: 3.4%"></span>1.4 s
+        </div>
+        <div>DESIGN</div>
+        <div class="bar" title="DESIGN.html: 0.9 s"><span style="width: 2.2%"></span>0.9 s</div>
+        <div>Fixtures</div>
+        <div class="bar" title="test/fixtures: 0.1 s"><span style="width: .3%"></span>0.1 s</div>
+      </div>
+      <p>
+        One page, 64% of the suite. Its six tests run one after another in one process, while 13 other cores sit idle.
+      </p>
+      <h3>Why that page costs so much</h3>
+      <p>
+        Both properties do work in proportion to the size of each scope, and scopes nest. A paragraph is counted once on its own and once more inside every scope around it. Markdown takes about 0.9 µs per byte of scope, on every page.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Page</th>
+            <th class="n">File</th>
+            <th class="n">Scopes</th>
+            <th class="n">Deepest</th>
+            <th class="n">All scopes, added up</th>
+            <th class="n">× file</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>DESIGN</td>
+            <td class="n">31 KB</td>
+            <td class="n">270</td>
+            <td class="n">8</td>
+            <td class="n">145 KB</td>
+            <td class="n">4.7</td>
+          </tr>
+          <tr>
+            <td>OVERVIEW</td>
+            <td class="n">42 KB</td>
+            <td class="n">319</td>
+            <td class="n">9</td>
+            <td class="n">197 KB</td>
+            <td class="n">4.7</td>
+          </tr>
+          <tr>
+            <td>SCOPES-DESIGN</td>
+            <td class="n">79 KB</td>
+            <td class="n">925</td>
+            <td class="n">10</td>
+            <td class="n">440 KB</td>
+            <td class="n">5.6</td>
+          </tr>
+          <tr>
+            <td>mintlify-animal-fables</td>
+            <td class="n">321 KB</td>
+            <td class="n">717</td>
+            <td class="n">19</td>
+            <td class="n">4,020 KB</td>
+            <td class="n">12.5</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        Mintlify's body holds a div, which holds a div, which holds a div: more than a dozen wrappers, each one a scope holding nearly the whole page.
+      </p>
+      <div class="tiles">
+        <div class="tile">
+          <div class="big">2%</div>
+          <p>of mintlify's scopes are 50 KB or more: 15 of 717.</p>
+        </div>
+        <div class="tile">
+          <div class="big">85%</div>
+          <p>of its markdown time goes to those 15.</p>
+        </div>
+        <div class="tile">
+          <div class="big">0</div>
+          <p>
+            of the three bugs this page caught needed a big scope. The smallest failing scope was a 1 KB <code>&lt;li&gt;</code>.
+          </p>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Mintlify scopes by size</th>
+            <th class="n">Scopes</th>
+            <th class="n">Bytes</th>
+            <th class="n">Markdown time</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>under 1 KB</td>
+            <td class="n">377</td>
+            <td class="n">113 KB</td>
+            <td class="n">17 ms</td>
+          </tr>
+          <tr>
+            <td>1–10 KB</td>
+            <td class="n">300</td>
+            <td class="n">724 KB</td>
+            <td class="n">208 ms</td>
+          </tr>
+          <tr>
+            <td>10–50 KB</td>
+            <td class="n">25</td>
+            <td class="n">359 KB</td>
+            <td class="n">180 ms</td>
+          </tr>
+          <tr>
+            <td>50 KB and up</td>
+            <td class="n">15</td>
+            <td class="n">2,510 KB</td>
+            <td class="n">2,210 ms</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note">
+        A correction: the yak that fixed this page recorded the suite growing from 22 s to 36 s when it arrived. Those runs were failing, and a failing page test stops at its first bad scope. The commit that made the page pass takes 60 s today, same as main. The suite hasn't slowed since.
+      </p>
+    </section>
+    <section id="recommendations">
+      <h2>Recommendations</h2>
+      <ol class="recs">
+        <li>
+          <strong>Split <code>roundtrip.test.mjs</code> into files.</strong> Move the generators and checks into <code>test/roundtrip-lib.mjs</code>, and give each property-and-page pair its own small test file: mintlify round-trip, mintlify reconcile per edit, the repo's pages, generated pages. <code>node --test</code> runs them side by side. Same tests, same coverage. <span class="win">Wall time ~10 s</span>, set by the slowest mintlify edit (6.6–8 s). An estimate; measure it after.
+        </li>
+        <li>
+          <strong>Reconcile small scopes on the frozen pages; round-trip all of them.</strong> The round-trip test keeps every scope, the wrappers too. The five edit tests skip scopes over 50 KB. My guess: a big scope runs the same matching a small one does, on more elements. The page's bug history agrees; nothing in the code proves it. <span class="win">Saves ~26 s of CPU</span>; with the split, the suite waits on the slowest generated-page test, about 3 s by estimate.
+        </li>
+        <li>
+          <strong>Do the yak "Limit the size of what counts as a scope".</strong> A product decision, not a test one: nobody edits 288 KB of markdown in a textarea. When the wrappers stop being scopes, saves on deep pages get faster and so do these tests. The yak asks that the round-trip property keep running on big elements anyway; recommendation 2 is that part.
+        </li>
+        <li>
+          <strong>Run the suite once per ship.</strong> Deploy and release test the same commit back to back. Release could skip its run when the vendored commit hasn't changed since the deploy that tested it. That change lives in iterate-on-docs.
+        </li>
+      </ol>
+      <p>
+        Not recommended: dropping or shrinking the mintlify page. It's the one page in the suite shaped like the wider web, and it caught three bugs in its first day.
+      </p>
+    </section>
+  </body>
+</html>
