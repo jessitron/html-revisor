@@ -35,7 +35,7 @@ What it traces:
 - **GET and PUT**: a span per request, continuing any `traceparent`, with a child span per step (read file, normalize, parse, check base, set markdown, serialize, write file, …) and attributes `hrv.page`, `hrv.page.bytes`, `hrv.change.kind`, `hrv.scope.id`, `hrv.answer.bytes`, and counts.
 - **The box's saves**, recorded in the browser. Each change is a trace: `save directive` or `save markdown` runs from the first keystroke to the answer applied (`hrv.edits` keystrokes went into it), with children `wait` (until the PUT goes), `PUT` (until it's answered; the server's `PUT change` nests under it), and `apply`. `close box` runs from Done (or Escape, a click away; `hrv.close.by`) until every save still going is confirmed (`hrv.pending` at the click). The client posts its spans to `/.hrv/spans`; the server sends them on with the same IDs, tagged `hrv.side=browser`.
 
-`test/telemetry.test.mjs` checks it against a stand-in collector, and against Honeycomb when the shell's `OTEL_EXPORTER_OTLP_HEADERS` carries a key: that test prints the run's `hrv.test.run` and trace ID, for finding the spans in dataset `html-revisor-test`.
+[OBSERVABILITY.html](OBSERVABILITY.html) draws a save as a trace and links Honeycomb queries for it. `test/telemetry.test.mjs` checks it against a stand-in collector, and against Honeycomb when the shell's `OTEL_EXPORTER_OTLP_HEADERS` carries a key: that test prints the run's `hrv.test.run` and trace ID, for finding the spans in dataset `html-revisor-test`.
 
 ## Clean up
 
