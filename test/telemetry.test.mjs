@@ -145,6 +145,59 @@ test('with HRV_TELEMETRY, a GET and a PUT send spans for their steps', () =>
     }
   }));
 
+// The browser's spans for one directive save, as client.js posts them, around a real PUT that
+// carries the client PUT span as its traceparent.
+test('with HRV_TELEMETRY, spans the browser posts join the trace of the PUT they sent', () =>
+  withCollector(async (collector) => {
+    const env = cleanEnv({ HRV_TELEMETRY: '1', OTEL_EXPORTER_OTLP_ENDPOINT: collector.endpoint });
+    const trace = traceId(), save = 'a'.repeat(16), put = 'b'.repeat(16), wait = 'c'.repeat(16);
+    await withServer(env, async ({ base }) => {
+      const html = await (await fetch(base + 'page.html')).text();
+      const { document } = parseHTML(html);
+      assert.ok(document.querySelector('#hrv-directives').hasAttribute('data-telemetry'), 'the page tells the client to record');
+      const bases = JSON.parse(document.querySelector('script#hrv-bases').textContent);
+      const id = document.querySelector('p').getAttribute('data-hrv');
+      const t0 = Date.now();
+      const res = await fetch(base + 'page.html', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', traceparent: `00-${trace}-${put}-01` },
+        body: JSON.stringify({ id, base: bases[id], directive: 'make it shorter' }),
+      });
+      assert.equal(res.status, 200);
+      const spans = [
+        { name: 'save directive', traceId: trace, spanId: save, start: t0 - 500, end: t0 + 50, attributes: { 'hrv.edits': 3 } },
+        { name: 'wait', traceId: trace, spanId: wait, parentSpanId: save, start: t0 - 500, end: t0 },
+        { name: 'PUT', kind: 'client', traceId: trace, spanId: put, parentSpanId: save, start: t0, end: t0 + 40, attributes: { nested: { no: 1 } } },
+        { name: 'bad', traceId: 'nope', spanId: put, start: t0, end: t0 },
+      ];
+      const posted = await fetch(base + '.hrv/spans', { method: 'POST', body: JSON.stringify(spans) });
+      assert.equal(posted.status, 204);
+    });
+    const spans = collector.spans();
+    const named = (name) => spans.find((s) => s.name === name);
+    const root = named('save directive');
+    assert.ok(root, `no save directive span among ${spans.map((s) => s.name)}`);
+    assert.equal(root.traceId, trace);
+    assert.equal(root.spanId, save);
+    assert.equal(root.parentSpanId ?? '', '');
+    assert.equal(root.attributes['hrv.side'], 'browser');
+    assert.equal(root.attributes['hrv.edits'], 3);
+    assert.equal(named('wait').parentSpanId, save);
+    const clientPut = named('PUT');
+    assert.equal(clientPut.spanId, put);
+    assert.equal(clientPut.kind, 3, 'SPAN_KIND_CLIENT');
+    assert.equal(clientPut.attributes.nested, undefined, 'only plain values become attributes');
+    assert.equal(named('PUT change').parentSpanId, put, 'the server span nests under the browser PUT');
+    assert.equal(named('bad'), undefined, 'a span with a malformed ID is dropped');
+    assert.ok(!spans.some((s) => s.name === 'POST'), 'posting spans makes no span');
+  }));
+
+test('without HRV_TELEMETRY, the page does not ask the client to record', () =>
+  withServer(cleanEnv({}), async ({ base }) => {
+    const html = await (await fetch(base + 'page.html')).text();
+    assert.ok(!parseHTML(html).document.querySelector('#hrv-directives').hasAttribute('data-telemetry'));
+  }));
+
 // Real spans, to Honeycomb. Runs when the shell's standard OTel variables point at Honeycomb, as
 // .be sets them. An ingest key can send but not query, so this test checks only that the export
 // succeeded; it prints the run ID, and an agent finds the spans by it with the Honeycomb MCP.

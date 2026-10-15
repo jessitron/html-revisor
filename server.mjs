@@ -14,7 +14,7 @@ import { pathToFileURL } from 'node:url';
 import { formatFiles, parse, normalize, serialize, assignIds, formatElement, ID, trimAscii, escapeText } from './formatter.mjs';
 import { collectDirectives, removeDirectives, setDirective } from './directives.mjs';
 import { scopeElements, scopeMarkdown, scopeFromMarkdown } from './scopes.mjs';
-import { trace, inSpan, requestSpan, startTelemetry } from './telemetry.mjs';
+import { trace, inSpan, requestSpan, startTelemetry, recordBrowserSpans } from './telemetry.mjs';
 
 // ======================================================================
 // Tier I: orchestration
@@ -32,15 +32,35 @@ export function parseArgs(argv) {
   return config;
 }
 
-export function createServer({ root, author }) {
-  return http.createServer((req, res) =>
+// telemetry: the server sends spans, so the page's client records its own and posts them here.
+export function createServer({ root, author, telemetry = false }) {
+  const config = { root: path.resolve(root), author, telemetry };
+  return http.createServer((req, res) => {
+    // Spans from the browser get no span of their own: one per batch would be noise.
+    if (req.url === SPANS_PATH) return receiveSpans(req, res).catch((err) => sendError(res, err));
     requestSpan(req, res, (span) =>
-      route(req, res, { root: path.resolve(root), author }).catch((err) => {
+      route(req, res, config).catch((err) => {
         span.recordException(err);
         sendError(res, err);
       }),
-    ),
-  );
+    );
+  });
+}
+
+// Where the page's client posts its spans. A dot path: no file under the root can be served there.
+const SPANS_PATH = '/.hrv/spans';
+
+async function receiveSpans(req, res) {
+  if (req.method !== 'POST') throw new HttpError(405, 'method not allowed');
+  let spans;
+  try {
+    spans = JSON.parse(await readBody(req));
+  } catch {
+    throw new HttpError(400, 'body must be JSON');
+  }
+  recordBrowserSpans(spans);
+  res.writeHead(204);
+  res.end();
 }
 
 async function route(req, res, config) {
@@ -67,7 +87,7 @@ async function route(req, res, config) {
 // GET: format on disk (which assigns element IDs), then serve a copy with directives lifted
 // out into JSON, the base of every element so the tab can send it back with a change, and the
 // markdown of every scope for the box to edit.
-async function getPage(res, file, urlPath, { author }) {
+async function getPage(res, file, urlPath, { author, telemetry }) {
   const span = trace.getActiveSpan();
   const onDisk = await inSpan('read file', {}, () => fs.readFile(file, 'utf8'));
   const formatted = inSpan('normalize', {}, () => normalize(onDisk));
@@ -86,7 +106,7 @@ async function getPage(res, file, urlPath, { author }) {
   const markdowns = inSpan('markdowns', {}, () => markdownsOf(scopeElements(document)));
   const assets = await readClientAssets();
   const html = inSpan('serialize', {}, () => {
-    injectClient(document, { directives, bases, markdowns }, versionOf(formatted), assets);
+    injectClient(document, { directives, bases, markdowns, telemetry }, versionOf(formatted), assets);
     return document.toString();
   });
   span?.setAttributes({
@@ -201,7 +221,7 @@ async function main() {
       process.once(signal, () => stopTelemetry().finally(() => process.exit(0)));
     }
   }
-  const server = createServer(config);
+  const server = createServer({ ...config, telemetry: !!stopTelemetry });
   server.listen(config.port, '127.0.0.1', () => {
     const { port } = server.address();
     console.log(`html-revisor: http://localhost:${port}/${page} serving ${config.root}`);
@@ -378,7 +398,8 @@ export async function readClientAssets() {
 }
 
 // directives: {id: text}. bases: {id: base}, sent back with each change. markdowns: {id: markdown}.
-export function injectClient(document, { directives, bases, markdowns = {} }, version, { css, js }) {
+// telemetry: the client records spans for its saves.
+export function injectClient(document, { directives, bases, markdowns = {}, telemetry = false }, version, { css, js }) {
   const head = document.querySelector('head') ?? document.documentElement;
   const body = document.querySelector('body') ?? document.documentElement;
 
@@ -390,6 +411,7 @@ export function injectClient(document, { directives, bases, markdowns = {} }, ve
   data.setAttribute('type', 'application/json');
   data.setAttribute('id', 'hrv-directives');
   if (version) data.setAttribute('data-version', version);
+  if (telemetry) data.setAttribute('data-telemetry', '');
   data.textContent = JSON.stringify(directives).replace(/</g, '\\u003c');
   body.appendChild(data);
 

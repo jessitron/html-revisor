@@ -425,7 +425,7 @@
       for (var j = els.length - 1; j >= 0 && !target; j--) if (!from || follows(els[j], from)) target = els[j];
       target = target || els[els.length - 1];
     }
-    closeBox();
+    closeBox('step');
     current = target.getAttribute('data-hrv');
     target.scrollIntoView({ block: 'center', behavior: 'smooth' });
     flashed = target;
@@ -442,7 +442,7 @@
   // The cursor rule is the one place this reaches the page: an attribute on the html element.
   function setReviewing(on) {
     reviewing = on;
-    if (!on) closeBox();
+    if (!on) closeBox('review off');
     if (on) document.documentElement.removeAttribute('data-hrv-review');
     else document.documentElement.setAttribute('data-hrv-review', 'off');
     layer.classList.toggle('hrv-reading', !on);
@@ -460,6 +460,58 @@
     step(e.key === 'ArrowDown' ? 1 : -1);
   });
 
+  // ---- telemetry ----
+
+  // When the server has telemetry on, the client records spans for its saves and posts them to
+  // the server, which sends them on with its own. No SDK: a span is a plain object, and the
+  // server makes an OTel span with the same IDs and times. Off, startSpan returns null and
+  // nothing is recorded.
+  var tracing = !!document.querySelector('#hrv-directives[data-telemetry]');
+  var finished = [];        // ended spans, not yet posted
+  var flushTimer = null;
+
+  function randomHex(bytes) {
+    var a = new Uint8Array(bytes);
+    crypto.getRandomValues(a);
+    return Array.prototype.map.call(a, function (b) { return (b < 16 ? '0' : '') + b.toString(16); }).join('');
+  }
+
+  function clock() { return performance.timeOrigin + performance.now(); }
+
+  // A span without a parent starts a trace. kind 'client' marks a span that a server span continues.
+  function startSpan(name, parent, attributes, kind) {
+    if (!tracing) return null;
+    return {
+      name: name, kind: kind,
+      traceId: parent ? parent.traceId : randomHex(16), spanId: randomHex(8),
+      parentSpanId: parent ? parent.spanId : undefined,
+      start: clock(), attributes: attributes || {}
+    };
+  }
+
+  // Ending a span twice keeps the first end.
+  function endSpan(span, error) {
+    if (!span || span.end) return;
+    span.end = clock();
+    if (error) span.error = String(error);
+    finished.push(span);
+    if (!flushTimer) flushTimer = setTimeout(flushSpans, 2000);
+  }
+
+  function flushSpans() {
+    clearTimeout(flushTimer);
+    flushTimer = null;
+    if (finished.length === 0) return;
+    var body = JSON.stringify(finished);
+    finished = [];
+    navigator.sendBeacon('/.hrv/spans', new Blob([body], { type: 'application/json' }));
+  }
+  // A tab going away may not fire pagehide; hidden is the last moment it reliably sees.
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden') flushSpans();
+  });
+  window.addEventListener('pagehide', flushSpans);
+
   // ---- saving ----
 
   function directiveCount() {
@@ -468,12 +520,14 @@
     return n;
   }
 
-  // Mark a change to send. A change already waiting sends the latest value, once.
+  // Mark a change to send. A change already waiting sends the latest value, once. Each change
+  // is a trace: its span starts at the first edit and ends when the answer is applied.
   function addUnsent(kind, id) {
     for (var i = 0; i < unsent.length; i++) {
-      if (unsent[i].kind === kind && unsent[i].id === id) return;
+      if (unsent[i].kind === kind && unsent[i].id === id) return unsent[i].edits++;
     }
-    unsent.push({ kind: kind, id: id });
+    var span = startSpan('save ' + kind, null, { 'hrv.change.kind': kind, 'hrv.scope.id': id });
+    unsent.push({ kind: kind, id: id, edits: 1, span: span, wait: startSpan('wait', span) });
   }
 
   function bodyFor(change) {
@@ -539,11 +593,19 @@
     var change = unsent.shift();
     var failed = false;
     var fromBox = !!box;   // a save made while a box is open reports in the box
+    endSpan(change.wait);
+    var put = startSpan('PUT', change.span, { 'hrv.queued': unsent.length }, 'client');
+    var apply = null;
+    var headers = { 'Content-Type': 'application/json' };
+    if (put) headers.traceparent = '00-' + put.traceId + '-' + put.spanId + '-01';
     fetch(location.pathname, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: headers,
       body: JSON.stringify(bodyFor(change))
     }).then(function (res) {
+      if (put) put.attributes['http.response.status_code'] = res.status;
+      endSpan(put);
+      apply = startSpan('apply', change.span);
       if (res.ok || res.status === 412) return res.json();
       return res.text().then(function (t) {
         throw new Error(t || ('HTTP ' + res.status));
@@ -551,7 +613,7 @@
     }).then(function (data) {
       if (!data.ok) {
         // A conflict: we weren't taking turns. Say so; the reload is up to the human.
-        failed = true;
+        failed = 'conflict: ' + data.error;
         boxStatus('not saved');
         showProblem('not saved: ' + data.error + '. Copy what you wrote, then reload to see the page as it is now');
         return;
@@ -564,14 +626,28 @@
       // A newer edit, waiting or queued, keeps the box at "saving…".
       if (fromBox && box && unsent.length === 0 && !saveTimer) boxStatus('saved');
     }).catch(function (err) {
-      failed = true;
+      failed = 'save failed: ' + (err && err.message ? err.message : err);
+      endSpan(put, failed);
       addUnsent(change.kind, change.id); // a later edit retries it
       boxStatus('');
-      showProblem('save failed: ' + (err && err.message ? err.message : err));
+      showProblem(failed);
     }).then(function () {
+      endSpan(apply);
+      if (change.span) change.span.attributes['hrv.edits'] = change.edits;
+      endSpan(change.span, failed);
       saving = false;
       if (!failed) saveNow();
+      confirmClosed(failed);
     });
+  }
+
+  // Spans for boxes closed while their saves were still going. Each ends when the last save
+  // is answered and applied, or one fails.
+  var closing = [];
+  function confirmClosed(failed) {
+    if (!failed && (saving || unsent.length > 0)) return;
+    closing.forEach(function (span) { endSpan(span, failed); });
+    closing = [];
   }
 
   function scheduleSave(kind, id) {
@@ -622,13 +698,19 @@
     updateDocket();
   }
 
-  // Commit and close the open box.
-  function closeBox() {
+  // Commit and close the open box. by says what closed it, for telemetry: its span lasts until
+  // the saves still going are confirmed.
+  function closeBox(by) {
     if (!box) return;
+    var span = startSpan('close box', null, { 'hrv.close.by': by, 'hrv.scope.id': boxId });
     var ta = box.querySelector('textarea.hrv-directive');
     setDirective(boxId, ta.value);
     dropBox();
     saveNow();
+    if (!span) return;
+    span.attributes['hrv.pending'] = unsent.length + (saving ? 1 : 0);
+    closing.push(span);
+    confirmClosed(false);
   }
 
   // Close the box without committing: its element is gone, and its directive with it.
@@ -645,7 +727,7 @@
     ta.value = '';
     setDirective(id, '');
     addUnsent('directive', id);
-    closeBox();
+    closeBox('delete');
   }
 
   function openBox(id) {
@@ -653,7 +735,7 @@
       box.querySelector('textarea.hrv-directive').focus();
       return;
     }
-    closeBox();
+    closeBox('open other');
     var el = elementFor(id);
     if (!el) return;
     boxId = id;
@@ -702,7 +784,7 @@
     box.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' || (e.key === 'Enter' && (e.metaKey || e.ctrlKey))) {
         e.preventDefault();
-        closeBox();
+        closeBox('key');
       } else if (e.key === 'Backspace' && e.altKey && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         deleteDirective(ta, boxId);
@@ -723,7 +805,7 @@
     done.className = 'hrv-btn hrv-done';
     done.textContent = 'Done';
     done.title = 'Close the box. Typing saves.';
-    done.addEventListener('click', closeBox);
+    done.addEventListener('click', function () { closeBox('done'); });
 
     var row = document.createElement('div');
     row.className = 'hrv-row';
@@ -764,7 +846,7 @@
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     var el = targetElement(e.target);
     if (!el) {
-      closeBox();
+      closeBox('click away');
       return;
     }
     e.preventDefault();

@@ -6,6 +6,7 @@
 // (Claude Code reads them for its own telemetry). Once it's on, the standard variables say
 // where spans go and what they carry: OTEL_EXPORTER_OTLP_ENDPOINT, OTEL_EXPORTER_OTLP_HEADERS,
 // OTEL_SERVICE_NAME, OTEL_RESOURCE_ATTRIBUTES.
+import crypto from 'node:crypto';
 import { trace, context, propagation, SpanKind, SpanStatusCode } from './vendor/opentelemetry-api.mjs';
 
 export const tracer = trace.getTracer('html-revisor');
@@ -40,6 +41,7 @@ export async function startTelemetry(env = process.env) {
       done(result);
     });
   const provider = new sdk.BasicTracerProvider({
+    idGenerator,
     resource: sdk.resourceFromAttributes({ 'service.name': 'html-revisor' }).merge(sdk.detectResources({ detectors: [sdk.envDetector] })),
     spanProcessors: [new sdk.BatchSpanProcessor(exporter)],
   });
@@ -47,6 +49,48 @@ export async function startTelemetry(env = process.env) {
   propagation.setGlobalPropagator(new sdk.W3CTraceContextPropagator());
   trace.setGlobalTracerProvider(provider);
   return () => provider.shutdown();
+}
+
+// IDs come from the random source unless a browser span has set the ones to use next.
+let forced = null;
+const idGenerator = {
+  generateTraceId: () => forced?.traceId ?? crypto.randomBytes(16).toString('hex'),
+  generateSpanId: () => forced?.spanId ?? crypto.randomBytes(8).toString('hex'),
+};
+
+const isHex = (n, s) => typeof s === 'string' && s.length === n && /^[0-9a-f]+$/.test(s);
+
+// Spans the browser recorded, as plain objects: {name, traceId, spanId, parentSpanId?, start,
+// end (epoch milliseconds), kind?: 'client', error?, attributes}. Each becomes an OTel span with
+// the browser's IDs and times, so it joins the trace the PUT's traceparent continues. Returns how
+// many it kept. With telemetry off, the spans are no-ops.
+export function recordBrowserSpans(list) {
+  if (!Array.isArray(list)) return 0;
+  let kept = 0;
+  for (const s of list) {
+    if (!s || typeof s.name !== 'string' || !isHex(32, s.traceId) || !isHex(16, s.spanId)) continue;
+    if (s.parentSpanId !== undefined && !isHex(16, s.parentSpanId)) continue;
+    if (!Number.isFinite(s.start) || !Number.isFinite(s.end)) continue;
+    const parent = s.parentSpanId
+      ? trace.setSpanContext(context.active(), { traceId: s.traceId, spanId: s.parentSpanId, traceFlags: 1, isRemote: true })
+      : context.active();
+    const attributes = { 'hrv.side': 'browser' };
+    for (const [k, v] of Object.entries(s.attributes ?? {})) {
+      if (['string', 'number', 'boolean'].includes(typeof v)) attributes[k] = v;
+    }
+    const kind = s.kind === 'client' ? SpanKind.CLIENT : SpanKind.INTERNAL;
+    forced = { traceId: s.traceId, spanId: s.spanId };
+    let span;
+    try {
+      span = tracer.startSpan(s.name, { kind, attributes, startTime: s.start, root: !s.parentSpanId }, parent);
+    } finally {
+      forced = null;
+    }
+    if (s.error) span.setStatus({ code: SpanStatusCode.ERROR, message: String(s.error) });
+    span.end(s.end);
+    kept++;
+  }
+  return kept;
 }
 
 // Run fn(span) inside a span. The span ends when fn returns, or when the promise it returns
