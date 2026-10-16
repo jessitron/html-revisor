@@ -33,9 +33,6 @@
   .tile p:last-of-type { margin: 0; }
   .tile img { display: block; }
   .swatch code { font-size: 11px; display: block; }
-  /* Proposed, not in client.css yet: field labels and the action on each label's line. */
-  .proposed :is(#hrv-layer, .hrv-layer) .hrv-label { display: flex; justify-content: space-between; align-items: center; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
-  .proposed :is(#hrv-layer, .hrv-layer) .hrv-field-action { padding: 0; font-size: 12px; text-transform: none; letter-spacing: 0; }
 </style>
   </head>
   <body>
@@ -87,7 +84,7 @@
             <strong>Markers sit where they don't cover what they mark,</strong> in SVG diagrams too. Hovering one shows crop marks on its element and the directive in our own tooltip.
           </li>
           <li>
-            <strong>The box's words are true:</strong> Done, not Save, since typing saves; "saved" in the box's footer; a quieter Delete, becoming Clear on the Directive label's line (direction, <a href="#revert">Revert and Clear</a>); a header with the icon and the element.
+            <strong>The box's words are true:</strong> Done, not Save, since typing saves; "saved" in the box's footer; Clear on the Directive label's line and Revert on the Content label's line (<a href="#revert">Revert and Clear</a>); a header with the icon and the element.
           </li>
           <li>The Content field holds the element's markdown, in monospace like the directive.</li>
           <li>
@@ -108,7 +105,6 @@
             The rules that place the box and the markers: built (see below), waiting on Jess's review.
           </li>
           <li>Fonts, sizes, and spacing inside the box.</li>
-          <li><a href="#revert">Revert and Clear</a>: proposed below.</li>
         </ul>
       </div>
     </div>
@@ -320,7 +316,7 @@
     </div>
     <h2>Directive box</h2>
     <p class="note">
-      Opens beside its element: below, above, right, or left, the first side with room in the viewport. It keeps that side while it fits, so it doesn't flip as the element grows under typing. With no room on any side (a tall element, a phone), it pins to the viewport edge farthest from what shows of the element. Along the other axis it shifts to stay in view, and the notch slides along its edge to point at the element. 320px wide or the viewport less 16px. The header names the element: its tag and the start of its text, or its alt. Saves 0.4 s after typing stops, and the footer says so: "saving…", then "saved" for 2 s, or "not saved" when the file changed on disk. Done, ⌘↵ and esc close it. Delete is a text button; ⌥⌘⌫ does the same. Fields grow with their text up to 240px, then scroll. The Content field wears the element's font, its size held between 12 and 20px.
+      Opens beside its element: below, above, right, or left, the first side with room in the viewport. It keeps that side while it fits, so it doesn't flip as the element grows under typing. With no room on any side (a tall element, a phone), it pins to the viewport edge farthest from what shows of the element. Along the other axis it shifts to stay in view, and the notch slides along its edge to point at the element. 320px wide or the viewport less 16px. The header names the element: its tag and the start of its text, or its alt. Saves 0.4 s after typing stops, and the footer says so: "saving…", then "saved" for 2 s, or "not saved" when the file changed on disk. Done, ⌘↵ and esc close it. Each field has a label line; its action sits at the right and shows only when it has something to do: Revert on Content, Clear on Directive. Clear empties the directive and closes the box; ⌥⌘⌫ does the same. Fields grow with their text up to 240px, then scroll. The Content field wears the element's font, its size held between 12 and 20px.
     </p>
     <div class="row">
       <div>
@@ -331,10 +327,15 @@
               <div class="hrv-head">
                 <span class="hrv-icon"></span> <span class="hrv-what">p · Where it's headed</span>
               </div>
+              <div class="hrv-label">
+                Directive
+                <div class="hrv-btn hrv-quiet hrv-field-action" title="Clear the directive (⌥⌘⌫)">
+                  Clear
+                </div>
+              </div>
               <textarea class="hrv-directive" placeholder="Directive for this element">Add a diagram of the PUT flow here</textarea>
               <div class="hrv-row">
                 <div class="hrv-hint hrv-status">saved</div>
-                <div class="hrv-btn hrv-quiet" title="Delete the directive (⌥⌘⌫)">Delete</div>
                 <div class="hrv-btn hrv-done">Done</div>
               </div>
             </div>
@@ -356,7 +357,6 @@
               <textarea class="hrv-directive" placeholder="Directive for this element"></textarea>
               <div class="hrv-row">
                 <div class="hrv-hint">⌘↵ or esc to close</div>
-                <div class="hrv-btn hrv-quiet" title="Delete the directive (⌥⌘⌫)">Delete</div>
                 <div class="hrv-btn hrv-done">Done</div>
               </div>
             </div>
@@ -367,11 +367,11 @@
         </p>
       </div>
     </div>
-    <h2 id="revert">Revert and Clear (proposed)</h2>
+    <h2 id="revert">Revert and Clear</h2>
     <p class="note">
-      For "oh no, I didn't mean to delete that": put a scope's content back to what it held at the last commit. Not built; yak <code>undo-for-text-edits-x8yp</code>.
+      For "oh no, I didn't mean to delete that": put a scope's content back to what it held at the last commit.
     </p>
-    <div class="row proposed">
+    <div class="row">
       <div>
         <div class="stage" style="height: 36px; padding-top: 330px;">
           <h3 data-mark="selected">Where it's headed</h3>
@@ -404,7 +404,7 @@ Three mountains: fidelity, ergonomics, performance.</textarea>
           </div>
         </div>
         <p class="note">
-          A section whose second paragraph was just deleted. Revert sits on the Content label's line, at the right: it names what it puts back, and it stays away from Done. Each field's action sits on its label's line, and shows only when it has something to do: Revert when the content changed, Clear when there is a directive. Clear, not ×: an × reads as closing the box. Labels are small capitals in the muted gray; the actions are quiet text, like the old Delete. The footer holds what belongs to the whole box: "saved", which covers both fields, and Done.
+          A section whose second paragraph was just deleted. Revert sits on the Content label's line, at the right: it names what it puts back, and it stays away from Done. Each field's action sits on its label's line, and shows only when it has something to do: Revert when the content changed, Clear when there is a directive. Clear, not ×: an × reads as closing the box. Labels are small capitals in the muted gray; the actions are quiet text. The footer holds what belongs to the whole box: "saved", which covers both fields, and Done.
         </p>
       </div>
       <div>
@@ -434,7 +434,7 @@ Three mountains: fidelity, ergonomics, performance.</textarea>
         </ul>
       </div>
     </div>
-    <div class="row proposed">
+    <div class="row">
       <div>
         <div class="stage" style="height: 250px;">
           <p data-mark="selected">Where it's headed</p>
