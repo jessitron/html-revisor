@@ -4,6 +4,7 @@
 
   var directives = {};      // id -> text, the full current set
   var markdowns = {};       // id -> markdown of each scope, as the server last saw it
+  var committed = {};       // id -> markdown of each scope at the file's last commit, for Revert
   var edits = {};           // id -> markdown typed for a scope in this tab, not yet answered
   var bases = {};           // id -> base: the element's content as the server last saw it
   var markers = {};         // id -> marker element
@@ -21,6 +22,7 @@
     version = data.getAttribute('data-version');
     bases = JSON.parse(document.getElementById('hrv-bases').textContent) || {};
     markdowns = JSON.parse(document.getElementById('hrv-markdown').textContent) || {};
+    committed = JSON.parse(document.getElementById('hrv-committed').textContent) || {};
   } catch (e) {
     directives = directives || {};
   }
@@ -552,7 +554,10 @@
       }
     }
     if (box && !elementFor(boxId)) dropBox();
-    else if (box) box.querySelector('.hrv-what').textContent = describe(elementFor(boxId));
+    else if (box) {
+      box.querySelector('.hrv-what').textContent = describe(elementFor(boxId));
+      box.hrvSyncActions();   // a scope that moved to a new ID has no commit to revert to
+    }
     updateDocket();
     schedulePosition();
   }
@@ -661,9 +666,9 @@
 
   var MAC = /Mac|iPhone|iPad/.test(navigator.platform);
   var HINT = (MAC ? '⌘↵' : 'Ctrl+Enter') + ' or esc to close';
-  // Delete's hotkey: Option-Command-Backspace (Ctrl+Alt+Backspace elsewhere). In a textarea,
+  // Clear's hotkey: Option-Command-Backspace (Ctrl+Alt+Backspace elsewhere). In a textarea,
   // ⌘⌫ and ⌥⌫ delete text, and the browser takes ⌘⇧⌫; nothing claims this one.
-  var DELETE_KEY = MAC ? '⌥⌘⌫' : 'Ctrl+Alt+Backspace';
+  var CLEAR_KEY = MAC ? '⌥⌘⌫' : 'Ctrl+Alt+Backspace';
   var statusTimer = null;
 
   // The box footer's words: the hint, or the save status while one is current.
@@ -723,11 +728,22 @@
     positionHover();
   }
 
-  function deleteDirective(ta, id) {
+  function clearDirective(ta, id) {
     ta.value = '';
     setDirective(id, '');
     addUnsent('directive', id);
-    closeBox('delete');
+    closeBox('clear');
+  }
+
+  // Put the scope's markdown at the last commit into its field, as if typed: it saves like
+  // typing, and the browser's undo takes it back.
+  function revert(textArea, id) {
+    textArea.focus();
+    textArea.select();
+    if (!document.execCommand('insertText', false, committed[id])) {
+      textArea.value = committed[id];
+      textArea.dispatchEvent(new Event('input', { bubbles: true }));
+    }
   }
 
   function openBox(id) {
@@ -754,7 +770,10 @@
     // A scope gets a field for its markdown above the directive. The page shows each edit when
     // the server answers the save; blank markdown is not applied. A save can give the scope a
     // new ID, so the handlers read boxId, not id.
+    // Each field's action sits on its label's line and shows only when it has something to do:
+    // Revert when the content differs from the last commit, Clear when there is a directive.
     var textArea = null;
+    var revertButton = null;
     if (isScope(id)) {
       textArea = document.createElement('textarea');
       textArea.className = 'hrv-text';
@@ -762,13 +781,16 @@
       textArea.addEventListener('input', function () {
         fit(textArea);
         schedulePosition();
+        syncActions();
         if (textArea.value.replace(SPACE, '') === '') return;
         edits[boxId] = textArea.value;
         scheduleSave('markdown', boxId);
       });
-      box.appendChild(label('Content'));
+      revertButton = fieldAction('Revert', 'Put back the content this had at the last commit', function () {
+        revert(textArea, boxId);
+      });
+      box.appendChild(label('Content', revertButton));
       box.appendChild(textArea);
-      box.appendChild(label('Directive'));
     }
 
     var ta = document.createElement('textarea');
@@ -778,28 +800,34 @@
     ta.addEventListener('input', function () {
       fit(ta);
       schedulePosition();
+      syncActions();
       setDirective(boxId, ta.value);
       scheduleSave('directive', boxId);
     });
+    var clearButton = fieldAction('Clear', 'Clear the directive (' + CLEAR_KEY + ')', function () {
+      clearDirective(ta, boxId);
+    });
+    box.appendChild(label('Directive', clearButton));
     box.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' || (e.key === 'Enter' && (e.metaKey || e.ctrlKey))) {
         e.preventDefault();
         closeBox('key');
       } else if (e.key === 'Backspace' && e.altKey && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        deleteDirective(ta, boxId);
+        clearDirective(ta, boxId);
       }
     });
+
+    function syncActions() {
+      if (revertButton) revertButton.hidden = typeof committed[boxId] !== 'string' || textArea.value === committed[boxId];
+      clearButton.hidden = ta.value.trim() === '';
+    }
+    box.hrvSyncActions = syncActions;
+    syncActions();
 
     var hint = document.createElement('div');
     hint.className = 'hrv-hint';
     hint.textContent = HINT;
-
-    var del = document.createElement('div');
-    del.className = 'hrv-btn hrv-quiet';
-    del.textContent = 'Delete';
-    del.title = 'Delete the directive (' + DELETE_KEY + ')';
-    del.addEventListener('click', function () { deleteDirective(ta, boxId); });
 
     var done = document.createElement('div');
     done.className = 'hrv-btn hrv-done';
@@ -810,7 +838,6 @@
     var row = document.createElement('div');
     row.className = 'hrv-row';
     row.appendChild(hint);
-    row.appendChild(del);
     row.appendChild(done);
 
     box.appendChild(ta);
@@ -831,11 +858,21 @@
     ta.setSelectionRange(ta.value.length, ta.value.length);
   }
 
-  function label(text) {
+  function label(text, action) {
     var div = document.createElement('div');
     div.className = 'hrv-label';
     div.textContent = text;
+    if (action) div.appendChild(action);
     return div;
+  }
+
+  function fieldAction(text, title, onClick) {
+    var b = document.createElement('div');
+    b.className = 'hrv-btn hrv-quiet hrv-field-action';
+    b.textContent = text;
+    b.title = title;
+    b.addEventListener('click', onClick);
+    return b;
   }
 
   // ---- click handling ----
