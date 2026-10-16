@@ -2,7 +2,7 @@
 // starts the server as a child process on a random port, and talks to it over HTTP.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
+import { spawn, execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import http from 'node:http';
 import os from 'node:os';
@@ -38,7 +38,8 @@ async function withServer(fn, args = []) {
       const json = document.querySelector('script#hrv-directives');
       const bases = JSON.parse(document.querySelector('script#hrv-bases').textContent);
       const markdowns = JSON.parse(document.querySelector('script#hrv-markdown').textContent);
-      return { res, html, document, bases, markdowns, version: json.getAttribute('data-version'), directives: JSON.parse(json.textContent) };
+      const committed = JSON.parse(document.querySelector('script#hrv-committed').textContent);
+      return { res, html, document, bases, markdowns, committed, version: json.getAttribute('data-version'), directives: JSON.parse(json.textContent) };
     },
     // PUT one change, as the tab sends it: {id, base, directive} or {id, base, markdown}.
     put: (name, change) =>
@@ -334,6 +335,40 @@ test('the served page carries the markdown of every scope but body', () =>
     assert.equal(markdowns[idOf(document, 'p:nth-of-type(2)')], 'Second **bold** paragraph');
     assert.equal(markdowns[idOf(document, 'ul')], '- one\n- two');
     assert.ok(!(idOf(document, 'body') in markdowns));
+  }));
+
+// Make the server's root a repository and commit everything in it, as it stands.
+function commitAll(dir) {
+  const run = (...args) => execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', ...args], { cwd: dir, stdio: 'ignore' });
+  run('init', '-q');
+  run('add', '.');
+  run('commit', '-q', '-m', 'turn');
+}
+
+test('Revert: the served page carries each scope\'s markdown at the last commit, numbered like the page', () =>
+  withServer(async (s) => {
+    commitAll(s.dir);
+    const { document, bases, markdowns, committed } = await s.page('page.html');
+    assert.deepEqual(committed, markdowns, 'a commit without IDs numbers the same as the page');
+    const p = idOf(document, 'p');
+    const ul = idOf(document, 'ul');
+    await s.put('page.html', { id: p, base: bases[p], markdown: 'First paragraph, edited' });
+    await s.put('page.html', { id: ul, base: bases[ul], markdown: '- one' });
+    const after = await s.page('page.html');
+    assert.equal(after.markdowns[p], 'First paragraph, edited');
+    assert.equal(after.committed[p], 'First paragraph');
+    assert.equal(after.committed[ul], '- one\n- two', 'the deleted item comes back from its list');
+
+    commitAll(s.dir);
+    const next = await s.page('page.html');
+    assert.equal(next.committed[p], 'First paragraph, edited', 'a commit with IDs keeps them');
+    s.write('new.html', '<p>uncommitted</p>');
+    assert.deepEqual((await s.page('new.html')).committed, {}, 'a file not in the commit has nothing to revert to');
+  }));
+
+test('Revert: outside a git repository there is nothing to revert to', () =>
+  withServer(async (s) => {
+    assert.deepEqual((await s.page('page.html')).committed, {});
   }));
 
 test('markdown edits: a PUT with markdown writes HTML and keeps the directive', () =>

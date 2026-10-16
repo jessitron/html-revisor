@@ -6,6 +6,7 @@
 //            directives.mjs, formatter.mjs, and scopes.mjs are Tier II too
 //   Tier III interface: filesystem gateway, content types, listings, client assets;
 //            telemetry.mjs is Tier III too
+import { execFile } from 'node:child_process';
 import crypto from 'node:crypto';
 import http from 'node:http';
 import fs from 'node:fs/promises';
@@ -86,7 +87,7 @@ async function route(req, res, config) {
 
 // GET: format on disk (which assigns element IDs), then serve a copy with directives lifted
 // out into JSON, the base of every element so the tab can send it back with a change, and the
-// markdown of every scope for the box to edit.
+// markdown of every scope for the box to edit, and each scope's markdown at the last commit, for Revert.
 async function getPage(res, file, urlPath, { author, telemetry }) {
   const span = trace.getActiveSpan();
   const onDisk = await inSpan('read file', {}, () => fs.readFile(file, 'utf8'));
@@ -104,9 +105,14 @@ async function getPage(res, file, urlPath, { author, telemetry }) {
   });
   const bases = inSpan('bases', {}, () => basesOf(document.querySelectorAll(`[${ID}]`), author));
   const markdowns = inSpan('markdowns', {}, () => markdownsOf(scopeElements(document)));
+  const committed = await inSpan('committed', {}, async (child) => {
+    const found = committedMarkdowns(await readCommitted(file), author);
+    child.setAttribute('hrv.scope.count', Object.keys(found).length);
+    return found;
+  });
   const assets = await readClientAssets();
   const html = inSpan('serialize', {}, () => {
-    injectClient(document, { directives, bases, markdowns, telemetry }, versionOf(formatted), assets);
+    injectClient(document, { directives, bases, markdowns, committed, telemetry }, versionOf(formatted), assets);
     return document.toString();
   });
   span?.setAttributes({
@@ -276,6 +282,21 @@ export function markdownsOf(scopes) {
   );
 }
 
+// Each scope's markdown in the committed copy of the page, by ID: what Revert puts back. A
+// commit made mid-loop holds IDs; one committed clean gets them from normalize, which numbers a
+// page the same way every time, so they match the page as first opened if it hasn't changed
+// since. No commit, or a copy the formatter can't handle, gives none.
+export function committedMarkdowns(html, author) {
+  if (html === null) return {};
+  try {
+    const document = parse(normalize(html));
+    removeDirectives(document, author);
+    return markdownsOf(scopeElements(document));
+  } catch {
+    return {};
+  }
+}
+
 // Replace a scope with what its markdown says. The elements you left or changed keep their IDs
 // and directives (scopes.mjs reconciles); new ones get IDs. Returns the nodes that replaced it,
 // or null, changing nothing, for an element that isn't a scope or blank markdown.
@@ -389,6 +410,14 @@ function directoryListing(urlPath, entries) {
   return `<!DOCTYPE html>\n<html><head><meta charset="utf-8"><title>${escapeHtml(urlPath)}</title></head>\n<body><h1>${escapeHtml(urlPath)}</h1>\n<ul>${up}${items.join('\n')}</ul></body></html>\n`;
 }
 
+// The file as of the last commit, or null when it isn't in a git repository or isn't committed.
+export function readCommitted(file) {
+  return new Promise((resolve) => {
+    execFile('git', ['show', `HEAD:./${path.basename(file)}`], { cwd: path.dirname(file), maxBuffer: 64 * 1024 * 1024 },
+      (err, stdout) => resolve(err ? null : stdout));
+  });
+}
+
 // Client assets. Appended to the served copy, never written to the file, so none of it has an ID.
 // Read on each GET, so a change to client.css or client.js shows on reload without a restart.
 const readAsset = (name) => fs.readFile(new URL(name, import.meta.url), 'utf8');
@@ -398,8 +427,9 @@ export async function readClientAssets() {
 }
 
 // directives: {id: text}. bases: {id: base}, sent back with each change. markdowns: {id: markdown}.
+// committed: {id: markdown} at the last commit.
 // telemetry: the client records spans for its saves.
-export function injectClient(document, { directives, bases, markdowns = {}, telemetry = false }, version, { css, js }) {
+export function injectClient(document, { directives, bases, markdowns = {}, committed = {}, telemetry = false }, version, { css, js }) {
   const head = document.querySelector('head') ?? document.documentElement;
   const body = document.querySelector('body') ?? document.documentElement;
 
@@ -426,6 +456,12 @@ export function injectClient(document, { directives, bases, markdowns = {}, tele
   markdownData.setAttribute('id', 'hrv-markdown');
   markdownData.textContent = JSON.stringify(markdowns).replace(/</g, '\\u003c');
   body.appendChild(markdownData);
+
+  const committedData = document.createElement('script');
+  committedData.setAttribute('type', 'application/json');
+  committedData.setAttribute('id', 'hrv-committed');
+  committedData.textContent = JSON.stringify(committed).replace(/</g, '\\u003c');
+  body.appendChild(committedData);
 
   const script = document.createElement('script');
   script.textContent = js;
