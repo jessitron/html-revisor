@@ -60,8 +60,18 @@ const idGenerator = {
 
 const isHex = (n, s) => typeof s === 'string' && s.length === n && /^[0-9a-f]+$/.test(s);
 
+// The attributes whose values OTel takes as they are: strings, numbers, booleans.
+function plain(attributes) {
+  const out = {};
+  for (const [k, v] of Object.entries(attributes ?? {})) {
+    if (['string', 'number', 'boolean'].includes(typeof v)) out[k] = v;
+  }
+  return out;
+}
+
 // Spans the browser recorded, as plain objects: {name, traceId, spanId, parentSpanId?, start,
-// end (epoch milliseconds), kind?: 'client', error?, attributes}. Each becomes an OTel span with
+// end (epoch milliseconds), kind?: 'client', error?, attributes, events?: [{name, time,
+// attributes}]}. Each becomes an OTel span with
 // the browser's IDs and times, so it joins the trace the PUT's traceparent continues. Returns how
 // many it kept. With telemetry off, the spans are no-ops.
 export function recordBrowserSpans(list) {
@@ -74,10 +84,7 @@ export function recordBrowserSpans(list) {
     const parent = s.parentSpanId
       ? trace.setSpanContext(context.active(), { traceId: s.traceId, spanId: s.parentSpanId, traceFlags: 1, isRemote: true })
       : context.active();
-    const attributes = { 'hrv.side': 'browser' };
-    for (const [k, v] of Object.entries(s.attributes ?? {})) {
-      if (['string', 'number', 'boolean'].includes(typeof v)) attributes[k] = v;
-    }
+    const attributes = { 'hrv.side': 'browser', ...plain(s.attributes) };
     const kind = s.kind === 'client' ? SpanKind.CLIENT : SpanKind.INTERNAL;
     forced = { traceId: s.traceId, spanId: s.spanId };
     let span;
@@ -85,6 +92,9 @@ export function recordBrowserSpans(list) {
       span = tracer.startSpan(s.name, { kind, attributes, startTime: s.start, root: !s.parentSpanId }, parent);
     } finally {
       forced = null;
+    }
+    for (const e of Array.isArray(s.events) ? s.events : []) {
+      if (e && typeof e.name === 'string' && Number.isFinite(e.time)) span.addEvent(e.name, plain(e.attributes), e.time);
     }
     if (s.error) span.setStatus({ code: SpanStatusCode.ERROR, message: String(s.error) });
     span.end(s.end);

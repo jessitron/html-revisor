@@ -150,7 +150,7 @@ test('with HRV_TELEMETRY, a GET and a PUT send spans for their steps', () =>
 test('with HRV_TELEMETRY, spans the browser posts join the trace of the PUT they sent', () =>
   withCollector(async (collector) => {
     const env = cleanEnv({ HRV_TELEMETRY: '1', OTEL_EXPORTER_OTLP_ENDPOINT: collector.endpoint });
-    const trace = traceId(), save = 'a'.repeat(16), put = 'b'.repeat(16), wait = 'c'.repeat(16);
+    const trace = traceId(), save = 'a'.repeat(16), put = 'b'.repeat(16);
     await withServer(env, async ({ base }) => {
       const html = await (await fetch(base + 'page.html')).text();
       const { document } = parseHTML(html);
@@ -165,8 +165,8 @@ test('with HRV_TELEMETRY, spans the browser posts join the trace of the PUT they
       });
       assert.equal(res.status, 200);
       const spans = [
-        { name: 'save directive', traceId: trace, spanId: save, start: t0 - 500, end: t0 + 50, attributes: { 'hrv.edits': 3 } },
-        { name: 'wait', traceId: trace, spanId: wait, parentSpanId: save, start: t0 - 500, end: t0 },
+        { name: 'save directive', traceId: trace, spanId: save, start: t0, end: t0 + 50, attributes: { 'hrv.edits': 3, 'hrv.wait.ms': 500 },
+          events: [{ name: 'close box', time: t0 + 10, attributes: { 'hrv.close.by': 'done' } }, { name: 'no time' }] },
         { name: 'PUT', kind: 'client', traceId: trace, spanId: put, parentSpanId: save, start: t0, end: t0 + 40, attributes: { nested: { no: 1 } } },
         { name: 'bad', traceId: 'nope', spanId: put, start: t0, end: t0 },
       ];
@@ -182,7 +182,8 @@ test('with HRV_TELEMETRY, spans the browser posts join the trace of the PUT they
     assert.equal(root.parentSpanId ?? '', '');
     assert.equal(root.attributes['hrv.side'], 'browser');
     assert.equal(root.attributes['hrv.edits'], 3);
-    assert.equal(named('wait').parentSpanId, save);
+    assert.equal(root.attributes['hrv.wait.ms'], 500);
+    assert.deepEqual(root.events.map((e) => [e.name, attrs(e.attributes)['hrv.close.by']]), [['close box', 'done']], 'events become span events; one without a time is dropped');
     const clientPut = named('PUT');
     assert.equal(clientPut.spanId, put);
     assert.equal(clientPut.kind, 3, 'SPAN_KIND_CLIENT');

@@ -15,10 +15,13 @@
   var unsent = [];          // changes not yet sent, oldest first: {kind: 'directive'|'markdown', id}
   var version = null;       // fingerprint of the file as this tab last saw it
   var changedOnDisk = false; // a save found the file changed by someone else
+  var inFlight = null;      // the change the PUT in flight carries
+  var savedDirectives = {}; // id -> directive text as the file on disk holds it, for telemetry
 
   try {
     var data = document.getElementById('hrv-directives');
     directives = JSON.parse(data.textContent) || {};
+    for (var d0 in directives) savedDirectives[d0] = directives[d0];
     version = data.getAttribute('data-version');
     bases = JSON.parse(document.getElementById('hrv-bases').textContent) || {};
     markdowns = JSON.parse(document.getElementById('hrv-markdown').textContent) || {};
@@ -487,9 +490,17 @@
       name: name, kind: kind,
       traceId: parent ? parent.traceId : randomHex(16), spanId: randomHex(8),
       parentSpanId: parent ? parent.spanId : undefined,
-      start: clock(), attributes: attributes || {}
+      start: clock(), attributes: attributes || {}, events: []
     };
   }
+
+  // A moment in a span. Honeycomb draws it as a dot on the span's bar.
+  function addEvent(span, name, attributes) {
+    if (span && !span.end) span.events.push({ name: name, time: clock(), attributes: attributes || {} });
+  }
+
+  // Honeycomb caps a string attribute at 64 KB; the length attribute beside it keeps the full count.
+  function capped(s) { return s.length > 50000 ? s.slice(0, 50000) : s; }
 
   // Ending a span twice keeps the first end.
   function endSpan(span, error) {
@@ -523,13 +534,39 @@
   }
 
   // Mark a change to send. A change already waiting sends the latest value, once. Each change
-  // is a trace: its span starts at the first edit and ends when the answer is applied.
+  // is a trace, from when it goes out until its answer is applied; the edits before that are times.
   function addUnsent(kind, id) {
+    var now = clock();
     for (var i = 0; i < unsent.length; i++) {
-      if (unsent[i].kind === kind && unsent[i].id === id) return unsent[i].edits++;
+      if (unsent[i].kind === kind && unsent[i].id === id) {
+        unsent[i].lastEdit = now;
+        return unsent[i].edits++;
+      }
     }
-    var span = startSpan('save ' + kind, null, { 'hrv.change.kind': kind, 'hrv.scope.id': id });
-    unsent.push({ kind: kind, id: id, edits: 1, span: span, wait: startSpan('wait', span) });
+    unsent.push({ kind: kind, id: id, edits: 1, firstEdit: now, lastEdit: now });
+  }
+
+  // The span for a change going out: how long it waited, and the scope's content before and after.
+  function startSave(change) {
+    var span = startSpan('save ' + change.kind, null, { 'hrv.change.kind': change.kind, 'hrv.scope.id': change.id });
+    if (!span) return null;
+    var a = span.attributes, el = elementFor(change.id);
+    a['hrv.edits'] = change.edits;
+    a['hrv.wait.ms'] = span.start - change.firstEdit;
+    a['hrv.quiet.ms'] = span.start - change.lastEdit;
+    if (el) {
+      a['hrv.element'] = el.localName;
+      a['hrv.html.before'] = capped(el.outerHTML);
+      a['hrv.html.before.length'] = el.outerHTML.length;
+    }
+    var markdown = change.kind === 'markdown';
+    var before = (markdown ? markdowns[change.id] : savedDirectives[change.id]) || '';
+    var after = (markdown ? edits[change.id] : directives[change.id]) || '';
+    a['hrv.' + change.kind + '.before'] = capped(before);
+    a['hrv.' + change.kind + '.before.length'] = before.length;
+    a['hrv.' + change.kind + '.after'] = capped(after);
+    a['hrv.' + change.kind + '.after.length'] = after.length;
+    return span;
   }
 
   function bodyFor(change) {
@@ -598,7 +635,8 @@
     var change = unsent.shift();
     var failed = false;
     var fromBox = !!box;   // a save made while a box is open reports in the box
-    endSpan(change.wait);
+    inFlight = change;
+    change.span = startSave(change);
     var put = startSpan('PUT', change.span, { 'hrv.queued': unsent.length }, 'client');
     var apply = null;
     var headers = { 'Content-Type': 'application/json' };
@@ -624,7 +662,12 @@
         return;
       }
       for (var id in data.bases) bases[id] = data.bases[id];
+      if (change.kind === 'directive') savedDirectives[change.id] = directives[change.id] || '';
       if (change.kind === 'markdown') applyScope(change.id, data);
+      if (change.span && typeof data.html === 'string') {
+        change.span.attributes['hrv.html.after'] = capped(data.html);
+        change.span.attributes['hrv.html.after.length'] = data.html.length;
+      }
       if (data.before !== version) changedOnDisk = true;
       version = data.after;
       showProblem(changedOnDisk ? 'the page changed on disk; reload to see it' : null);
@@ -638,21 +681,11 @@
       showProblem(failed);
     }).then(function () {
       endSpan(apply);
-      if (change.span) change.span.attributes['hrv.edits'] = change.edits;
       endSpan(change.span, failed);
       saving = false;
+      inFlight = null;
       if (!failed) saveNow();
-      confirmClosed(failed);
     });
-  }
-
-  // Spans for boxes closed while their saves were still going. Each ends when the last save
-  // is answered and applied, or one fails.
-  var closing = [];
-  function confirmClosed(failed) {
-    if (!failed && (saving || unsent.length > 0)) return;
-    closing.forEach(function (span) { endSpan(span, failed); });
-    closing = [];
   }
 
   function scheduleSave(kind, id) {
@@ -703,19 +736,16 @@
     updateDocket();
   }
 
-  // Commit and close the open box. by says what closed it, for telemetry: its span lasts until
-  // the saves still going are confirmed.
+  // Commit and close the open box. by says what closed it, for telemetry: a close while a save is
+  // going is an event on that save's span. A close with no save going tells nothing.
   function closeBox(by) {
     if (!box) return;
-    var span = startSpan('close box', null, { 'hrv.close.by': by, 'hrv.scope.id': boxId });
+    var id = boxId;
     var ta = box.querySelector('textarea.hrv-directive');
     setDirective(boxId, ta.value);
     dropBox();
     saveNow();
-    if (!span) return;
-    span.attributes['hrv.pending'] = unsent.length + (saving ? 1 : 0);
-    closing.push(span);
-    confirmClosed(false);
+    if (inFlight) addEvent(inFlight.span, 'close box', { 'hrv.close.by': by, 'hrv.scope.id': id, 'hrv.pending': unsent.length });
   }
 
   // Close the box without committing: its element is gone, and its directive with it.
