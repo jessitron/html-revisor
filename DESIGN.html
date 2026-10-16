@@ -35,7 +35,7 @@
   .swatch code { font-size: 11px; display: block; }
   /* Proposed, not in client.css yet: field labels and the action on each label's line. */
   .proposed :is(#hrv-layer, .hrv-layer) .hrv-label { display: flex; justify-content: space-between; align-items: center; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
-  .proposed :is(#hrv-layer, .hrv-layer) .hrv-field-action { padding: 1px 8px; font-size: 12px; text-transform: none; letter-spacing: 0; }
+  .proposed :is(#hrv-layer, .hrv-layer) .hrv-field-action { padding: 0; font-size: 12px; text-transform: none; letter-spacing: 0; }
 </style>
   </head>
   <body data-hrv="1">
@@ -392,7 +392,7 @@
               </div>
               <div data-hrv="215" class="hrv-label">
                 Content
-                <div data-hrv="218" class="hrv-btn hrv-field-action" title="Put back the content this had at the last commit">
+                <div data-hrv="218" class="hrv-btn hrv-quiet hrv-field-action" title="Put back the content this had at the last commit">
                   Revert
                 </div>
               </div>
@@ -401,7 +401,7 @@
 Three mountains: fidelity, ergonomics, performance.</textarea>
               <div data-hrv="216" class="hrv-label">
                 Directive
-                <div data-hrv="220" class="hrv-btn hrv-field-action" title="Clear the directive (⌥⌘⌫)">
+                <div data-hrv="220" class="hrv-btn hrv-quiet hrv-field-action" title="Clear the directive (⌥⌘⌫)">
                   Clear
                 </div>
               </div>
@@ -414,7 +414,7 @@ Three mountains: fidelity, ergonomics, performance.</textarea>
           </div>
         </div>
         <p data-hrv="222" class="note">
-          A section whose second paragraph was just deleted. Revert sits on the Content label's line, at the right: it names what it puts back, and it stays away from Done. Each field's action sits on its label's line, and shows only when it has something to do: Revert when the content changed, Clear when there is a directive. Clear, not ×: an × reads as closing the box. Labels are small capitals in the muted gray; the actions are small buttons in the box's button style, with no magenta, which is for Done. The footer holds what belongs to the whole box: "saved", which covers both fields, and Done.
+          A section whose second paragraph was just deleted. Revert sits on the Content label's line, at the right: it names what it puts back, and it stays away from Done. Each field's action sits on its label's line, and shows only when it has something to do: Revert when the content changed, Clear when there is a directive. Clear, not ×: an × reads as closing the box. Labels are small capitals in the muted gray; the actions are quiet text, like the old Delete. The footer holds what belongs to the whole box: "saved", which covers both fields, and Done.
         </p>
       </div>
       <div data-hrv="223">
@@ -455,7 +455,7 @@ Three mountains: fidelity, ergonomics, performance.</textarea>
               </div>
               <div data-hrv="309" class="hrv-label">
                 Directive
-                <div data-hrv="310" class="hrv-btn hrv-field-action" title="Clear the directive (⌥⌘⌫)">
+                <div data-hrv="310" class="hrv-btn hrv-quiet hrv-field-action" title="Clear the directive (⌥⌘⌫)">
                   Clear
                 </div>
               </div>
