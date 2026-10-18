@@ -44,6 +44,7 @@
   <body data-hrv="1">
     <h1 data-hrv="2">How we test</h1>
     <p data-hrv="3">
+      <!-- @AI: Everything is out of date now. Move stuff into a 'before' section that you want to keep. -->
       136 tests, all passing, in 57 seconds. One test file held 56 of those seconds, and one page in it held 36. With scopes capped at 4 KB: 149 tests in 18 seconds. The measurements below are from before the cap.
     </p>
     <section data-hrv="4" id="suite">
@@ -141,6 +142,7 @@
       </p>
     </section>
     <section data-hrv="56" id="roundtrip">
+      <!-- @AI: maybe update this section and move it down, it looks useful to the yak -->
       <h2 data-hrv="57">What the round-trip file checks</h2>
       <p data-hrv="58">
         Two properties. Each runs over every scope of every page it's given: no examples, no picking.
@@ -227,6 +229,7 @@
       </table>
     </section>
     <section data-hrv="89" id="time">
+      <!-- @AI: this can be in BEFORE -->
       <h2 data-hrv="90">Where the 57 seconds go</h2>
       <div data-hrv="91" class="bars" role="img" aria-label="Seconds in roundtrip.test.mjs, by page">
         <div data-hrv="92">mintlify-animal-fables</div>
@@ -367,6 +370,9 @@
       </p>
     </section>
     <section data-hrv="196" id="sizes">
+      <!-- @AI: we can remove this section, and replace it with an "after limiting scope to 4K"
+
+Record the story: I tried out editing some scopes, and there was a long list in DESIGN.html that I wanted to edit in markdown. It was 3k HTML, 2.2K markdown. I set the limit at 4K so that list would still be editable. -->
       <h2 data-hrv="197">Scope sizes</h2>
       <p data-hrv="198">
         Every scope the round-trip tests visit: 7,806 of them. Size is the length of the scope's markdown, what the box shows. Work is the scope's HTML bytes, which the test time follows.
@@ -636,6 +642,7 @@
           <strong>Done: a scope of 4 KB of HTML or more doesn't edit as markdown.</strong> It takes directives and has no Content field, and the round-trip tests skip it. See <a data-hrv="353" href="#sizes">Scope sizes</a>. <span data-hrv="354" class="win">The suite went from 57 s to 18 s.</span> Each small scope gets the same random edit it got before. Renumbering the seeds turned up a bug in how stand-ins come back after a block holding them is removed; it's a yak.
         </li>
         <li data-hrv="180">
+          <!-- @AI: let's make a yak for this one, and refer to this document -->
           <strong>Then split <code>roundtrip.test.mjs</code> into files.</strong> Property tests on generated pages in one file, tests on specific files in another, with shared generators and checks in <code>test/roundtrip-lib.mjs</code>. Split further if one file still runs long. <code>node --test</code> runs files side by side, so the suite waits on the longest. Same tests, same coverage. After the cap, the round-trip file is the 18 s and its longest test takes 1.9 s, so a split could bring the suite to a few seconds.
         </li>
         <li data-hrv="185">
