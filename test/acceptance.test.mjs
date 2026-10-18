@@ -14,11 +14,15 @@ import { normalize } from '../formatter.mjs';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const serverFile = path.join(here, '..', 'server.mjs');
 
+// The environment without any telemetry settings this shell might carry. With them, the
+// server prints a telemetry line first and sends every test's spans out.
+const env = Object.fromEntries(Object.entries(process.env).filter(([k]) => !/^(OTEL_|HRV_TELEMETRY)/.test(k)));
+
 // Run fn with a live server whose root is a fresh copy of the fixtures.
 async function withServer(fn, args = []) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'html-revisor-'));
   fs.cpSync(path.join(here, 'fixtures'), dir, { recursive: true });
-  const child = spawn(process.execPath, [serverFile, dir, '--port', '0', ...args]);
+  const child = spawn(process.execPath, [serverFile, dir, '--port', '0', ...args], { env });
   let stdout = '';
   let stderr = '';
   child.stdout.on('data', (d) => (stdout += d));
@@ -579,7 +583,7 @@ test('a page without html, head or body gets them, and the client lands in them'
 function startOnFile(name) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'html-revisor-'));
   fs.cpSync(path.join(here, 'fixtures'), dir, { recursive: true });
-  const child = spawn(process.execPath, [serverFile, path.join(dir, name), '--port', '0']);
+  const child = spawn(process.execPath, [serverFile, path.join(dir, name), '--port', '0'], { env });
   let stdout = '';
   let stderr = '';
   child.stdout.on('data', (d) => (stdout += d));
