@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-hrv-next="413" lang="en">
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <title>html-revisor — how we test</title>
@@ -42,404 +42,396 @@
   .win { color: var(--now); font-weight: 600; }
 </style>
   </head>
-  <body data-hrv="1">
-    <h1 data-hrv="2">How we test</h1>
-    <p data-hrv="3">
+  <body>
+    <h1>How we test</h1>
+    <p>
       149 tests, all passing, in 18 seconds. They took 57 until scopes over 4 KB stopped editing as markdown. One test file still holds nearly all of the time.
     </p>
-    <section data-hrv="4" id="suite">
-      <h2 data-hrv="5">The suite</h2>
-      <p data-hrv="6">
+    <section id="suite">
+      <h2>The suite</h2>
+      <p>
         <code>npm test</code> is <code>node --test</code>. It runs each file under <code>test/</code> in its own process, several at once, so the suite takes as long as its slowest file. No dependencies: deploy runs these tests inside iterate-on-docs, where <code>npm install</code> can't run.
       </p>
-      <div data-hrv="7" class="bars" role="img" aria-label="Wall time per test file, run alone">
-        <div data-hrv="8"><code>roundtrip.test.mjs</code></div>
-        <div data-hrv="9" class="bar" title="roundtrip.test.mjs: 22 tests, 17.7 s">
-          <span data-hrv="10" style="width: 88%"></span>17.7 s
+      <div class="bars" role="img" aria-label="Wall time per test file, run alone">
+        <div><code>roundtrip.test.mjs</code></div>
+        <div class="bar" title="roundtrip.test.mjs: 22 tests, 17.7 s">
+          <span style="width: 88%"></span>17.7 s
         </div>
-        <div data-hrv="11"><code>acceptance.test.mjs</code></div>
-        <div data-hrv="12" class="bar" title="acceptance.test.mjs: 34 tests, 3.7 s">
-          <span data-hrv="13" style="width: 18.4%"></span>3.7 s
+        <div><code>acceptance.test.mjs</code></div>
+        <div class="bar" title="acceptance.test.mjs: 34 tests, 3.7 s">
+          <span style="width: 18.4%"></span>3.7 s
         </div>
-        <div data-hrv="355"><code>telemetry.test.mjs</code></div>
-        <div data-hrv="356" class="bar" title="telemetry.test.mjs: 5 tests, 0.51 s">
-          <span data-hrv="357" style="width: 2.5%"></span>0.51 s
+        <div><code>telemetry.test.mjs</code></div>
+        <div class="bar" title="telemetry.test.mjs: 5 tests, 0.51 s">
+          <span style="width: 2.5%"></span>0.51 s
         </div>
-        <div data-hrv="14"><code>formatter-cli.test.mjs</code></div>
-        <div data-hrv="15" class="bar" title="formatter-cli.test.mjs: 6 tests, 0.42 s">
-          <span data-hrv="16" style="width: 2.1%"></span>0.42 s
+        <div><code>formatter-cli.test.mjs</code></div>
+        <div class="bar" title="formatter-cli.test.mjs: 6 tests, 0.42 s">
+          <span style="width: 2.1%"></span>0.42 s
         </div>
-        <div data-hrv="17"><code>cleanup.test.mjs</code></div>
-        <div data-hrv="18" class="bar" title="cleanup.test.mjs: 10 tests, 0.42 s">
-          <span data-hrv="19" style="width: 2.1%"></span>0.42 s
+        <div><code>cleanup.test.mjs</code></div>
+        <div class="bar" title="cleanup.test.mjs: 10 tests, 0.42 s">
+          <span style="width: 2.1%"></span>0.42 s
         </div>
-        <div data-hrv="20"><code>scopes.test.mjs</code></div>
-        <div data-hrv="21" class="bar" title="scopes.test.mjs: 45 tests, 0.13 s">
-          <span data-hrv="22" style="width: .6%"></span>0.13 s
+        <div><code>scopes.test.mjs</code></div>
+        <div class="bar" title="scopes.test.mjs: 45 tests, 0.13 s">
+          <span style="width: .6%"></span>0.13 s
         </div>
-        <div data-hrv="23"><code>ids.test.mjs</code></div>
-        <div data-hrv="24" class="bar" title="ids.test.mjs: 6 tests, 0.10 s">
-          <span data-hrv="25" style="width: .5%"></span>0.10 s
+        <div><code>ids.test.mjs</code></div>
+        <div class="bar" title="ids.test.mjs: 6 tests, 0.10 s">
+          <span style="width: .5%"></span>0.10 s
         </div>
-        <div data-hrv="26"><code>normalize.test.mjs</code></div>
-        <div data-hrv="27" class="bar" title="normalize.test.mjs: 21 tests, 0.10 s">
-          <span data-hrv="28" style="width: .5%"></span>0.10 s
+        <div><code>normalize.test.mjs</code></div>
+        <div class="bar" title="normalize.test.mjs: 21 tests, 0.10 s">
+          <span style="width: .5%"></span>0.10 s
         </div>
       </div>
-      <p data-hrv="29" class="note">
+      <p class="note">
         Each file run alone on a 14-core Mac, Node 25.6. The whole suite together: 18 s wall. Acceptance's 3.7 s is 34 tests at about 100 ms each, most of it starting a server process per test.
       </p>
-      <table data-hrv="30">
+      <table>
         <thead>
           <tr>
-            <th data-hrv="31">File</th>
-            <th data-hrv="32" class="n">Tests</th>
-            <th data-hrv="33">What it holds</th>
+            <th>File</th>
+            <th class="n">Tests</th>
+            <th>What it holds</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td data-hrv="34"><code>scopes.test.mjs</code></td>
-            <td data-hrv="35" class="n">45</td>
-            <td data-hrv="36">
+            <td><code>scopes.test.mjs</code></td>
+            <td class="n">45</td>
+            <td>
               Examples: one shape of HTML, its markdown, and back. The cases SCOPES-DESIGN draws, and the 4 KB limit.
             </td>
           </tr>
           <tr>
-            <td data-hrv="37"><code>acceptance.test.mjs</code></td>
-            <td data-hrv="38" class="n">34</td>
-            <td data-hrv="39">
+            <td><code>acceptance.test.mjs</code></td>
+            <td class="n">34</td>
+            <td>
               The server: GET, PUT, directives placed in the file, IDs stable across a save, escaping, stale saves, Announcements.
             </td>
           </tr>
           <tr>
-            <td data-hrv="40"><code>roundtrip.test.mjs</code></td>
-            <td data-hrv="41" class="n">22</td>
-            <td data-hrv="42">
-              Properties, checked on every scope under 4 KB of many pages. <a data-hrv="187" href="#roundtrip">Below.</a>
+            <td><code>roundtrip.test.mjs</code></td>
+            <td class="n">22</td>
+            <td>
+              Properties, checked on every scope under 4 KB of many pages. <a href="#roundtrip">Below.</a>
             </td>
           </tr>
           <tr>
-            <td data-hrv="43"><code>normalize.test.mjs</code></td>
-            <td data-hrv="44" class="n">21</td>
-            <td data-hrv="45">The formatter's layout, and that it's idempotent on each fixture.</td>
+            <td><code>normalize.test.mjs</code></td>
+            <td class="n">21</td>
+            <td>The formatter's layout, and that it's idempotent on each fixture.</td>
           </tr>
           <tr>
-            <td data-hrv="46"><code>cleanup.test.mjs</code></td>
-            <td data-hrv="47" class="n">10</td>
-            <td data-hrv="48">Stripping directives and IDs when iterating is done; its CLI.</td>
+            <td><code>cleanup.test.mjs</code></td>
+            <td class="n">10</td>
+            <td>Stripping directives and IDs when iterating is done; its CLI.</td>
           </tr>
           <tr>
-            <td data-hrv="49"><code>ids.test.mjs</code></td>
-            <td data-hrv="50" class="n">6</td>
-            <td data-hrv="51">Element IDs: which elements get them, numbering, retiring copies.</td>
+            <td><code>ids.test.mjs</code></td>
+            <td class="n">6</td>
+            <td>Element IDs: which elements get them, numbering, retiring copies.</td>
           </tr>
           <tr>
-            <td data-hrv="52"><code>formatter-cli.test.mjs</code></td>
-            <td data-hrv="53" class="n">6</td>
-            <td data-hrv="54">The formatter's command line.</td>
+            <td><code>formatter-cli.test.mjs</code></td>
+            <td class="n">6</td>
+            <td>The formatter's command line.</td>
           </tr>
           <tr>
-            <td data-hrv="358"><code>telemetry.test.mjs</code></td>
-            <td data-hrv="359" class="n">5</td>
-            <td data-hrv="360">
+            <td><code>telemetry.test.mjs</code></td>
+            <td class="n">5</td>
+            <td>
               Spans for GET, PUT, and the box's saves. One test sends to Honeycomb; it skips without a key.
             </td>
           </tr>
         </tbody>
       </table>
-      <p data-hrv="55">
+      <p>
         Every ship runs the suite three times: once by hand, once in <code>./deploy</code>, once in iterate-on-docs' <code>release</code>. Deploy and release both test the copied files in <code>iterate-on-docs/html-revisor/</code>, so a file deploy missed fails there. Deploy tests the copy before it commits it; release tests it again. Release's run catches a hand edit to the copy, or a release with no deploy in front of it.
       </p>
     </section>
-    <section data-hrv="361" id="after">
-      <h2 data-hrv="362">After limiting scope to 4 KB</h2>
-      <p data-hrv="363">
+    <section id="after">
+      <h2>After limiting scope to 4 KB</h2>
+      <p>
         Jess tried editing scopes on real pages. A long list in DESIGN.html was one she wanted to edit as markdown: 3 KB of HTML, 2.2 KB of markdown. The limit went to 4 KB so that list stays editable.
       </p>
-      <p data-hrv="364">
+      <p>
         A scope of 4 KB of HTML or more, not counting element IDs and directives, has no Content field. It takes directives. The round-trip tests skip it, since it has no markdown to test.
       </p>
-      <div data-hrv="365" class="bars" role="img" aria-label="Seconds in roundtrip.test.mjs, by page, after the cap">
-        <div data-hrv="366">Generated pages</div>
-        <div data-hrv="367" class="bar" title="Generated pages: 11.5 s over 8 tests">
-          <span data-hrv="368" style="width: 88%"></span>11.5 s
+      <div class="bars" role="img" aria-label="Seconds in roundtrip.test.mjs, by page, after the cap">
+        <div>Generated pages</div>
+        <div class="bar" title="Generated pages: 11.5 s over 8 tests">
+          <span style="width: 88%"></span>11.5 s
         </div>
-        <div data-hrv="369">Own pages: SCOPES-DESIGN, OVERVIEW, DESIGN</div>
-        <div data-hrv="370" class="bar" title="Own pages: 4.1 s (SCOPES-DESIGN 2.7, OVERVIEW 0.8, DESIGN 0.6)">
-          <span data-hrv="371" style="width: 31%"></span>4.1 s
+        <div>Own pages: SCOPES-DESIGN, OVERVIEW, DESIGN</div>
+        <div class="bar" title="Own pages: 4.1 s (SCOPES-DESIGN 2.7, OVERVIEW 0.8, DESIGN 0.6)">
+          <span style="width: 31%"></span>4.1 s
         </div>
-        <div data-hrv="372">mintlify-animal-fables</div>
-        <div data-hrv="373" class="bar" title="mintlify-animal-fables.html: 2.5 s, from 35.9 s">
-          <span data-hrv="374" style="width: 19%"></span>2.5 s
+        <div>mintlify-animal-fables</div>
+        <div class="bar" title="mintlify-animal-fables.html: 2.5 s, from 35.9 s">
+          <span style="width: 19%"></span>2.5 s
         </div>
-        <div data-hrv="375">Fixtures</div>
-        <div data-hrv="376" class="bar" title="test/fixtures: 0.3 s">
-          <span data-hrv="377" style="width: 2.3%"></span>0.3 s
+        <div>Fixtures</div>
+        <div class="bar" title="test/fixtures: 0.3 s">
+          <span style="width: 2.3%"></span>0.3 s
         </div>
       </div>
-      <table data-hrv="378">
+      <table>
         <thead>
           <tr>
-            <th data-hrv="379">Page</th>
-            <th data-hrv="380" class="n">Scopes</th>
-            <th data-hrv="381" class="n">Over 4 KB</th>
-            <th data-hrv="382" class="n">Before</th>
-            <th data-hrv="383" class="n">After</th>
+            <th>Page</th>
+            <th class="n">Scopes</th>
+            <th class="n">Over 4 KB</th>
+            <th class="n">Before</th>
+            <th class="n">After</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td data-hrv="384">mintlify-animal-fables</td>
-            <td data-hrv="385" class="n">717</td>
-            <td data-hrv="386" class="n">80</td>
-            <td data-hrv="387" class="n">35.9 s</td>
-            <td data-hrv="388" class="n">2.5 s</td>
+            <td>mintlify-animal-fables</td>
+            <td class="n">717</td>
+            <td class="n">80</td>
+            <td class="n">35.9 s</td>
+            <td class="n">2.5 s</td>
           </tr>
           <tr>
-            <td data-hrv="389">SCOPES-DESIGN</td>
-            <td data-hrv="390" class="n">925</td>
-            <td data-hrv="391" class="n">3</td>
-            <td data-hrv="392" class="n">5.2 s</td>
-            <td data-hrv="393" class="n">2.7 s</td>
+            <td>SCOPES-DESIGN</td>
+            <td class="n">925</td>
+            <td class="n">3</td>
+            <td class="n">5.2 s</td>
+            <td class="n">2.7 s</td>
           </tr>
           <tr>
-            <td data-hrv="394">OVERVIEW</td>
-            <td data-hrv="395" class="n">319</td>
-            <td data-hrv="396" class="n">6</td>
-            <td data-hrv="397" class="n">1.4 s</td>
-            <td data-hrv="398" class="n">0.8 s</td>
+            <td>OVERVIEW</td>
+            <td class="n">319</td>
+            <td class="n">6</td>
+            <td class="n">1.4 s</td>
+            <td class="n">0.8 s</td>
           </tr>
           <tr>
-            <td data-hrv="399">DESIGN</td>
-            <td data-hrv="400" class="n">270</td>
-            <td data-hrv="401" class="n">2</td>
-            <td data-hrv="402" class="n">0.9 s</td>
-            <td data-hrv="403" class="n">0.6 s</td>
+            <td>DESIGN</td>
+            <td class="n">270</td>
+            <td class="n">2</td>
+            <td class="n">0.9 s</td>
+            <td class="n">0.6 s</td>
           </tr>
           <tr>
-            <td data-hrv="404">Generated, 300 pages</td>
-            <td data-hrv="405" class="n">5,503</td>
-            <td data-hrv="406" class="n">20</td>
-            <td data-hrv="407" class="n">13.2 s</td>
-            <td data-hrv="408" class="n">11.5 s</td>
+            <td>Generated, 300 pages</td>
+            <td class="n">5,503</td>
+            <td class="n">20</td>
+            <td class="n">13.2 s</td>
+            <td class="n">11.5 s</td>
           </tr>
         </tbody>
       </table>
-      <p data-hrv="409">
+      <p>
         Mintlify loses 11% of its scopes and 93% of its time: its wrappers are gone. The generated pages are now the long bar, and they're small pages, so this is the work the property tests are for.
       </p>
-      <p data-hrv="410">
+      <p>
         Each scope still gets the same random edit it got before the cap. Renumbering them turned up a bug: remove a block that holds stand-ins (a <code>&lt;textarea&gt;</code>, an <code>&lt;svg&gt;</code>), and the stand-ins after it come back as the removed ones. It's a yak.
       </p>
     </section>
-    <section data-hrv="177" id="recommendations">
-      <h2 data-hrv="178">Recommendations</h2>
-      <ol data-hrv="179" class="recs">
-        <li data-hrv="180">
+    <section id="recommendations">
+      <h2>Recommendations</h2>
+      <ol class="recs">
+        <li>
           <strong>Split <code>roundtrip.test.mjs</code> into files.</strong> Property tests on generated pages in one file, tests on specific files in another, with shared generators and checks in <code>test/roundtrip-lib.mjs</code>. Split further if one file still runs long. <code>node --test</code> runs files side by side, so the suite waits on the longest. Same tests, same seeds. The round-trip file is 17.7 s and its longest test is 2.0 s, so a split could bring the suite to a few seconds. Yak: "Split roundtrip.test.mjs into files so node --test runs them side by side".
         </li>
-        <li data-hrv="185">
+        <li>
           <strong>Run the suite once per ship.</strong> Deploy and release test the same commit back to back. Release could skip its run when the vendored commit hasn't changed since the deploy that tested it. That change lives in iterate-on-docs.
         </li>
       </ol>
-      <p data-hrv="186">
+      <p>
         Not recommended: dropping or shrinking the mintlify page. It's the one page in the suite shaped like the wider web, and it caught three bugs in its first day.
       </p>
     </section>
-    <section data-hrv="56" id="roundtrip">
-      <h2 data-hrv="57">What the round-trip file checks</h2>
-      <p data-hrv="58">
+    <section id="roundtrip">
+      <h2>What the round-trip file checks</h2>
+      <p>
         Two properties. Each runs over every scope under 4 KB of every page it's given: no examples, no picking.
       </p>
-      <div data-hrv="59" class="tiles">
-        <div data-hrv="60" class="tile">
+      <div class="tiles">
+        <div class="tile">
           <strong>Round-trip</strong>
-          <p data-hrv="61">
+          <p>
             Scope → markdown → scope gives back the same HTML, IDs and directives included. Opening a box and saving it unchanged leaves the file unchanged.
           </p>
         </div>
-        <div data-hrv="62" class="tile">
+        <div class="tile">
           <strong>Reconcile</strong>
-          <p data-hrv="63">
+          <p>
             Edit a scope (change a word, insert, remove, swap, or word and insert), save its markdown over the old one. Each element keeps its ID and its directive.
           </p>
         </div>
-        <div data-hrv="64" class="tile">
+        <div class="tile">
           <strong>Tidy markdown</strong>
-          <p data-hrv="65">
+          <p>
             Pages in the shapes agents write most come out as markdown, HTML only for section and card tags.
           </p>
         </div>
       </div>
-      <p data-hrv="66">
+      <p>
         The same checks run two ways: as property tests on generated pages, and on specific files. Each test loops over its pages one after another.
       </p>
-      <h3 data-hrv="188">Property tests: generated pages</h3>
-      <table data-hrv="189">
+      <h3>Property tests: generated pages</h3>
+      <table>
         <thead>
           <tr>
-            <th data-hrv="190">Pages</th>
-            <th data-hrv="191">Why</th>
-            <th data-hrv="192" class="n">Round-trip</th>
-            <th data-hrv="193" class="n">Reconcile, 5 edits</th>
+            <th>Pages</th>
+            <th>Why</th>
+            <th class="n">Round-trip</th>
+            <th class="n">Reconcile, 5 edits</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td data-hrv="72">Generated, 150 seeds, tidy and wild</td>
-            <td data-hrv="73">
-              Shapes and characters markdown reads as syntax, more than any real page holds
-            </td>
-            <td data-hrv="74" class="n">3.1 s</td>
-            <td data-hrv="75" class="n">7.6 s</td>
+            <td>Generated, 150 seeds, tidy and wild</td>
+            <td>Shapes and characters markdown reads as syntax, more than any real page holds</td>
+            <td class="n">3.1 s</td>
+            <td class="n">7.6 s</td>
           </tr>
         </tbody>
       </table>
-      <p data-hrv="194" class="note">
+      <p class="note">
         Tidy markdown runs on these pages too: 0.9 s more. Five tests, one per kind of edit, each running all 150 seeds.
       </p>
-      <h3 data-hrv="195">Specific files</h3>
-      <table data-hrv="67">
+      <h3>Specific files</h3>
+      <table>
         <thead>
           <tr>
-            <th data-hrv="68">Pages</th>
-            <th data-hrv="69">Why</th>
-            <th data-hrv="70" class="n">Round-trip</th>
-            <th data-hrv="71" class="n">Reconcile, 5 edits</th>
+            <th>Pages</th>
+            <th>Why</th>
+            <th class="n">Round-trip</th>
+            <th class="n">Reconcile, 5 edits</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td data-hrv="76"><code>test/pages/</code>: OVERVIEW, DESIGN, SCOPES-DESIGN</td>
-            <td data-hrv="77">Frozen copies of this repo's pages: the shapes Jess's agents write</td>
-            <td data-hrv="78" class="n">0.65 s</td>
-            <td data-hrv="79" class="n">3.4 s</td>
+            <td><code>test/pages/</code>: OVERVIEW, DESIGN, SCOPES-DESIGN</td>
+            <td>Frozen copies of this repo's pages: the shapes Jess's agents write</td>
+            <td class="n">0.65 s</td>
+            <td class="n">3.4 s</td>
           </tr>
           <tr>
-            <td data-hrv="80"><code>test/pages/mintlify-animal-fables.html</code></td>
-            <td data-hrv="81">
+            <td><code>test/pages/mintlify-animal-fables.html</code></td>
+            <td>
               A published docs page, anonymized: divs nested deep, inline styles, a toast holding a <code>&lt;style&gt;</code>. The test case for save performance.
             </td>
-            <td data-hrv="82" class="n">0.5 s</td>
-            <td data-hrv="83" class="n">2.1 s</td>
+            <td class="n">0.5 s</td>
+            <td class="n">2.1 s</td>
           </tr>
           <tr>
-            <td data-hrv="84"><code>test/fixtures/</code></td>
-            <td data-hrv="85">The small pages the server tests use</td>
-            <td data-hrv="86" class="n">0.16 s</td>
-            <td data-hrv="87" class="n">0.13 s</td>
+            <td><code>test/fixtures/</code></td>
+            <td>The small pages the server tests use</td>
+            <td class="n">0.16 s</td>
+            <td class="n">0.13 s</td>
           </tr>
         </tbody>
       </table>
-      <p data-hrv="411" class="note">
+      <p class="note">
         A reconcile test on specific files runs one kind of edit over every page. Split by page, or by kind of edit, to spread it.
       </p>
     </section>
-    <section data-hrv="89" id="before" class="before">
-      <h2 data-hrv="90">Before: where 57 seconds went</h2>
-      <p data-hrv="412">
-        Measured 2026-10-15, before the 4 KB limit, in <code>roundtrip.test.mjs</code>.
-      </p>
-      <div data-hrv="91" class="bars" role="img" aria-label="Seconds in roundtrip.test.mjs, by page, before the cap">
-        <div data-hrv="92">mintlify-animal-fables</div>
-        <div data-hrv="93" class="bar" title="mintlify-animal-fables.html: 35.9 s (round-trip 5.3 s, reconcile 30.6 s)">
-          <span data-hrv="94" style="width: 88%"></span>35.9 s
+    <section id="before" class="before">
+      <h2>Before: where 57 seconds went</h2>
+      <p>Measured 2026-10-15, before the 4 KB limit, in <code>roundtrip.test.mjs</code>.</p>
+      <div class="bars" role="img" aria-label="Seconds in roundtrip.test.mjs, by page, before the cap">
+        <div>mintlify-animal-fables</div>
+        <div class="bar" title="mintlify-animal-fables.html: 35.9 s (round-trip 5.3 s, reconcile 30.6 s)">
+          <span style="width: 88%"></span>35.9 s
         </div>
-        <div data-hrv="95">Generated pages</div>
-        <div data-hrv="96" class="bar" title="Generated pages: 13.2 s over 8 tests">
-          <span data-hrv="97" style="width: 32%"></span>13.2 s
+        <div>Generated pages</div>
+        <div class="bar" title="Generated pages: 13.2 s over 8 tests">
+          <span style="width: 32%"></span>13.2 s
         </div>
-        <div data-hrv="98">SCOPES-DESIGN</div>
-        <div data-hrv="99" class="bar" title="SCOPES-DESIGN.html: 5.2 s">
-          <span data-hrv="100" style="width: 12.7%"></span>5.2 s
+        <div>SCOPES-DESIGN</div>
+        <div class="bar" title="SCOPES-DESIGN.html: 5.2 s">
+          <span style="width: 12.7%"></span>5.2 s
         </div>
-        <div data-hrv="101">OVERVIEW</div>
-        <div data-hrv="102" class="bar" title="OVERVIEW.html: 1.4 s">
-          <span data-hrv="103" style="width: 3.4%"></span>1.4 s
+        <div>OVERVIEW</div>
+        <div class="bar" title="OVERVIEW.html: 1.4 s">
+          <span style="width: 3.4%"></span>1.4 s
         </div>
-        <div data-hrv="104">DESIGN</div>
-        <div data-hrv="105" class="bar" title="DESIGN.html: 0.9 s">
-          <span data-hrv="106" style="width: 2.2%"></span>0.9 s
-        </div>
-        <div data-hrv="107">Fixtures</div>
-        <div data-hrv="108" class="bar" title="test/fixtures: 0.1 s">
-          <span data-hrv="109" style="width: .3%"></span>0.1 s
-        </div>
+        <div>DESIGN</div>
+        <div class="bar" title="DESIGN.html: 0.9 s"><span style="width: 2.2%"></span>0.9 s</div>
+        <div>Fixtures</div>
+        <div class="bar" title="test/fixtures: 0.1 s"><span style="width: .3%"></span>0.1 s</div>
       </div>
-      <p data-hrv="110">
+      <p>
         One page, 64% of the suite. The other test files ran in parallel with this one and were done in 2.3 s. Inside <code>roundtrip.test.mjs</code>, all 22 tests run one after another in one process, so for the remaining 55 s, 13 cores sat idle.
       </p>
-      <h3 data-hrv="111">Why that page cost so much</h3>
-      <p data-hrv="112">
+      <h3>Why that page cost so much</h3>
+      <p>
         Both properties do work in proportion to the size of each scope, and scopes nest. A paragraph is counted once on its own and once more inside every scope around it. Markdown takes about 0.9 µs per byte of scope, on every page.
       </p>
-      <table data-hrv="113">
+      <table>
         <thead>
           <tr>
-            <th data-hrv="114">Page</th>
-            <th data-hrv="115" class="n">File</th>
-            <th data-hrv="116" class="n">Scopes</th>
-            <th data-hrv="117" class="n">Deepest</th>
-            <th data-hrv="118" class="n">All scopes, added up</th>
-            <th data-hrv="119" class="n">× file</th>
+            <th>Page</th>
+            <th class="n">File</th>
+            <th class="n">Scopes</th>
+            <th class="n">Deepest</th>
+            <th class="n">All scopes, added up</th>
+            <th class="n">× file</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td data-hrv="120">DESIGN</td>
-            <td data-hrv="121" class="n">31 KB</td>
-            <td data-hrv="122" class="n">270</td>
-            <td data-hrv="123" class="n">8</td>
-            <td data-hrv="124" class="n">145 KB</td>
-            <td data-hrv="125" class="n">4.7</td>
+            <td>DESIGN</td>
+            <td class="n">31 KB</td>
+            <td class="n">270</td>
+            <td class="n">8</td>
+            <td class="n">145 KB</td>
+            <td class="n">4.7</td>
           </tr>
           <tr>
-            <td data-hrv="126">OVERVIEW</td>
-            <td data-hrv="127" class="n">42 KB</td>
-            <td data-hrv="128" class="n">319</td>
-            <td data-hrv="129" class="n">9</td>
-            <td data-hrv="130" class="n">197 KB</td>
-            <td data-hrv="131" class="n">4.7</td>
+            <td>OVERVIEW</td>
+            <td class="n">42 KB</td>
+            <td class="n">319</td>
+            <td class="n">9</td>
+            <td class="n">197 KB</td>
+            <td class="n">4.7</td>
           </tr>
           <tr>
-            <td data-hrv="132">SCOPES-DESIGN</td>
-            <td data-hrv="133" class="n">79 KB</td>
-            <td data-hrv="134" class="n">925</td>
-            <td data-hrv="135" class="n">10</td>
-            <td data-hrv="136" class="n">440 KB</td>
-            <td data-hrv="137" class="n">5.6</td>
+            <td>SCOPES-DESIGN</td>
+            <td class="n">79 KB</td>
+            <td class="n">925</td>
+            <td class="n">10</td>
+            <td class="n">440 KB</td>
+            <td class="n">5.6</td>
           </tr>
           <tr>
-            <td data-hrv="138">mintlify-animal-fables</td>
-            <td data-hrv="139" class="n">321 KB</td>
-            <td data-hrv="140" class="n">717</td>
-            <td data-hrv="141" class="n">19</td>
-            <td data-hrv="142" class="n">4,020 KB</td>
-            <td data-hrv="143" class="n">12.5</td>
+            <td>mintlify-animal-fables</td>
+            <td class="n">321 KB</td>
+            <td class="n">717</td>
+            <td class="n">19</td>
+            <td class="n">4,020 KB</td>
+            <td class="n">12.5</td>
           </tr>
         </tbody>
       </table>
-      <p data-hrv="144">
+      <p>
         Mintlify's body holds a div, which holds a div, which holds a div: more than a dozen wrappers, each one a scope holding nearly the whole page.
       </p>
-      <div data-hrv="145" class="tiles">
-        <div data-hrv="146" class="tile">
-          <div data-hrv="147" class="big">2%</div>
-          <p data-hrv="148">of mintlify's scopes were 50 KB or more: 15 of 717.</p>
+      <div class="tiles">
+        <div class="tile">
+          <div class="big">2%</div>
+          <p>of mintlify's scopes were 50 KB or more: 15 of 717.</p>
         </div>
-        <div data-hrv="149" class="tile">
-          <div data-hrv="150" class="big">85%</div>
-          <p data-hrv="151">of its markdown time went to those 15.</p>
+        <div class="tile">
+          <div class="big">85%</div>
+          <p>of its markdown time went to those 15.</p>
         </div>
-        <div data-hrv="152" class="tile">
-          <div data-hrv="153" class="big">0</div>
-          <p data-hrv="154">
+        <div class="tile">
+          <div class="big">0</div>
+          <p>
             of the three bugs this page caught needed a big scope. The smallest failing scope was a 1 KB <code>&lt;li&gt;</code>.
           </p>
         </div>
       </div>
-      <p data-hrv="176" class="note">
+      <p class="note">
         A correction: the yak that fixed this page recorded the suite growing from 22 s to 36 s when it arrived. Those runs were failing, and a failing page test stops at its first bad scope. The commit that made the page pass took 60 s, same as main before the cap.
       </p>
     </section>
