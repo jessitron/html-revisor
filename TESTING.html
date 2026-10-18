@@ -44,7 +44,7 @@
   <body data-hrv="1">
     <h1 data-hrv="2">How we test</h1>
     <p data-hrv="3">
-      136 tests, all passing, in 57 seconds. One test file holds 56 of those seconds, and one page in it holds 36.
+      136 tests, all passing, in 57 seconds. One test file held 56 of those seconds, and one page in it held 36. With scopes capped at 4 KB: 149 tests in 18 seconds. The measurements below are from before the cap.
     </p>
     <section data-hrv="4" id="suite">
       <h2 data-hrv="5">The suite</h2>
@@ -432,10 +432,7 @@
             </td>
           </tr>
           <tr>
-            <td data-hrv="238">
-              <!-- @AI: I lean toward capping scope at 2K. Can you give me examples of scopes that are 1-2K and 2-4K in the mintlify file? Link me to some somehow -->
-              2–4 KB
-            </td>
+            <td data-hrv="238">2–4 KB</td>
             <td data-hrv="239" class="n">8</td>
             <td data-hrv="240" class="n">34</td>
             <td data-hrv="241" class="n">29</td>
@@ -618,14 +615,14 @@
         </tbody>
       </table>
       <p data-hrv="347">
-        My lean: 2 KB, about 30 lines in the box. It takes every body and every whole section, and keeps most cases, cards, and tables.
+        Decided: 4 KB of HTML, picked by trying it on real pages. The HTML is measured without element IDs and directives. Done in <code>editable</code>, <code>scopes.mjs</code>.
       </p>
       <h3 data-hrv="348">Which length</h3>
       <p data-hrv="349">
         HTML size and markdown size part ways around an SVG. OVERVIEW's <code>#architecture-now</code> is 4.7 KB of HTML and 123 characters of markdown: the diagram is one token in the box. A cap on markdown keeps it a scope; a cap on HTML cuts it.
       </p>
       <p data-hrv="350">
-        Measuring markdown means rendering it, and rendering a giant wrapper is the cost we're cutting. Text length (<code>textContent</code>) is cheap and might track markdown well enough. To check before deciding.
+        Measuring markdown means rendering it, and rendering a giant wrapper is the cost we're cutting. HTML it is: cheap to count, and the count stops at 4 KB. So a section around a big SVG, like <code>#architecture-now</code>, has no Content field; its heading and paragraphs still do.
       </p>
       <h3 data-hrv="351">Sampling 10% instead</h3>
       <p data-hrv="352">
@@ -636,10 +633,10 @@
       <h2 data-hrv="178">Recommendations</h2>
       <ol data-hrv="179" class="recs">
         <li data-hrv="184">
-          <strong>First: limit the size of what counts as a scope.</strong> A product decision, and the tests follow it: nobody edits 288 KB of markdown in a textarea, so the tests stop checking it. Pick the cap from <a data-hrv="353" href="#sizes">Scope sizes</a>, 1 KB or more. Saves on deep pages get faster too. The yak's note asks to keep round-trip running on big elements anyway; drop that, since we don't support them. The yak waits on Telemetry today. <span data-hrv="354" class="win">Round-trip file ~16–27 s</span>, by the cap.
+          <strong>Done: a scope of 4 KB of HTML or more doesn't edit as markdown.</strong> It takes directives and has no Content field, and the round-trip tests skip it. See <a data-hrv="353" href="#sizes">Scope sizes</a>. <span data-hrv="354" class="win">The suite went from 57 s to 18 s.</span> Each small scope gets the same random edit it got before. Renumbering the seeds turned up a bug in how stand-ins come back after a block holding them is removed; it's a yak.
         </li>
         <li data-hrv="180">
-          <strong>Then split <code>roundtrip.test.mjs</code> into files.</strong> Property tests on generated pages in one file, tests on specific files in another, with shared generators and checks in <code>test/roundtrip-lib.mjs</code>. Split further if one file still runs long. <code>node --test</code> runs files side by side, so the suite waits on the longest. Same tests, same coverage. Measure after the cap; the cap decides how much this buys.
+          <strong>Then split <code>roundtrip.test.mjs</code> into files.</strong> Property tests on generated pages in one file, tests on specific files in another, with shared generators and checks in <code>test/roundtrip-lib.mjs</code>. Split further if one file still runs long. <code>node --test</code> runs files side by side, so the suite waits on the longest. Same tests, same coverage. After the cap, the round-trip file is the 18 s and its longest test takes 1.9 s, so a split could bring the suite to a few seconds.
         </li>
         <li data-hrv="185">
           <strong>Run the suite once per ship.</strong> Deploy and release test the same commit back to back. Release could skip its run when the vendored commit hasn't changed since the deploy that tested it. That change lives in iterate-on-docs.
