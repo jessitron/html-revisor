@@ -567,6 +567,8 @@
     a['hrv.' + change.kind + '.before.length'] = before.length;
     a['hrv.' + change.kind + '.after'] = capped(after);
     a['hrv.' + change.kind + '.after.length'] = after.length;
+    // The scope's directive once this save lands, so every save shows what was asked of the scope.
+    a['hrv.directive'] = capped(markdown ? savedDirectives[change.id] || '' : after);
     return span;
   }
 
