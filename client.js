@@ -1,4 +1,5 @@
-// html-revisor client. Directives live in the file on disk; this script edits them through PUT.
+// html-revisor client. Directives live in the file on disk; this script edits them through PUT,
+// and tells the server when a box closes (Done) through POST.
 (function () {
   'use strict';
 
