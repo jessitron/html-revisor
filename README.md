@@ -152,7 +152,7 @@ Open `SCOPES-DESIGN.html` in a browser (see [Try it](#try-it)).
 - [ ] Clicking the docket's icon or count turns review mode off (`· review off`): markers hide, hovering shows no marks and no copy cursor, and clicks go to the page. Clicking again turns it back on.
 - [ ] Reloading the page shows the marker. The element itself is not restyled.
 - [ ] Clicking a marker opens its box for editing.
-- [ ] Clear (or emptying the text, or `⌥⌘⌫` in the box) removes the directive and the marker. Clear shows only when there is a directive, in both boxes, and its tooltip names the hotkey.
+- [ ] Clear (or emptying the text, or `⌥⌘⌫` in the box) removes the directive and the marker. Clear shows only when there is a directive, in both boxes, and its tooltip names the hotkey. Clear leaves the box open with the Content field as you left it, and `⌘Z` brings the directive back.
 - [ ] In a committed page, Revert shows on the Content line only after you change a scope. Clicking it puts the committed markdown back and saves; `⌘Z` takes the revert back. Delete a list item, then Revert the list: the item returns.
 - [ ] `⌘↵`, `Esc`, Done, and clicking outside each commit and close the box. (On a page with a full-width wrapper element, clicking the margin opens a box on the wrapper instead; use Esc.)
 - [ ] Opening a second box commits and closes the first.

@@ -758,22 +758,25 @@
     positionHover();
   }
 
-  function clearDirective(ta, id) {
-    ta.value = '';
-    setDirective(id, '');
-    addUnsent('directive', id);
-    closeBox('clear');
-  }
-
-  // Put the scope's markdown at the last commit into its field, as if typed: it saves like
-  // typing, and the browser's undo takes it back.
-  function revert(textArea, id) {
+  // Replace a field's text as if typed: it saves like typing, and the browser's undo takes it back.
+  function typeOver(textArea, text) {
     textArea.focus();
     textArea.select();
-    if (!document.execCommand('insertText', false, committed[id])) {
-      textArea.value = committed[id];
+    var typed = text ? document.execCommand('insertText', false, text) : document.execCommand('delete');
+    if (!typed) {
+      textArea.value = text;
       textArea.dispatchEvent(new Event('input', { bubbles: true }));
     }
+  }
+
+  // Empty the directive and leave the box open, so work in the Content field goes on.
+  function clearDirective(ta) {
+    typeOver(ta, '');
+  }
+
+  // Put back the scope's markdown at the last commit.
+  function revert(textArea, id) {
+    typeOver(textArea, committed[id]);
   }
 
   function openBox(id) {
@@ -835,7 +838,7 @@
       scheduleSave('directive', boxId);
     });
     var clearButton = fieldAction('Clear', 'Clear the directive (' + CLEAR_KEY + ')', function () {
-      clearDirective(ta, boxId);
+      clearDirective(ta);
     });
     box.appendChild(label('Directive', clearButton));
     box.addEventListener('keydown', function (e) {
@@ -844,7 +847,7 @@
         closeBox('key');
       } else if (e.key === 'Backspace' && e.altKey && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        clearDirective(ta, boxId);
+        clearDirective(ta);
       }
     });
 
