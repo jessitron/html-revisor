@@ -447,7 +447,7 @@ test('Done announces what the box changed: a revision and a directive, under its
     const opened = { id: p, directive: '', markdown: markdowns[p] };
     const saved = await (await s.put('page.html', { id: p, base: bases[p], markdown: 'First *paragraph*' })).json();
     await s.put('page.html', { id: p, base: saved.bases[p], directive: 'say more -- here' });
-    assert.equal((await s.done('page.html', opened)).status, 204);
+    assert.deepEqual(await (await s.done('page.html', opened)).json(), { announced: true });
     await s.waitForLog('\n\{', 1);
     assert.deepEqual(announcements(s.stdout), [{
       page: '/page.html',
@@ -465,8 +465,8 @@ test('Done with nothing changed announces nothing; a directive alone is no revis
     const { document, bases, markdowns } = await s.page('page.html');
     const p = idOf(document, 'p');
     const img = idOf(document, 'img');
-    await s.done('page.html', { id: p, directive: '', markdown: markdowns[p] });
-    await s.done('page.html', { id: 'nope', directive: '' });
+    assert.deepEqual(await (await s.done('page.html', { id: p, directive: '', markdown: markdowns[p] })).json(), { announced: false });
+    assert.deepEqual(await (await s.done('page.html', { id: 'nope', directive: '' })).json(), { announced: false });
     await s.put('page.html', { id: img, base: bases[img], directive: 'bigger' });
     await s.done('page.html', { id: img, directive: '' });
     await s.waitForLog('\n\{', 1);

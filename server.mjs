@@ -203,7 +203,8 @@ async function putChange(req, res, file, urlPath, { author }) {
 // POST: Done, the box closed. The body is what the box opened with:
 //   {"id": "7", "directive": "text", "markdown": "…"}   markdown only for a scope
 // The tab sends it after the box's last change, so the file holds what the box left. What
-// changed goes out as an Announcement; nothing changed announces nothing.
+// changed goes out as an Announcement; nothing changed announces nothing. The answer says which:
+// {"announced": true}, for the tab's telemetry.
 async function postDone(req, res, file, urlPath, { author }) {
   let opened;
   try {
@@ -222,8 +223,8 @@ async function postDone(req, res, file, urlPath, { author }) {
   const announcement = inSpan('announcement', {}, () => announcementOf(document, id, { directive, markdown }, author));
   span?.setAttribute('hrv.announced', !!announcement);
   if (announcement) announce({ page: urlPath, ...announcement });
-  res.writeHead(204);
-  res.end();
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({ announced: !!announcement }));
 }
 
 function sendError(res, err) {

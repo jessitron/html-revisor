@@ -193,6 +193,35 @@ test('with HRV_TELEMETRY, spans the browser posts join the trace of the PUT they
     assert.ok(!spans.some((s) => s.name === 'POST'), 'posting spans makes no span');
   }));
 
+// Done, as client.js sends it: the browser's done span is the POST's traceparent.
+test('with HRV_TELEMETRY, Done nests under the browser done span and says whether it announced', () =>
+  withCollector(async (collector) => {
+    const env = cleanEnv({ HRV_TELEMETRY: '1', OTEL_EXPORTER_OTLP_ENDPOINT: collector.endpoint });
+    const trace = traceId(), done = 'c'.repeat(16);
+    await withServer(env, async ({ base }) => {
+      const id = await getAndPut(base, `00-${traceId()}-${'1'.repeat(16)}-01`);
+      const t0 = Date.now();
+      const res = await fetch(base + 'page.html', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', traceparent: `00-${trace}-${done}-01` },
+        body: JSON.stringify({ id, directive: '' }),
+      });
+      assert.deepEqual(await res.json(), { announced: true });
+      const spans = [{ name: 'done', kind: 'client', traceId: trace, spanId: done, start: t0, end: t0 + 20,
+        attributes: { 'hrv.box.session': 'f00d', 'hrv.close.by': 'key', 'hrv.announced': true } }];
+      assert.equal((await fetch(base + '.hrv/spans', { method: 'POST', body: JSON.stringify(spans) })).status, 204);
+    });
+    const spans = collector.spans();
+    const browser = spans.find((s) => s.name === 'done');
+    assert.equal(browser.attributes['hrv.box.session'], 'f00d');
+    const server = spans.find((s) => s.name === 'POST done');
+    assert.ok(server, `no POST done span among ${spans.map((s) => s.name)}`);
+    assert.equal(server.parentSpanId, done, 'the server span nests under the browser done span');
+    assert.equal(server.attributes['hrv.announced'], true);
+    const steps = spans.filter((s) => s.parentSpanId === server.spanId).map((s) => s.name);
+    assert.deepEqual(steps.sort(), ['announcement', 'parse', 'read file']);
+  }));
+
 test('without HRV_TELEMETRY, the page does not ask the client to record', () =>
   withServer(cleanEnv({}), async ({ base }) => {
     const html = await (await fetch(base + 'page.html')).text();

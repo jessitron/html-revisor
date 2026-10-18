@@ -10,7 +10,7 @@
   var markers = {};         // id -> marker element
   var box = null;           // the open directive box, if any
   var boxId = null;         // id of the element the open box is for
-  var boxOpened = null;     // what the open box opened with: {directive, markdown}; markdown only for a scope
+  var boxOpened = null;     // what the open box opened with: {session, directive, markdown}; markdown only for a scope
   var saveTimer = null;
   var saving = false;       // a PUT is in flight
   var unsent = [];          // changes not yet sent, oldest first: {kind: 'directive'|'markdown'|'done', id}
@@ -536,7 +536,8 @@
 
   // Mark a change to send. A change already waiting sends the latest value, once. Each change
   // is a trace, from when it goes out until its answer is applied; the edits before that are times.
-  function addUnsent(kind, id) {
+  // session names the box it came from.
+  function addUnsent(kind, id, session) {
     var now = clock();
     for (var i = 0; i < unsent.length; i++) {
       if (unsent[i].kind === kind && unsent[i].id === id) {
@@ -544,7 +545,7 @@
         return unsent[i].edits++;
       }
     }
-    unsent.push({ kind: kind, id: id, edits: 1, firstEdit: now, lastEdit: now });
+    unsent.push({ kind: kind, id: id, session: session, edits: 1, firstEdit: now, lastEdit: now });
   }
 
   // The span for a change going out: how long it waited, and the scope's content before and after.
@@ -552,6 +553,7 @@
     var span = startSpan('save ' + change.kind, null, { 'hrv.change.kind': change.kind, 'hrv.scope.id': change.id });
     if (!span) return null;
     var a = span.attributes, el = elementFor(change.id);
+    a['hrv.box.session'] = change.session;
     a['hrv.edits'] = change.edits;
     a['hrv.wait.ms'] = span.start - change.firstEdit;
     a['hrv.quiet.ms'] = span.start - change.lastEdit;
@@ -680,7 +682,7 @@
     }).catch(function (err) {
       failed = 'save failed: ' + (err && err.message ? err.message : err);
       endSpan(put, failed);
-      addUnsent(change.kind, change.id); // a later edit retries it
+      addUnsent(change.kind, change.id, change.session); // a later edit retries it
       boxStatus('');
       showProblem(failed);
     }).then(function () {
@@ -693,24 +695,37 @@
   }
 
   // Done: tell the server what the box opened with. It goes out after the box's changes, so the
-  // server compares it with what they left in the file, and announces what changed.
+  // server compares it with what they left in the file, and announces what changed. Its span,
+  // started when the box closed, ends with whether the server announced.
   function sendDone(change) {
+    var span = change.span;
     var body = { id: change.id, directive: change.opened.directive };
     if (typeof change.opened.markdown === 'string') body.markdown = change.opened.markdown;
+    var headers = { 'Content-Type': 'application/json' };
+    if (span) headers.traceparent = '00-' + span.traceId + '-' + span.spanId + '-01';
+    var failed = false;
     fetch(location.pathname, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: headers,
       body: JSON.stringify(body)
-    }).catch(function () {
+    }).then(function (res) {
+      if (span) span.attributes['http.response.status_code'] = res.status;
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(function (data) {
+      if (span) span.attributes['hrv.announced'] = !!data.announced;
+    }).catch(function (err) {
       // A lost Done is an Announcement not made; the page and the file are fine.
+      failed = 'done failed: ' + (err && err.message ? err.message : err);
     }).then(function () {
+      endSpan(span, failed);
       saving = false;
       saveNow();
     });
   }
 
   function scheduleSave(kind, id) {
-    addUnsent(kind, id);
+    addUnsent(kind, id, boxOpened && boxOpened.session);
     boxStatus('saving…');
     clearTimeout(saveTimer);
     saveTimer = setTimeout(saveNow, 400);
@@ -757,14 +772,17 @@
     updateDocket();
   }
 
-  // Commit and close the open box. by says what closed it, for telemetry: a close while a save is
-  // going is an event on that save's span. A close with no save going tells nothing.
+  // Commit and close the open box: Done. by says what closed it, for telemetry: it goes on the
+  // done span, and a close while a save is going is an event on that save's span too.
   function closeBox(by) {
     if (!box) return;
     var id = boxId;
     var ta = box.querySelector('textarea.hrv-directive');
     setDirective(boxId, ta.value);
-    unsent.push({ kind: 'done', id: id, opened: boxOpened });
+    var span = startSpan('done', null, {
+      'hrv.box.session': boxOpened.session, 'hrv.scope.id': id, 'hrv.close.by': by, 'hrv.queued': unsent.length
+    }, 'client');
+    unsent.push({ kind: 'done', id: id, opened: boxOpened, span: span });
     dropBox();
     saveNow();
     if (inFlight) addEvent(inFlight.span, 'close box', { 'hrv.close.by': by, 'hrv.scope.id': id, 'hrv.pending': unsent.length });
@@ -811,7 +829,7 @@
     var el = elementFor(id);
     if (!el) return;
     boxId = id;
-    boxOpened = { directive: directives[id] || '' };
+    boxOpened = { session: randomHex(8), directive: directives[id] || '' };
     if (isScope(id)) boxOpened.markdown = markdowns[id];
     box = document.createElement('div');
     box.className = 'hrv-box';

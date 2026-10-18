@@ -73,7 +73,7 @@
             <td>browser</td>
             <td>from when we decide to save, until the page has been updated</td>
             <td>
-              <code>hrv.change.kind</code>, <code>hrv.scope.id</code>, <code>hrv.element</code> (tag name), <code>hrv.edits</code> (keystrokes in this one save), <code>hrv.wait.ms</code> (first keystroke → sent, queue included), <code>hrv.quiet.ms</code> (last keystroke → sent), <code>hrv.html.before</code>, <code>hrv.html.after</code> (markdown saves), <code>hrv.markdown.before</code>, <code>hrv.markdown.after</code> or <code>hrv.directive.before</code>, <code>hrv.directive.after</code>; each text with a <code>.length</code>. <code>hrv.directive</code> on both kinds: the scope's directive once the save lands.
+              <code>hrv.change.kind</code>, <code>hrv.scope.id</code>, <code>hrv.element</code> (tag name), <code>hrv.edits</code> (keystrokes in this one save), <code>hrv.wait.ms</code> (first keystroke → sent, queue included), <code>hrv.quiet.ms</code> (last keystroke → sent), <code>hrv.html.before</code>, <code>hrv.html.after</code> (markdown saves), <code>hrv.markdown.before</code>, <code>hrv.markdown.after</code> or <code>hrv.directive.before</code>, <code>hrv.directive.after</code>; each text with a <code>.length</code>. <code>hrv.directive</code> on both kinds: the scope's directive once the save lands. <code>hrv.box.session</code>: one ID per box opened, shared by its saves and its <code>done</code>.
             </td>
           </tr>
           <tr>
@@ -101,6 +101,22 @@
             <td>
               <code>hrv.close.by</code>, <code>hrv.scope.id</code>, <code>hrv.pending</code> (saves still waiting behind it)
             </td>
+          </tr>
+          <tr>
+            <td><code>done</code></td>
+            <td>browser</td>
+            <td>
+              box closed → the server's answer; it waits behind the box's saves. Its <code>traceparent</code> makes <code>POST done</code> its child. A trace of its own.
+            </td>
+            <td>
+              <code>hrv.box.session</code>, <code>hrv.scope.id</code>, <code>hrv.close.by</code>, <code>hrv.queued</code> (saves ahead of it), <code>hrv.announced</code>, <code>http.response.status_code</code>
+            </td>
+          </tr>
+          <tr>
+            <td><code>POST done</code></td>
+            <td>server</td>
+            <td>request → response; a child span per step</td>
+            <td><code>hrv.page</code>, <code>hrv.scope.id</code>, <code>hrv.announced</code></td>
           </tr>
           <tr>
             <td><code>PUT change</code></td>
@@ -146,7 +162,9 @@
           </tr>
           <tr>
             <td>Opening a box</td>
-            <td>Nothing. A scope's size shows up only when you save it.</td>
+            <td>
+              No span. A scope's size shows up only when you save it. Closing the box makes a <code>done</code> span, and everything from one box shares <code>hrv.box.session</code>.
+            </td>
             <td>Undecided. For a scope's size without changing it, edit it and Revert.</td>
           </tr>
         </tbody>
