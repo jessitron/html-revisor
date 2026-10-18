@@ -10,9 +10,10 @@
   var markers = {};         // id -> marker element
   var box = null;           // the open directive box, if any
   var boxId = null;         // id of the element the open box is for
+  var boxOpened = null;     // what the open box opened with: {directive, markdown}; markdown only for a scope
   var saveTimer = null;
   var saving = false;       // a PUT is in flight
-  var unsent = [];          // changes not yet sent, oldest first: {kind: 'directive'|'markdown', id}
+  var unsent = [];          // changes not yet sent, oldest first: {kind: 'directive'|'markdown'|'done', id}
   var version = null;       // fingerprint of the file as this tab last saw it
   var changedOnDisk = false; // a save found the file changed by someone else
   var inFlight = null;      // the change the PUT in flight carries
@@ -633,6 +634,7 @@
     if (saving || unsent.length === 0) return;
     saving = true;
     var change = unsent.shift();
+    if (change.kind === 'done') return sendDone(change);
     var failed = false;
     var fromBox = !!box;   // a save made while a box is open reports in the box
     inFlight = change;
@@ -685,6 +687,23 @@
       saving = false;
       inFlight = null;
       if (!failed) saveNow();
+    });
+  }
+
+  // Done: tell the server what the box opened with. It goes out after the box's changes, so the
+  // server compares it with what they left in the file, and announces what changed.
+  function sendDone(change) {
+    var body = { id: change.id, directive: change.opened.directive };
+    if (typeof change.opened.markdown === 'string') body.markdown = change.opened.markdown;
+    fetch(location.pathname, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }).catch(function () {
+      // A lost Done is an Announcement not made; the page and the file are fine.
+    }).then(function () {
+      saving = false;
+      saveNow();
     });
   }
 
@@ -743,6 +762,7 @@
     var id = boxId;
     var ta = box.querySelector('textarea.hrv-directive');
     setDirective(boxId, ta.value);
+    unsent.push({ kind: 'done', id: id, opened: boxOpened });
     dropBox();
     saveNow();
     if (inFlight) addEvent(inFlight.span, 'close box', { 'hrv.close.by': by, 'hrv.scope.id': id, 'hrv.pending': unsent.length });
@@ -754,6 +774,7 @@
     box.remove();
     box = null;
     boxId = null;
+    boxOpened = null;
     positionCrop(selectedCrop, null);
     positionHover();
   }
@@ -788,6 +809,8 @@
     var el = elementFor(id);
     if (!el) return;
     boxId = id;
+    boxOpened = { directive: directives[id] || '' };
+    if (isScope(id)) boxOpened.markdown = markdowns[id];
     box = document.createElement('div');
     box.className = 'hrv-box';
 

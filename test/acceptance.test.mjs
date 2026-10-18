@@ -48,6 +48,13 @@ async function withServer(fn, args = []) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(change),
       }),
+    // POST Done, as the tab sends it when the box closes: {id, directive, markdown} as the box opened.
+    done: (name, opened) =>
+      fetch(server.base + name, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(opened),
+      }),
     // Load the page, then set one element's directive with the base the page gave.
     async direct(name, selectorOrId, directive) {
       const { document, bases } = await server.page(name);
@@ -90,13 +97,12 @@ test('1. normalize is idempotent', () =>
   withServer(async (s) => {
     const before = s.read('messy.html');
     await s.get('messy.html');
-    await s.waitForLog('messy.html — ');
+    await s.waitForLog('messy.html \\(normalized\\)');
     const once = s.read('messy.html');
     assert.notEqual(once, before);
-    assert.equal(countOf(s.stdout, '(normalized)'), 1);
 
     await s.get('messy.html');
-    await s.waitForLog('messy.html — ', 2);
+    await new Promise((r) => setTimeout(r, 100));
     assert.equal(s.read('messy.html'), once);
     assert.equal(countOf(s.stdout, '(normalized)'), 1, 'second load must not normalize');
   }));
@@ -428,6 +434,51 @@ test('a PUT body must be one change: id, base, and a directive or a markdown', (
   withServer(async (s) => {
     for (const body of [{ directives: {} }, { id: '1', base: 'x' }, { id: '1', base: 'x', directive: 'a', markdown: 'b' }, { id: 1, base: 'x', markdown: 'b' }, { id: '1', base: 'x', text: 'b' }]) {
       assert.equal((await s.put('page.html', body)).status, 400, JSON.stringify(body));
+    }
+  }));
+
+// The JSON lines on stdout: the Announcements.
+const announcements = (stdout) => stdout.split('\n').filter((line) => line.startsWith('{')).map((line) => JSON.parse(line));
+
+test('Done announces what the box changed: a revision and a directive, under its heading', () =>
+  withServer(async (s) => {
+    const { document, bases, markdowns } = await s.page('page.html');
+    const p = idOf(document, 'p');
+    const opened = { id: p, directive: '', markdown: markdowns[p] };
+    const saved = await (await s.put('page.html', { id: p, base: bases[p], markdown: 'First *paragraph*' })).json();
+    await s.put('page.html', { id: p, base: saved.bases[p], directive: 'say more -- here' });
+    assert.equal((await s.done('page.html', opened)).status, 204);
+    await s.waitForLog('\n\{', 1);
+    assert.deepEqual(announcements(s.stdout), [{
+      page: '/page.html',
+      id: p,
+      element: 'p',
+      heading: 'Title',
+      directive: { before: '', after: 'say more - - here' },
+      revision: { before: 'First paragraph', after: 'First *paragraph*' },
+    }]);
+    assert.doesNotMatch(s.stdout, /saved|pending/, 'saves print nothing');
+  }));
+
+test('Done with nothing changed announces nothing; a directive alone is no revision', () =>
+  withServer(async (s) => {
+    const { document, bases, markdowns } = await s.page('page.html');
+    const p = idOf(document, 'p');
+    const img = idOf(document, 'img');
+    await s.done('page.html', { id: p, directive: '', markdown: markdowns[p] });
+    await s.done('page.html', { id: 'nope', directive: '' });
+    await s.put('page.html', { id: img, base: bases[img], directive: 'bigger' });
+    await s.done('page.html', { id: img, directive: '' });
+    await s.waitForLog('\n\{', 1);
+    assert.deepEqual(announcements(s.stdout), [{
+      page: '/page.html', id: img, element: 'img', heading: 'Title', directive: { before: '', after: 'bigger' },
+    }]);
+  }));
+
+test('a Done body must be an id, the directive, and for a scope the markdown', () =>
+  withServer(async (s) => {
+    for (const body of [{}, { id: '1' }, { id: 1, directive: '' }, { id: '1', directive: '', markdown: 3 }]) {
+      assert.equal((await s.done('page.html', body)).status, 400, JSON.stringify(body));
     }
   }));
 

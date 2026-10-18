@@ -1,10 +1,10 @@
 // html-revisor: leave directives on HTML files; they live in the file as <!-- author: text -->.
 //
 // Three tiers, dependencies point downward only:
-//   Tier I   orchestration: CLI, request routing, the GET and PUT flows
-//   Tier II  domain: markdown edits, element identity (pure functions over a DOM);
+//   Tier I   orchestration: CLI, request routing, the GET, PUT, and Done flows
+//   Tier II  domain: markdown edits, element identity, Announcements (pure functions over a DOM);
 //            directives.mjs, formatter.mjs, and scopes.mjs are Tier II too
-//   Tier III interface: filesystem gateway, content types, listings, client assets;
+//   Tier III interface: filesystem gateway, content types, listings, client assets, stdout;
 //            telemetry.mjs is Tier III too
 import { execFile } from 'node:child_process';
 import crypto from 'node:crypto';
@@ -13,7 +13,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { formatFiles, parse, normalize, serialize, assignIds, formatElement, ID, trimAscii, escapeText } from './formatter.mjs';
-import { collectDirectives, removeDirectives, setDirective } from './directives.mjs';
+import { collectDirectives, removeDirectives, setDirective, escapeDirectiveText } from './directives.mjs';
 import { scopeElements, scopeMarkdown, scopeFromMarkdown } from './scopes.mjs';
 import { trace, inSpan, requestSpan, startTelemetry, recordBrowserSpans } from './telemetry.mjs';
 
@@ -71,6 +71,7 @@ async function route(req, res, config) {
   const named = (what) => trace.getActiveSpan()?.updateName(`${req.method} ${what}`);
 
   if (req.method === 'PUT' && isHtml) return named('change'), putChange(req, res, file, urlPath, config);
+  if (req.method === 'POST' && isHtml) return named('done'), postDone(req, res, file, urlPath, config);
   if (req.method !== 'GET' && req.method !== 'HEAD') throw new HttpError(405, 'method not allowed');
 
   const stat = await fs.stat(file);
@@ -121,7 +122,6 @@ async function getPage(res, file, urlPath, { author, telemetry }) {
     'hrv.scope.count': Object.keys(markdowns).length,
     'hrv.answer.bytes': html.length,
   });
-  console.log(`${urlPath} — ${Object.keys(directives).length} pending directives`);
   sendHtml(res, html);
 }
 
@@ -196,9 +196,34 @@ async function putChange(req, res, file, urlPath, { author }) {
   }
   const body = JSON.stringify({ ok: true, count, ...answer, before: versionOf(onDisk), after: versionOf(written) });
   span?.setAttributes({ 'hrv.directive.count': count, 'hrv.answer.bytes': body.length });
-  console.log(`${urlPath} — saved ${kind} on ${id}`);
   res.writeHead(200, { 'Content-Type': 'application/json' });
   res.end(body);
+}
+
+// POST: Done, the box closed. The body is what the box opened with:
+//   {"id": "7", "directive": "text", "markdown": "…"}   markdown only for a scope
+// The tab sends it after the box's last change, so the file holds what the box left. What
+// changed goes out as an Announcement; nothing changed announces nothing.
+async function postDone(req, res, file, urlPath, { author }) {
+  let opened;
+  try {
+    opened = JSON.parse(await readBody(req));
+  } catch {
+    throw new HttpError(400, 'body must be JSON');
+  }
+  const { id, directive, markdown } = opened ?? {};
+  if (typeof id !== 'string' || typeof directive !== 'string' || (markdown !== undefined && typeof markdown !== 'string')) {
+    throw new HttpError(400, 'body must look like {"id": "<id>", "directive": "text", "markdown": "…"}, markdown only for a scope');
+  }
+  const span = trace.getActiveSpan();
+  span?.setAttributes({ 'hrv.page': urlPath, 'hrv.scope.id': id });
+  const onDisk = await inSpan('read file', {}, () => fs.readFile(file, 'utf8'));
+  const document = inSpan('parse', {}, () => parse(onDisk));
+  const announcement = inSpan('announcement', {}, () => announcementOf(document, id, { directive, markdown }, author));
+  span?.setAttribute('hrv.announced', !!announcement);
+  if (announcement) announce({ page: urlPath, ...announcement });
+  res.writeHead(204);
+  res.end();
 }
 
 function sendError(res, err) {
@@ -325,6 +350,40 @@ function holderOf(nodes, id, scopes) {
   return holder?.getAttribute(ID) ?? null;
 }
 
+// ---- Announcements ------------------------------------------------------
+
+// What one box session changed on its element, from what the box opened with to the document
+// now: the directive, and for a scope its content, a revision. Each is {before, after}, and only
+// there if it changed. Null when nothing changed or the element is gone. Lifts the directives
+// out of the document.
+export function announcementOf(document, id, opened, author) {
+  const el = elementById(document, id);
+  if (!el) return null;
+  const announcement = { id, element: el.localName, heading: headingOf(el) };
+  // Compare as the file holds it: trimmed, escaped.
+  const directiveBefore = escapeDirectiveText(opened.directive.trim());
+  const directiveAfter = collectDirectives(document, author)[id] ?? '';
+  if (directiveAfter !== directiveBefore) announcement.directive = { before: directiveBefore, after: directiveAfter };
+  removeDirectives(document, author);
+  if (typeof opened.markdown === 'string' && scopeElements(document).includes(el)) {
+    const markdown = scopeMarkdown(el);
+    if (markdown !== opened.markdown) announcement.revision = { before: opened.markdown, after: markdown };
+  }
+  return announcement.directive || announcement.revision ? announcement : null;
+}
+
+// The text of the heading the element sits under: itself, or the last h1-h6 before it. Null
+// when there is none.
+function headingOf(el) {
+  let heading = null;
+  for (const e of el.ownerDocument.querySelectorAll(`h1, h2, h3, h4, h5, h6, [${ID}="${el.getAttribute(ID)}"]`)) {
+    if (e === el) break;
+    heading = e;
+  }
+  if (/^h[1-6]$/.test(el.localName)) heading = el;
+  return heading ? trimAscii(heading.textContent.replace(/[ \t\n\r\f]+/g, ' ')) : null;
+}
+
 // ======================================================================
 // Tier III: interface (filesystem gateway, HTTP helpers, client assets)
 // ======================================================================
@@ -416,6 +475,11 @@ export function readCommitted(file) {
     execFile('git', ['show', `HEAD:./${path.basename(file)}`], { cwd: path.dirname(file), maxBuffer: 64 * 1024 * 1024 },
       (err, stdout) => resolve(err ? null : stdout));
   });
+}
+
+// Announcements go to stdout, one line of JSON each, for an agent watching the output.
+function announce(announcement) {
+  console.log(JSON.stringify(announcement));
 }
 
 // Client assets. Appended to the served copy, never written to the file, so none of it has an ID.
