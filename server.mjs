@@ -14,7 +14,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { formatFiles, parse, normalize, serialize, assignIds, formatElement, ID, trimAscii, escapeText } from './formatter.mjs';
 import { collectDirectives, removeDirectives, setDirective, escapeDirectiveText } from './directives.mjs';
-import { scopeElements, scopeMarkdown, scopeFromMarkdown } from './scopes.mjs';
+import { scopeElements, scopeMarkdown, scopeFromMarkdown, editable } from './scopes.mjs';
 import { trace, inSpan, requestSpan, startTelemetry, recordBrowserSpans } from './telemetry.mjs';
 
 // ======================================================================
@@ -171,7 +171,7 @@ async function putChange(req, res, file, urlPath, { author }) {
     changed = around([el]);
   } else {
     const nodes = inSpan('set markdown', {}, () => saveMarkdown(el, markdown));
-    if (!nodes) throw new HttpError(400, 'markdown edits need a scope and non-blank markdown');
+    if (!nodes) throw new HttpError(400, 'markdown edits need a scope under 4 KB and non-blank markdown');
     changed = around(nodes.filter((n) => n.nodeType === 1));
     answer = inSpan('served html', {}, () => ({ html: servedHTML(nodes, author), id: holderOf(nodes, id, new Set(scopeElements(document))) }));
   }
@@ -191,7 +191,9 @@ async function putChange(req, res, file, urlPath, { author }) {
       const scopes = new Set(scopeElements(served));
       const mine = now.filter((e) => scopes.has(e));
       child.setAttribute('hrv.scope.count', mine.length);
-      return markdownsOf(mine);
+      // A scope the save grew past the limit loses its Content field: null tells the tab.
+      const grown = mine.filter((e) => e.hasAttribute(ID) && e.localName !== 'body' && !editable(e));
+      return { ...Object.fromEntries(grown.map((e) => [e.getAttribute(ID), null])), ...markdownsOf(mine) };
     });
   }
   const body = JSON.stringify({ ok: true, count, ...answer, before: versionOf(onDisk), after: versionOf(written) });
@@ -301,10 +303,11 @@ function around(els) {
 
 // ---- Markdown edits -----------------------------------------------------
 
-// Each scope's markdown, by ID: what the box shows. Not body's, which nobody picks.
+// Each scope's markdown, by ID: what the box shows. Not body's, which nobody picks, and not a
+// scope too big to edit.
 export function markdownsOf(scopes) {
   return Object.fromEntries(
-    scopes.filter((el) => el.hasAttribute(ID) && el.localName !== 'body').map((el) => [el.getAttribute(ID), scopeMarkdown(el)]),
+    scopes.filter((el) => el.hasAttribute(ID) && el.localName !== 'body' && editable(el)).map((el) => [el.getAttribute(ID), scopeMarkdown(el)]),
   );
 }
 
@@ -325,10 +328,10 @@ export function committedMarkdowns(html, author) {
 
 // Replace a scope with what its markdown says. The elements you left or changed keep their IDs
 // and directives (scopes.mjs reconciles); new ones get IDs. Returns the nodes that replaced it,
-// or null, changing nothing, for an element that isn't a scope or blank markdown.
+// or null, changing nothing, for an element that isn't a scope, one too big to edit, or blank markdown.
 export function saveMarkdown(el, markdown) {
   const document = el.ownerDocument;
-  if (trimAscii(markdown) === '' || el.localName === 'body' || !scopeElements(document).includes(el)) return null;
+  if (trimAscii(markdown) === '' || el.localName === 'body' || !editable(el) || !scopeElements(document).includes(el)) return null;
   const nodes = scopeFromMarkdown(el, markdown);
   el.replaceWith(...nodes);
   assignIds(document);
@@ -366,7 +369,7 @@ export function announcementOf(document, id, opened, author) {
   const directiveAfter = collectDirectives(document, author)[id] ?? '';
   if (directiveAfter !== directiveBefore) announcement.directive = { before: directiveBefore, after: directiveAfter };
   removeDirectives(document, author);
-  if (typeof opened.markdown === 'string' && scopeElements(document).includes(el)) {
+  if (typeof opened.markdown === 'string' && editable(el) && scopeElements(document).includes(el)) {
     const markdown = scopeMarkdown(el);
     if (markdown !== opened.markdown) announcement.revision = { before: opened.markdown, after: markdown };
   }

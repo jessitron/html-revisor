@@ -430,6 +430,26 @@ test('markdown edits refuse elements that are not scopes and blank markdown', ()
     assert.equal((await s.put('rule.html', { id: hr, base: ruled.bases[hr], markdown: 'not a rule' })).status, 400);
   }));
 
+test('a scope of 4 KB or more takes directives, not markdown; one a save grows past that loses its markdown', () =>
+  withServer(async (s) => {
+    const p = (n) => `<p>${'word '.repeat(n)}</p>`;
+    s.write('big.html', `<section class="big">${p(150).repeat(6)}</section><section class="near">${p(150).repeat(4)}${p(80)}</section>`);
+    const { document, bases, markdowns } = await s.page('big.html');
+    const big = idOf(document, 'section.big');
+    assert.ok(!(big in markdowns), 'no Content field');
+    assert.ok(idOf(document, 'section.big p') in markdowns, 'its paragraphs edit');
+    assert.equal((await s.put('big.html', { id: big, base: bases[big], markdown: 'all gone' })).status, 400);
+    assert.equal((await s.put('big.html', { id: big, base: bases[big], directive: 'shorter' })).status, 200);
+
+    const near = idOf(document, 'section.near');
+    const last = idOf(document, 'section.near p:last-child');
+    assert.ok(near in markdowns);
+    const res = await s.put('big.html', { id: last, base: bases[last], markdown: 'word '.repeat(400) });
+    assert.equal(res.status, 200);
+    const answer = await res.json();
+    assert.equal(answer.markdowns[near], null, 'the section grew past the limit');
+  }));
+
 test('a PUT body must be one change: id, base, and a directive or a markdown', () =>
   withServer(async (s) => {
     for (const body of [{ directives: {} }, { id: '1', base: 'x' }, { id: '1', base: 'x', directive: 'a', markdown: 'b' }, { id: 1, base: 'x', markdown: 'b' }, { id: '1', base: 'x', text: 'b' }]) {
