@@ -125,6 +125,34 @@
       </p>
     </section>
     <section>
+      <h2>Not recorded yet</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Action</th>
+            <th>Now</th>
+            <th>Planned</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Revert</td>
+            <td>
+              No span or event. Revert types the committed markdown into the Content field, so it goes out as a <code>save markdown</code> that looks like typing. If a save for that scope is still waiting, the Revert joins it as one more of its <code>hrv.edits</code>.
+            </td>
+            <td>
+              <code>hrv.reverted = true</code> on the <code>save markdown</code> that carries a Revert. Its <code>hrv.markdown.before.length</code> is what Revert threw away, and <code>hrv.markdown.after.length</code> is the committed scope.
+            </td>
+          </tr>
+          <tr>
+            <td>Opening a box</td>
+            <td>Nothing. A scope's size shows up only when you save it.</td>
+            <td>Undecided. For a scope's size without changing it, edit it and Revert.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+    <section>
       <h2>Queries</h2>
       <p>
         All of them are on one board: <a href="https://ui.honeycomb.io/modernity/environments/local/board/EupzZSpazVC">html-revisor: saves</a>, over the last 24 hours, with filters for page and change kind. Each link below opens one in Honeycomb over the last two hours of dataset <code>html-revisor</code>.
