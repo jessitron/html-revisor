@@ -12,10 +12,13 @@ import http from 'node:http';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { formatFiles, parse, normalize, serialize, assignIds, formatElement, ID, trimAscii, escapeText } from './formatter.mjs';
-import { collectDirectives, removeDirectives, setDirective, escapeDirectiveText } from './directives.mjs';
-import { scopeElements, scopeMarkdown, scopeFromMarkdown, editable } from './scopes.mjs';
-import { trace, inSpan, requestSpan, startTelemetry, recordBrowserSpans } from './telemetry.mjs';
+import { formatFiles } from './formatter.mjs';
+import { parse, serialize, formatElement, trimAscii, escapeText } from './domain/canonical.mjs';
+import { ID } from './domain/identity.mjs';
+import { normalize, assignIds } from './domain/format.mjs';
+import { collectDirectives, removeDirectives, setDirective, escapeDirectiveText } from './domain/directives.mjs';
+import { scopeElements, scopeMarkdown, scopeFromMarkdown, editable } from './domain/scopes.mjs';
+import { trace, inSpan, requestSpan, startTelemetry, recordBrowserSpans } from './interface/telemetry.mjs';
 
 // ======================================================================
 // Tier I: orchestration

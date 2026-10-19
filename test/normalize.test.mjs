@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { normalize, parse, serialize } from '../formatter.mjs';
+import { normalize } from '../domain/format.mjs';
+import { parse, serialize } from '../domain/canonical.mjs';
 
 // Layout alone, without element IDs, for the tests about layout. IDs have their own tests.
 const layout = (html) => serialize(parse(html));
