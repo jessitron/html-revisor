@@ -37,6 +37,8 @@ HRV_TELEMETRY=1 OTEL_EXPORTER_OTLP_ENDPOINT=https://api.honeycomb.io OTEL_EXPORT
 
 `HRV_TELEMETRY` turns on OpenTelemetry traces; without it the server sends nothing, even with `OTEL_*` variables set (Claude Code reads those for its own telemetry, so they can leak into a server an agent starts). Once it's on, the standard variables say where spans go: `OTEL_EXPORTER_OTLP_ENDPOINT` (default `http://localhost:4318`), `OTEL_EXPORTER_OTLP_HEADERS`, `OTEL_SERVICE_NAME` (default `html-revisor`, which is the Honeycomb dataset), `OTEL_RESOURCE_ATTRIBUTES`. A failed export prints `telemetry export failed` on stderr.
 
+`./with-be <command>` runs a command with the variables from `.be` at the repo root (in a worktree, the main checkout's), e.g. `./with-be ./run`.
+
 What it traces:
 
 - **GET, PUT, and Done**: a span per request (`POST done` for Done, with `hrv.announced`), continuing any `traceparent`, with a child span per step (read file, normalize, parse, check base, set markdown, serialize, write file, …) and attributes `hrv.page`, `hrv.page.bytes`, `hrv.change.kind`, `hrv.scope.id`, `hrv.answer.bytes`, and counts.
@@ -72,7 +74,7 @@ Your directives and markdown edits write into the file, so it shows as changed i
 Copies the committed files at HEAD into `<dir>/html-revisor/` (default `~/code/jessitron/iterate-on-docs`), runs the tests there, and commits there. It writes nothing else in iterate-on-docs, and it doesn't push. Users get the change when iterate-on-docs runs `./release`.
 
 - It refuses when this repo has uncommitted changes (except `SCOPES-DESIGN.html`), when HEAD is not on main, or when the copy has uncommitted changes.
-- It replaces the whole directory, leaving out dev-only files: `CLAUDE.md`, `OVERVIEW.html`, `DESIGN.html`, `design/`, `index.html`, `.nojekyll`, `.gitignore`, `.claude/`, `deploy`. It writes `VENDORED.md` with the commit hash.
+- It replaces the whole directory, leaving out dev-only files: `CLAUDE.md`, `OVERVIEW.html`, `DESIGN.html`, `design/`, `index.html`, `.nojekyll`, `.gitignore`, `.claude/`, `deploy`, `with-be`. It writes `VENDORED.md` with the commit hash.
 - If the tests fail in the copy, it restores the directory and commits nothing.
 
 ## Contract with iterate-on-docs
