@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>html-revisor: reply design</title>
+    <link rel="stylesheet" href="client.css">
+    <style>
+  :root { --ink: #222; --muted: #666; --line: #ddd; --page: #fafafa; }
+  @media (prefers-color-scheme: dark) { :root { --ink: #eee; --muted: #aaa; --line: #444; --page: #1d1e21; } body { background: #141517; } }
+  body { margin: 0 auto; max-width: 900px; padding: 24px; font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--ink); }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  h2 { font-size: 18px; margin: 36px 0 8px; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+  .lede, .note { color: var(--muted); }
+  .note { font-size: 13px; margin: 6px 0 0; }
+  code { font: 13px ui-monospace, Menlo, monospace; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid var(--line); padding: 4px 10px; text-align: left; vertical-align: top; }
+  .flow { width: 100%; height: auto; }
+  .flow text { font: 13px system-ui, -apple-system, "Segoe UI", sans-serif; fill: var(--ink); }
+  .flow .lane { font-weight: 700; }
+  .flow .life { stroke: var(--line); stroke-width: 2; }
+  .flow .msg { stroke: var(--ink); stroke-width: 1.5; fill: none; }
+  .flow .live { stroke: #d6336c; }
+  .flow .busy { fill: var(--page); stroke: var(--line); }
+  .stage { position: relative; background: var(--page); border: 1px solid var(--line); border-radius: 8px; padding: 24px; margin: 12px 0; }
+</style>
+  </head>
+  <body>
+    <h1>html-revisor: reply design</h1>
+    <p class="lede">
+      The agent answers in the page. Each element carries its own small conversation, and many run at once while you keep reviewing.
+    </p>
+    <h2 id="decided">Decided</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>question</th>
+          <th>answer</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Where do replies live?</td>
+          <td>
+            In the page's HTML file, beside the directive. They commit with the turn, and cleanup removes them.
+          </td>
+        </tr>
+        <tr>
+          <td>Who writes a reply into the file?</td>
+          <td>
+            The server. The agent hands it the reply through a CLI that calls the running server, so the server orders the agent's writes with the browser's saves.
+          </td>
+        </tr>
+        <tr>
+          <td>What if the directive changes while the agent replies?</td>
+          <td>
+            The server refuses the agent's write as stale, the same way it refuses a browser save on an element that changed.
+          </td>
+        </tr>
+        <tr>
+          <td>How does the tab learn of a reply?</td>
+          <td>
+            The server tells it, over the live notice: the server watches the file and pushes to the open tab.
+          </td>
+        </tr>
+        <tr>
+          <td>Where does a reply show?</td>
+          <td>In the directive box, below the directive. Each element has its own thread.</td>
+        </tr>
+        <tr>
+          <td>How do you know the agent has it?</td>
+          <td>
+            A directive carries a status: working, then answered. The element's marker shows it.
+          </td>
+        </tr>
+        <tr>
+          <td>What does the docket count?</td>
+          <td>Both: N directives · M replies.</td>
+        </tr>
+        <tr>
+          <td>What can get a reply?</td>
+          <td>
+            A directive, or an edit: “I also changed 3 other places that used the old word.” “Want me to update the other documents to match?”
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <h2 id="flow">Flow</h2>
+    <p>
+      One directive, start to answer. The Announcement on stdout already exists; the rest is new. Magenta arrows are the live notice.
+    </p>
+    <svg class="flow" viewBox="0 0 880 660" role="img" aria-label="Sequence: Jess, the server, the file, and the agent trading a directive and its reply">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+          <path d="M0 0L10 5L0 10z" fill="context-stroke"></path>
+        </marker>
+      </defs>
+      <text class="lane" x="90" y="30" text-anchor="middle">Jess, in the browser</text>
+      <text class="lane" x="340" y="30" text-anchor="middle">server</text>
+      <text class="lane" x="560" y="30" text-anchor="middle">HTML file</text>
+      <text class="lane" x="790" y="30" text-anchor="middle">agent</text>
+      <line class="life" x1="90" y1="45" x2="90" y2="640"></line>
+      <line class="life" x1="340" y1="45" x2="340" y2="640"></line>
+      <line class="life" x1="560" y1="45" x2="560" y2="640"></line>
+      <line class="life" x1="790" y1="45" x2="790" y2="640"></line>
+      <line class="msg" x1="90" y1="80" x2="336" y2="80" marker-end="url(#arrow)"></line>
+      <text x="215" y="72" text-anchor="middle">types a directive (saves as she types)</text>
+      <line class="msg" x1="340" y1="115" x2="556" y2="115" marker-end="url(#arrow)"></line>
+      <text x="450" y="107" text-anchor="middle">writes the directive</text>
+      <line class="msg" x1="90" y1="155" x2="336" y2="155" marker-end="url(#arrow)"></line>
+      <text x="215" y="147" text-anchor="middle">Done</text>
+      <line class="msg" x1="340" y1="190" x2="786" y2="190" marker-end="url(#arrow)"></line>
+      <text x="565" y="182" text-anchor="middle">Announcement, one JSON line on stdout</text>
+      <line class="msg" x1="790" y1="235" x2="344" y2="235" marker-end="url(#arrow)"></line>
+      <text x="565" y="227" text-anchor="middle">status: working</text>
+      <line class="msg" x1="340" y1="270" x2="556" y2="270" marker-end="url(#arrow)"></line>
+      <text x="450" y="262" text-anchor="middle">writes the status</text>
+      <line class="msg live" x1="340" y1="305" x2="94" y2="305" marker-end="url(#arrow)"></line>
+      <text x="215" y="297" text-anchor="middle">marker shows working</text>
+      <rect class="busy" x="20" y="330" width="140" height="80" rx="6"></rect>
+      <text x="90" y="365" text-anchor="middle">keeps reviewing,</text>
+      <text x="90" y="383" text-anchor="middle">more directives</text>
+      <rect class="busy" x="720" y="330" width="140" height="80" rx="6"></rect>
+      <text x="790" y="365" text-anchor="middle">reads, researches,</text>
+      <text x="790" y="383" text-anchor="middle">edits elsewhere</text>
+      <line class="msg" x1="790" y1="445" x2="344" y2="445" marker-end="url(#arrow)"></line>
+      <text x="565" y="437" text-anchor="middle">reply (stale if the directive changed)</text>
+      <line class="msg" x1="340" y1="480" x2="556" y2="480" marker-end="url(#arrow)"></line>
+      <text x="450" y="472" text-anchor="middle">writes the reply, status answered</text>
+      <line class="msg live" x1="340" y1="515" x2="94" y2="515" marker-end="url(#arrow)"></line>
+      <text x="215" y="507" text-anchor="middle">marker shows answered; box shows the thread</text>
+      <line class="msg" x1="90" y1="565" x2="336" y2="565" marker-end="url(#arrow)"></line>
+      <text x="215" y="557" text-anchor="middle">answers in the box</text>
+      <text x="215" y="600" text-anchor="middle" fill="var(--muted)">… and around again, one thread per element</text>
+    </svg>
+    <h2 id="box">Directive box with a thread</h2>
+    <p class="note">Prototype to come.</p>
+    <h2 id="marker">Marker: working and answered</h2>
+    <p class="note">Prototype to come.</p>
+    <h2 id="docket">Docket</h2>
+    <p class="note">Prototype to come.</p>
+    <h2 id="open">Open questions</h2>
+    <ul>
+      <li>
+        What does a reply look like in the file? A second comment kind beside the directive? It stays out of the element's content hash, as a directive does.
+      </li>
+      <li>You answer a reply: does that edit the directive, or add to the thread?</li>
+      <li>
+        When is a thread done, and who closes it? Today the agent deletes a directive once it's addressed.
+      </li>
+      <li>
+        “Reply”, “working”, “answered” are words you see: a Contract change, carried to iterate-on-docs.
+      </li>
+    </ul>
+  </body>
+</html>
