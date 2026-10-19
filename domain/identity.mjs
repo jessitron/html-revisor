@@ -6,6 +6,10 @@ export const ID = 'data-hrv';
 export const NEXT_ID = 'data-hrv-next';
 const ID_VALUE = /^(0|[1-9]\d*)$/;
 
+export function elementById(document, id) {
+  return /^\d+$/.test(id) ? document.querySelector(`[${ID}="${id}"]`) : null;
+}
+
 // Existing IDs never change. A new element gets the next number. Copies of one ID (an agent's
 // copy-paste) retire it: every copy gets a fresh one. An ID on an element that isn't wanted,
 // or one that isn't a number, comes off.
