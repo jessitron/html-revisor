@@ -132,10 +132,16 @@ function childrenOf(parent) {
   return items;
 }
 
-// A block element by name, or any element holding a block element.
+// A block element by name, an element of an SVG drawing, or any element holding a block element.
 function isBlockish(el) {
-  return BLOCK.has(el.localName) || [...el.childNodes].some((n) => n.nodeType === 1 && isBlockish(n));
+  return BLOCK.has(el.localName) || isDrawn(el) || [...el.childNodes].some((n) => n.nodeType === 1 && isBlockish(n));
 }
+
+// Inside an <svg>, whitespace between elements doesn't render, so each element gets its own
+// line. Inside <text> it renders, so a <text> stays whole on one line, directives and all.
+// <foreignObject> holds HTML, laid out as HTML.
+const isDrawn = (el) => !!el.parentElement?.closest('svg') && !el.parentElement.closest('text, foreignobject');
+const isSvgText = (el) => el.localName === 'text' && isDrawn(el);
 
 const isBlockItem = (item) =>
   typeof item !== 'string' && (item.nodeType === 8 || isBlockish(item));
@@ -176,6 +182,7 @@ function formatBlock(node, depth) {
   if (RAW.has(node.localName)) return [pad(depth) + open + rawInner(node) + close];
 
   const kids = childrenOf(node);
+  if (isSvgText(node)) return [pad(depth) + open + inlineHTML(kids) + close];
   if (kids.some(isBlockItem)) {
     return [pad(depth) + open, ...formatChildren(node, depth + 1), pad(depth) + close];
   }
