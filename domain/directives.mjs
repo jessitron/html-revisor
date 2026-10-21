@@ -38,16 +38,19 @@ export function allComments(node, found = []) {
   return found;
 }
 
-// The reading rule: a directive belongs to its parent, unless the next sibling (skipping
-// whitespace-only text) is a void or preformatted element; then it belongs to that sibling.
-// Only whitespace is skipped, not other directives. Skipping directives would make a parent's
-// directive and the directive of its first-child <img> ambiguous; since writing merges to one
-// directive per element, they sit in order [parent directive][img directive][img] and read back correctly.
-// Known limit: a parent's directive directly before an <img> first child that has no directive reads as the img's.
+// The reading rule: a directive belongs to its parent, unless the next element (skipping
+// whitespace-only text and comments) is a void or preformatted element; then it belongs to that
+// sibling. So a run of turns before an <img> is the img's thread. A parent whose first child is
+// such an element keeps its thread as its last child instead (attachComments).
 export function directiveOwner(comment) {
-  let next = comment.nextSibling;
-  while (next?.nodeType === 3 && trimAscii(next.data) === '') next = next.nextSibling;
+  const next = nextContent(comment.nextSibling);
   return next?.nodeType === 1 && directiveGoesBefore(next) ? next : comment.parentNode;
+}
+
+// The node, or the first after it that isn't whitespace-only text or a comment.
+function nextContent(node) {
+  while (node?.nodeType === 8 || (node?.nodeType === 3 && trimAscii(node.data) === '')) node = node.nextSibling;
+  return node;
 }
 
 // { [element ID]: directive text }; several directives on one element join with newlines.
@@ -64,10 +67,35 @@ export function collectDirectives(document, author) {
   return directives;
 }
 
-export function removeDirectives(document, author) {
+// A reply is the agent's turn, in the file as <!-- @Human: text -->: the prefix names who the
+// words are for. An element's thread is its directives and replies, in file order
+// (REPLY-DESIGN.html).
+export const REPLY = '@Human';
+export const isTurn = (node, author) => isDirective(node, author) || isDirective(node, REPLY);
+
+// [{ prefix, text }], in order: the author's turns and the replies on this element.
+export function threadOf(el, author) {
+  return allComments(el.ownerDocument)
+    .filter((c) => isTurn(c, author) && directiveOwner(c) === el)
+    .map((c) => {
+      const prefix = isDirective(c, author) ? author : REPLY;
+      return { prefix, text: directiveText(c, prefix) };
+    });
+}
+
+// Takes out every thread: the directives and the replies.
+export function removeThreads(document, author) {
   for (const comment of allComments(document)) {
-    if (isDirective(comment, author)) comment.remove();
+    if (isTurn(comment, author)) comment.remove();
   }
+}
+
+// A reply goes after the last turn in the element's thread, or where a directive would go.
+export function placeReply(el, text, author) {
+  const reply = el.ownerDocument.createComment(` ${REPLY}: ${escapeDirectiveText(text.trim())} `);
+  const last = allComments(el.ownerDocument).findLast((c) => isTurn(c, author) && directiveOwner(c) === el);
+  if (last) last.after(reply);
+  else attachComments(el, [reply]);
 }
 
 // Replace the element's directives with this one; empty text leaves it none. Other
@@ -84,9 +112,12 @@ export function placeDirective(el, text, author) {
 }
 
 // Put comments on an element, in order, where the reading rule finds them: first children, or
-// just before an element that can't hold one.
+// just before an element that can't hold one. When the first child is such an element, they'd
+// read as its, so they go last.
 export function attachComments(el, comments) {
   const before = directiveGoesBefore(el) && el.parentNode;
-  const [parent, next] = before ? [el.parentNode, el] : [el, el.firstChild];
+  const first = !before && nextContent(el.firstChild);
+  const last = first?.nodeType === 1 && directiveGoesBefore(first);
+  const [parent, next] = before ? [el.parentNode, el] : [el, last ? null : el.firstChild];
   for (const comment of comments) parent.insertBefore(comment, next);
 }

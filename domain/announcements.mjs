@@ -1,13 +1,13 @@
 // Announcements: what one box session changed on its element. Tier II, pure functions over a DOM.
 import { trimAscii } from './canonical.mjs';
 import { ID, elementById } from './identity.mjs';
-import { collectDirectives, removeDirectives, escapeDirectiveText } from './directives.mjs';
+import { collectDirectives, removeThreads, escapeDirectiveText } from './directives.mjs';
 import { scopeElements, scopeMarkdown, editable } from './scopes.mjs';
 
 // What one box session changed on its element, from what the box opened with to the document
 // now: the directive, and for a scope its content, a revision. Each is {before, after}, and only
-// there if it changed. Null when nothing changed or the element is gone. Lifts the directives
-// out of the document.
+// there if it changed. Null when nothing changed or the element is gone. Lifts the threads out
+// of the document.
 export function announcementOf(document, id, opened, author) {
   const el = elementById(document, id);
   if (!el) return null;
@@ -16,7 +16,7 @@ export function announcementOf(document, id, opened, author) {
   const directiveBefore = escapeDirectiveText(opened.directive.trim());
   const directiveAfter = collectDirectives(document, author)[id] ?? '';
   if (directiveAfter !== directiveBefore) announcement.directive = { before: directiveBefore, after: directiveAfter };
-  removeDirectives(document, author);
+  removeThreads(document, author);
   if (typeof opened.markdown === 'string' && editable(el) && scopeElements(document).includes(el)) {
     const markdown = scopeMarkdown(el);
     if (markdown !== opened.markdown) announcement.revision = { before: opened.markdown, after: markdown };

@@ -9,7 +9,7 @@ import { formatFiles } from './formatter.mjs';
 import { parse, serialize } from './domain/canonical.mjs';
 import { ID, elementById } from './domain/identity.mjs';
 import { normalize, assignIds } from './domain/format.mjs';
-import { collectDirectives, removeDirectives, setDirective } from './domain/directives.mjs';
+import { collectDirectives, removeThreads, setDirective } from './domain/directives.mjs';
 import { scopeElements, editable } from './domain/scopes.mjs';
 import { fingerprint, baseOf, basesOf, around } from './domain/bases.mjs';
 import { markdownsOf, committedMarkdowns, saveMarkdown, servedHTML, holderOf } from './domain/markdown-edits.mjs';
@@ -79,7 +79,7 @@ async function route(req, res, config) {
 }
 
 // GET: format on disk (which assigns element IDs), then serve a copy with directives lifted
-// out into JSON, the base of every element so the tab can send it back with a change, and the
+// out into JSON and replies left out, the base of every element so the tab can send it back with a change, and the
 // markdown of every scope for the box to edit, and each scope's markdown at the last commit, for Revert.
 async function getPage(res, file, urlPath, { author, telemetry }) {
   const span = trace.getActiveSpan();
@@ -93,7 +93,7 @@ async function getPage(res, file, urlPath, { author, telemetry }) {
   const document = inSpan('parse', {}, () => parse(formatted));
   const directives = inSpan('directives', {}, () => {
     const found = collectDirectives(document, author);
-    removeDirectives(document, author);
+    removeThreads(document, author);
     return found;
   });
   const bases = inSpan('bases', {}, () => basesOf(document.querySelectorAll(`[${ID}]`), author));
@@ -164,7 +164,7 @@ async function putChange(req, res, file, urlPath, { author }) {
   // Bases and markdown as a reload would serve them: from the file in canonical layout.
   const served = inSpan('reparse', {}, () => {
     const doc = parse(written);
-    removeDirectives(doc, author);
+    removeThreads(doc, author);
     return doc;
   });
   const now = changed.map((e) => elementById(served, e.getAttribute(ID))).filter(Boolean);

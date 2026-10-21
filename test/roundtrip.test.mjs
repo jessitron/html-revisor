@@ -20,7 +20,7 @@ import { fileURLToPath } from 'node:url';
 import { normalize } from '../domain/format.mjs';
 import { parse } from '../domain/canonical.mjs';
 import { scopeElements as allScopes, scopeMarkdown, scopeFromMarkdown, canonicalHTML, editable } from '../domain/scopes.mjs';
-import { allComments, directiveOwner, placeDirective } from '../domain/directives.mjs';
+import { allComments, directiveOwner, placeDirective, attachComments } from '../domain/directives.mjs';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -328,8 +328,11 @@ function reconcileFailure(prior, edited, el, r, kind) {
   const copy = live.cloneNode(true);
   live.replaceWith(copy);
   try {
+    const owners = new Map(allComments(copy).map((c) => [c, directiveOwner(c)]));
     const what = EDITS[kind](r, copy);
     if (what === null) return null;
+    // A directive the edit left reading as another element's goes back to its own.
+    for (const c of allComments(copy)) if (directiveOwner(c) !== owners.get(c)) attachComments(owners.get(c), [c]);
     const markdown = scopeMarkdown(copy);
     const saved = scopeFromMarkdown(el, markdown);
     const [want, got] = [`${idsIn([copy])}\n${directivesIn([copy])}`, `${idsIn(saved)}\n${directivesIn(saved)}`];

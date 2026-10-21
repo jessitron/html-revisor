@@ -2,7 +2,7 @@
 // document. Tier II, pure functions over a DOM.
 import { parse, trimAscii } from './canonical.mjs';
 import { ID } from './identity.mjs';
-import { removeDirectives } from './directives.mjs';
+import { removeThreads } from './directives.mjs';
 import { scopeElements, scopeMarkdown, scopeFromMarkdown, editable } from './scopes.mjs';
 import { normalize, assignIds } from './format.mjs';
 
@@ -22,7 +22,7 @@ export function committedMarkdowns(html, author) {
   if (html === null) return {};
   try {
     const document = parse(normalize(html));
-    removeDirectives(document, author);
+    removeThreads(document, author);
     return markdownsOf(scopeElements(document));
   } catch {
     return {};
@@ -41,11 +41,11 @@ export function saveMarkdown(el, markdown) {
   return nodes;
 }
 
-// The nodes as the tab shows them: directives lifted out.
+// The nodes as the tab shows them: threads lifted out.
 export function servedHTML(nodes, author) {
   const holder = nodes[0].ownerDocument.createElement('div');
   holder.append(...nodes.map((n) => n.cloneNode(true)));
-  removeDirectives(holder, author);
+  removeThreads(holder, author);
   return holder.innerHTML;
 }
 
