@@ -120,6 +120,20 @@
           <td><a href="#flow">flow</a></td>
         </tr>
         <tr>
+          <td>Who commits?</td>
+          <td>
+            The agent, each time it adds a reply, in whatever way it commits. The server never commits. A commit may catch half an edit of yours; the next one picks up the rest. So every turn is in history before Resolve removes its thread.
+          </td>
+          <td><a href="#flow">flow</a></td>
+        </tr>
+        <tr>
+          <td>What is a turn now?</td>
+          <td>
+            A point to diff from. The agent notes the commit at the last turn boundary, so a diff from it shows every edit and directive since. That's a backup: the agent already hears each one from the server's output.
+          </td>
+          <td></td>
+        </tr>
+        <tr>
           <td>What if the directive changes while the agent replies?</td>
           <td>
             The server refuses the agent's write as stale, the same way it refuses a browser save on an element that changed.
@@ -151,7 +165,7 @@
         <tr>
           <td>How do you know the agent has it?</td>
           <td>
-            The marker cycles: magenta pencil, working, green bubble for an unread answer, and back to the pencil once you open it. While the agent works, the box's icon shows working too.
+            The marker cycles: magenta pencil, working, green bubble for an unread answer, and back to the pencil once you open it. While the agent works, the box's icon shows working too. Working lives in the server, not the file.
           </td>
           <td><a href="#marker">marker</a></td>
         </tr>
@@ -247,8 +261,7 @@
       <text x="565" y="182" text-anchor="middle">Announcement, one JSON line on stdout</text>
       <line class="msg" x1="790" y1="235" x2="344" y2="235" marker-end="url(#arrow)"></line>
       <text x="565" y="227" text-anchor="middle">status: working</text>
-      <line class="msg" x1="340" y1="270" x2="556" y2="270" marker-end="url(#arrow)"></line>
-      <text x="450" y="262" text-anchor="middle">writes the status</text>
+      <text x="450" y="266" text-anchor="middle" fill="var(--muted)">holds it in memory, not the file</text>
       <line class="msg live" x1="340" y1="305" x2="94" y2="305" marker-end="url(#arrow)"></line>
       <text x="215" y="297" text-anchor="middle">marker shows working</text>
       <rect class="busy" x="20" y="330" width="140" height="80" rx="6"></rect>
@@ -260,7 +273,9 @@
       <line class="msg" x1="790" y1="445" x2="344" y2="445" marker-end="url(#arrow)"></line>
       <text x="565" y="437" text-anchor="middle">reply (stale if you added a turn: read it, reply again)</text>
       <line class="msg" x1="340" y1="480" x2="556" y2="480" marker-end="url(#arrow)"></line>
-      <text x="450" y="472" text-anchor="middle">writes the reply, status answered</text>
+      <text x="450" y="472" text-anchor="middle">writes the reply</text>
+      <rect class="busy" x="720" y="490" width="140" height="30" rx="6"></rect>
+      <text x="790" y="510" text-anchor="middle">commits the file</text>
       <line class="msg live" x1="340" y1="515" x2="94" y2="515" marker-end="url(#arrow)"></line>
       <text x="215" y="507" text-anchor="middle">marker shows the bubble; box shows the thread</text>
       <line class="msg" x1="90" y1="565" x2="336" y2="565" marker-end="url(#arrow)"></line>
@@ -727,13 +742,6 @@
     </div>
     <h2 id="open">Open questions</h2>
     <ul>
-      <li>
-        What is a turn now? Replies run while you review, so a turn no longer hands the page back and forth. A commit still marks a point in history. When does one happen: when you say “your turn”, when a thread ends, or both?
-      </li>
-      <li>
-        Resolve ends a thread. Should the server commit before it removes the thread, so the conversation lives in history? The server writes no commits today.
-      </li>
-      <li>Where does the working status go in the file?</li>
       <li>
         Do we need a checkbox for whether the user wants a reply in this thread? ... probably but that's for later, after we try this.
       </li>
