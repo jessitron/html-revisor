@@ -9,7 +9,7 @@ import { formatFiles } from './formatter.mjs';
 import { parse, serialize } from './domain/canonical.mjs';
 import { ID, elementById } from './domain/identity.mjs';
 import { normalize, assignIds } from './domain/format.mjs';
-import { collectDirectives, removeThreads, setDirective } from './domain/directives.mjs';
+import { collectDirectives, threadsOf, removeThreads, removeThread, setDirective } from './domain/directives.mjs';
 import { scopeElements, editable } from './domain/scopes.mjs';
 import { fingerprint, baseOf, basesOf, around } from './domain/bases.mjs';
 import { markdownsOf, committedMarkdowns, saveMarkdown, servedHTML, holderOf } from './domain/markdown-edits.mjs';
@@ -78,9 +78,11 @@ async function route(req, res, config) {
   sendFile(res, file, await readBytes(file));
 }
 
-// GET: format on disk (which assigns element IDs), then serve a copy with directives lifted
-// out into JSON and replies left out, the base of every element so the tab can send it back with a change, and the
-// markdown of every scope for the box to edit, and each scope's markdown at the last commit, for Revert.
+// GET: format on disk (which assigns element IDs), then serve a copy with the threads lifted
+// out into JSON: each element's directive, its open turn, and the settled turns of each thread
+// that has a reply. Also the base of every element so the tab can send it back with a change,
+// the markdown of every scope for the box to edit, and each scope's markdown at the last
+// commit, for Revert.
 async function getPage(res, file, urlPath, { author, telemetry }) {
   const span = trace.getActiveSpan();
   const onDisk = await inSpan('read file', {}, () => readText(file));
@@ -91,8 +93,8 @@ async function getPage(res, file, urlPath, { author, telemetry }) {
     console.log(`${urlPath} (normalized)`);
   }
   const document = inSpan('parse', {}, () => parse(formatted));
-  const directives = inSpan('directives', {}, () => {
-    const found = collectDirectives(document, author);
+  const { directives, threads } = inSpan('directives', {}, () => {
+    const found = { directives: collectDirectives(document, author), threads: threadsOf(document, author) };
     removeThreads(document, author);
     return found;
   });
@@ -105,11 +107,12 @@ async function getPage(res, file, urlPath, { author, telemetry }) {
   });
   const assets = await readClientAssets();
   const html = inSpan('serialize', {}, () => {
-    injectClient(document, { directives, bases, markdowns, committed, telemetry }, fingerprint(formatted), assets);
+    injectClient(document, { directives, threads, bases, markdowns, committed, telemetry }, fingerprint(formatted), assets);
     return document.toString();
   });
   span?.setAttributes({
     'hrv.directive.count': Object.keys(directives).length,
+    'hrv.thread.count': Object.keys(threads).length,
     'hrv.element.count': Object.keys(bases).length,
     'hrv.scope.count': Object.keys(markdowns).length,
     'hrv.answer.bytes': html.length,
@@ -120,6 +123,8 @@ async function getPage(res, file, urlPath, { author, telemetry }) {
 // PUT: the body is one change to one element, with the base the tab started from:
 //   {"id": "7", "base": "…", "directive": "text"}   sets the element's directive; "" removes it
 //   {"id": "7", "base": "…", "markdown": "…"}       replaces a scope with what its markdown says
+//   {"id": "7", "base": "…", "resolve": true}       Resolve: removes the element's thread
+// The directive is the element's open turn: after a reply, setting it adds a turn to the thread.
 // IDs come first, so elements an agent added since the last format have them. A base that
 // doesn't match the element now, or an ID that isn't there, is a conflict: 412, nothing written.
 // The answer carries the new bases of the element and the elements around it, and the file's
@@ -128,13 +133,14 @@ async function getPage(res, file, urlPath, { author, telemetry }) {
 // the new markdown of the scopes around it.
 async function putChange(req, res, file, urlPath, { author }) {
   const change = await readJson(req);
-  const { id, base, directive, markdown } = change ?? {};
-  if (typeof id !== 'string' || typeof base !== 'string' || (typeof directive === 'string') === (typeof markdown === 'string')) {
-    throw new HttpError(400, 'body must look like {"id": "<id>", "base": "<base>", "directive": "text"} or {"id", "base", "markdown"}');
+  const { id, base, directive, markdown, resolve } = change ?? {};
+  const kinds = [typeof directive === 'string' && 'directive', typeof markdown === 'string' && 'markdown', resolve === true && 'resolve'].filter(Boolean);
+  if (typeof id !== 'string' || typeof base !== 'string' || kinds.length !== 1) {
+    throw new HttpError(400, 'body must look like {"id": "<id>", "base": "<base>", "directive": "text"}, or with "markdown": "…" or "resolve": true instead');
   }
-  const kind = typeof directive === 'string' ? 'directive' : 'markdown';
+  const [kind] = kinds;
   const span = trace.getActiveSpan();
-  span?.setAttributes({ 'hrv.page': urlPath, 'hrv.change.kind': kind, 'hrv.scope.id': id, 'hrv.change.bytes': (directive ?? markdown).length });
+  span?.setAttributes({ 'hrv.page': urlPath, 'hrv.change.kind': kind, 'hrv.scope.id': id, 'hrv.change.bytes': (directive ?? markdown ?? '').length });
   const onDisk = await inSpan('read file', {}, () => readText(file));
   span?.setAttribute('hrv.page.bytes', onDisk.length);
   const document = inSpan('parse', {}, () => {
@@ -151,6 +157,9 @@ async function putChange(req, res, file, urlPath, { author }) {
   let changed, answer = {};
   if (kind === 'directive') {
     inSpan('set directive', {}, () => setDirective(el, directive, author));
+    changed = around([el]);
+  } else if (kind === 'resolve') {
+    inSpan('resolve', {}, () => removeThread(el, author));
     changed = around([el]);
   } else {
     const nodes = inSpan('set markdown', {}, () => saveMarkdown(el, markdown));

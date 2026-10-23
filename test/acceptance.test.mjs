@@ -43,7 +43,8 @@ async function withServer(fn, args = []) {
       const bases = JSON.parse(document.querySelector('script#hrv-bases').textContent);
       const markdowns = JSON.parse(document.querySelector('script#hrv-markdown').textContent);
       const committed = JSON.parse(document.querySelector('script#hrv-committed').textContent);
-      return { res, html, document, bases, markdowns, committed, version: json.getAttribute('data-version'), directives: JSON.parse(json.textContent) };
+      const threads = JSON.parse(document.querySelector('script#hrv-threads').textContent);
+      return { res, html, document, bases, markdowns, committed, threads, version: json.getAttribute('data-version'), directives: JSON.parse(json.textContent) };
     },
     // PUT one change, as the tab sends it: {id, base, directive} or {id, base, markdown}.
     put: (name, change) =>
@@ -454,9 +455,36 @@ test('a scope of 4 KB or more takes directives, not markdown; one a save grows p
     assert.equal(answer.markdowns[near], null, 'the section grew past the limit');
   }));
 
-test('a PUT body must be one change: id, base, and a directive or a markdown', () =>
+test('threads: the page carries each settled thread; a directive after a reply is a new turn', () =>
   withServer(async (s) => {
-    for (const body of [{ directives: {} }, { id: '1', base: 'x' }, { id: '1', base: 'x', directive: 'a', markdown: 'b' }, { id: 1, base: 'x', markdown: 'b' }, { id: '1', base: 'x', text: 'b' }]) {
+    s.write('thread.html', '<p><!-- @AI: add a diagram --><!-- @Human: Added one. Want another? -->Where it is headed</p><p>other</p>');
+    const { document, html, directives, threads, bases } = await s.page('thread.html');
+    const p = idOf(document, 'p');
+    assert.deepEqual(threads, { [p]: [{ prefix: '@AI', text: 'add a diagram' }, { prefix: '@Human', text: 'Added one. Want another?' }] });
+    assert.deepEqual(directives, {});
+    assert.doesNotMatch(html, /<!--\s*@Human:/);
+    assert.equal((await s.put('thread.html', { id: p, base: bases[p], directive: 'Yes' })).status, 200);
+    assert.match(s.read('thread.html'), /<!-- @AI: add a diagram -->\s*<!-- @Human: Added one. Want another\? -->\s*<!-- @AI: Yes -->/);
+    const again = await s.page('thread.html');
+    assert.deepEqual(again.directives, { [p]: 'Yes' });
+    assert.equal(again.threads[p].length, 2);
+  }));
+
+test('Resolve removes the thread, directives and replies, and nothing else', () =>
+  withServer(async (s) => {
+    s.write('thread.html', '<p><!-- @AI: one --><!-- @Human: two --><!-- @AI: three -->text</p><p><!-- @AI: keep -->other</p>');
+    const { document, bases } = await s.page('thread.html');
+    const p = idOf(document, 'p');
+    const answer = await (await s.put('thread.html', { id: p, base: bases[p], resolve: true })).json();
+    assert.equal(answer.ok, true);
+    assert.equal(answer.count, 1);
+    assert.doesNotMatch(s.read('thread.html'), /one|two|three/);
+    assert.match(s.read('thread.html'), /<!-- @AI: keep -->/);
+  }));
+
+test('a PUT body must be one change: id, base, and a directive, a markdown, or resolve', () =>
+  withServer(async (s) => {
+    for (const body of [{ directives: {} }, { id: '1', base: 'x' }, { id: '1', base: 'x', directive: 'a', markdown: 'b' }, { id: 1, base: 'x', markdown: 'b' }, { id: '1', base: 'x', text: 'b' }, { id: '1', base: 'x', resolve: 'yes' }, { id: '1', base: 'x', directive: '', resolve: true }]) {
       assert.equal((await s.put('page.html', body)).status, 400, JSON.stringify(body));
     }
   }));

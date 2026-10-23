@@ -2,10 +2,11 @@
 // function over a DOM. Appended to the served copy, never written to the file, so none of it
 // has an ID.
 
-// directives: {id: text}. bases: {id: base}, sent back with each change. markdowns: {id: markdown}.
-// committed: {id: markdown} at the last commit. css, js: the client assets.
+// directives: {id: text}, each element's open turn. threads: {id: [{prefix, text}]}, the settled
+// turns of each thread with a reply. bases: {id: base}, sent back with each change. markdowns:
+// {id: markdown}. committed: {id: markdown} at the last commit. css, js: the client assets.
 // telemetry: the client records spans for its saves.
-export function injectClient(document, { directives, bases, markdowns = {}, committed = {}, telemetry = false }, version, { css, js }) {
+export function injectClient(document, { directives, threads = {}, bases, markdowns = {}, committed = {}, telemetry = false }, version, { css, js }) {
   const head = document.querySelector('head') ?? document.documentElement;
   const body = document.querySelector('body') ?? document.documentElement;
 
@@ -20,6 +21,12 @@ export function injectClient(document, { directives, bases, markdowns = {}, comm
   if (telemetry) data.setAttribute('data-telemetry', '');
   data.textContent = JSON.stringify(directives).replace(/</g, '\\u003c');
   body.appendChild(data);
+
+  const threadData = document.createElement('script');
+  threadData.setAttribute('type', 'application/json');
+  threadData.setAttribute('id', 'hrv-threads');
+  threadData.textContent = JSON.stringify(threads).replace(/</g, '\\u003c');
+  body.appendChild(threadData);
 
   const baseData = document.createElement('script');
   baseData.setAttribute('type', 'application/json');
