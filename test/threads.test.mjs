@@ -8,7 +8,7 @@ import { parse, serialize } from '../domain/canonical.mjs';
 import { elementById } from '../domain/identity.mjs';
 import { baseOf } from '../domain/bases.mjs';
 import { cleanup } from '../domain/cleanup.mjs';
-import { placeReply, threadOf, collectDirectives, removeThreads, setDirective } from '../domain/directives.mjs';
+import { placeReply, threadOf, threadsOf, collectDirectives, removeThreads, removeThread, setDirective } from '../domain/directives.mjs';
 
 const page = (body) => parse(normalize(body));
 const idOf = (document, selector) => document.querySelector(selector).getAttribute('data-hrv');
@@ -74,9 +74,39 @@ test('reply text that would end the comment is escaped', () => {
   assert.deepEqual(threadOf(parse(serialize(document)).querySelector('p'), '@AI').at(-1), { prefix: '@Human', text: 'a - -&gt; b' });
 });
 
-test('replies are not directives: the tab gets only your turns', () => {
-  const document = page('<p><!-- @AI: one --><!-- @Human: two -->text</p>');
+test('the directive is the open turn: what comes after the last reply', () => {
+  const document = page('<p><!-- @AI: one --><!-- @Human: two --><!-- @AI: three --><!-- @AI: four -->text</p><p><!-- @AI: a --><!-- @Human: b -->x</p>');
+  const [first, second] = [idOf(document, 'p'), idOf(document, 'p + p')];
+  assert.deepEqual(collectDirectives(document, '@AI'), { [first]: 'three\nfour' });
+  assert.deepEqual(threadsOf(document, '@AI'), {
+    [first]: turns(['@AI', 'one'], ['@Human', 'two']),
+    [second]: turns(['@AI', 'a'], ['@Human', 'b']),
+  });
+});
+
+test('a thread with no reply is all directive, and no settled thread', () => {
+  const document = page('<p><!-- @AI: one -->text</p>');
+  assert.deepEqual(threadsOf(document, '@AI'), {});
   assert.deepEqual(Object.values(collectDirectives(document, '@AI')), ['one']);
+});
+
+test('setting the directive after a reply adds a turn and leaves the earlier ones as written', () => {
+  const document = page('<p><!-- @AI: one --><!-- @Human: two -->text</p>');
+  const p = document.querySelector('p');
+  setDirective(p, 'three', '@AI');
+  setDirective(p, 'three, again', '@AI');
+  const reread = parse(serialize(document)).querySelector('p');
+  assert.deepEqual(threadOf(reread, '@AI'), turns(['@AI', 'one'], ['@Human', 'two'], ['@AI', 'three, again']));
+  setDirective(reread, '', '@AI');
+  assert.deepEqual(threadOf(reread, '@AI'), turns(['@AI', 'one'], ['@Human', 'two']));
+});
+
+test('Resolve takes out the whole thread and leaves the neighbors\'', () => {
+  const document = page('<div><p><!-- @AI: one --><!-- @Human: two -->text</p><!-- @AI: crop --><img src="a.png" alt="a"></div>');
+  removeThread(document.querySelector('p'), '@AI');
+  const reread = parse(serialize(document));
+  assert.deepEqual(threadOf(reread.querySelector('p'), '@AI'), []);
+  assert.deepEqual(threadOf(reread.querySelector('img'), '@AI'), turns(['@AI', 'crop']));
 });
 
 test('a reply changes no base', () => {

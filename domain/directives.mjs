@@ -53,16 +53,14 @@ function nextContent(node) {
   return node;
 }
 
-// { [element ID]: directive text }; several directives on one element join with newlines.
+// { [element ID]: directive text }: each element's open turn, the directives after its last
+// reply. Several join with newlines; an element whose thread ends in a reply has none.
 // A directive on an element with no ID stays in the file, unseen.
 export function collectDirectives(document, author) {
   const directives = {};
-  for (const comment of allComments(document)) {
-    if (!isDirective(comment, author)) continue;
-    const id = directiveOwner(comment).getAttribute?.(ID);
-    if (id == null) continue;
-    const text = directiveText(comment, author);
-    directives[id] = id in directives ? `${directives[id]}\n${text}` : text;
+  for (const [id, thread] of Object.entries(threadsById(document, author))) {
+    const open = thread.slice(lastReply(thread) + 1).map((t) => t.text);
+    if (open.length) directives[id] = open.join('\n');
   }
   return directives;
 }
@@ -75,13 +73,38 @@ export const isTurn = (node, author) => isDirective(node, author) || isDirective
 
 // [{ prefix, text }], in order: the author's turns and the replies on this element.
 export function threadOf(el, author) {
-  return allComments(el.ownerDocument)
-    .filter((c) => isTurn(c, author) && directiveOwner(c) === el)
-    .map((c) => {
-      const prefix = isDirective(c, author) ? author : REPLY;
-      return { prefix, text: directiveText(c, prefix) };
-    });
+  return turnsOn(el, author).map((c) => turnOf(c, author));
 }
+
+function turnOf(comment, author) {
+  const prefix = isDirective(comment, author) ? author : REPLY;
+  return { prefix, text: directiveText(comment, prefix) };
+}
+
+// { [element ID]: [{ prefix, text }] }: the settled part of each thread that has a reply, its
+// turns through the last reply. The turn after that is the element's directive.
+export function threadsOf(document, author) {
+  const threads = {};
+  for (const [id, thread] of Object.entries(threadsById(document, author))) {
+    const settled = thread.slice(0, lastReply(thread) + 1);
+    if (settled.length) threads[id] = settled;
+  }
+  return threads;
+}
+
+// Every element's thread, by ID, in one pass over the comments.
+function threadsById(document, author) {
+  const threads = {};
+  for (const comment of allComments(document)) {
+    if (!isTurn(comment, author)) continue;
+    const id = directiveOwner(comment).getAttribute?.(ID);
+    if (id == null) continue;
+    (threads[id] ??= []).push(turnOf(comment, author));
+  }
+  return threads;
+}
+
+const lastReply = (thread) => thread.findLastIndex((t) => t.prefix === REPLY);
 
 // Takes out every thread: the directives and the replies.
 export function removeThreads(document, author) {
@@ -90,21 +113,31 @@ export function removeThreads(document, author) {
   }
 }
 
+// Resolve: takes out the element's thread, directives and replies.
+export function removeThread(el, author) {
+  for (const comment of turnsOn(el, author)) comment.remove();
+}
+
+const turnsOn = (el, author) => allComments(el.ownerDocument).filter((c) => isTurn(c, author) && directiveOwner(c) === el);
+
 // A reply goes after the last turn in the element's thread, or where a directive would go.
 export function placeReply(el, text, author) {
   const reply = el.ownerDocument.createComment(` ${REPLY}: ${escapeDirectiveText(text.trim())} `);
-  const last = allComments(el.ownerDocument).findLast((c) => isTurn(c, author) && directiveOwner(c) === el);
+  const last = turnsOn(el, author).at(-1);
   if (last) last.after(reply);
   else attachComments(el, [reply]);
 }
 
-// Replace the element's directives with this one; empty text leaves it none. Other
-// elements' directives stay where they are.
+// Replace the element's open turn, the directives after its last reply, with this one; empty
+// text leaves it none. The turns before stay as written, and other elements' directives stay
+// where they are.
 export function setDirective(el, text, author) {
-  for (const comment of allComments(el.ownerDocument)) {
-    if (isDirective(comment, author) && directiveOwner(comment) === el) comment.remove();
-  }
-  if (text.trim()) placeDirective(el, text, author);
+  const turns = turnsOn(el, author);
+  const reply = turns.findLast((c) => isDirective(c, REPLY));
+  for (const comment of turns.slice(turns.indexOf(reply) + 1)) comment.remove();
+  if (!text.trim()) return;
+  if (reply) reply.after(el.ownerDocument.createComment(` ${author}: ${escapeDirectiveText(text.trim())} `));
+  else placeDirective(el, text, author);
 }
 
 export function placeDirective(el, text, author) {
