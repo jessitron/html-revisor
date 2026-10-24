@@ -133,7 +133,8 @@ A directive is an HTML comment whose text starts with `<author>:`.
 
 - HTML comments without the prefix are not directives. The server leaves them alone.
 - The directive text is everything after the prefix. Multi-line text is fine.
-- On write, `--` becomes `- -` and `>` becomes `&gt;` so the text cannot end the HTML comment early.
+- On write, `--` becomes `- -` and `>` becomes `&gt;` so the text cannot end the HTML comment early. Reading doesn't undo it: the agent sees `- -`.
+- Several directives in a row on one element read as one, joined with newlines, and the next save writes them back as one.
 
 Placement: a directive attaches to exactly one element.
 
@@ -143,6 +144,23 @@ Placement: a directive attaches to exactly one element.
 - A hand-written directive placed in `<body>` between blocks attaches to `<body>` and moves to the top of `<body>` on the next save.
 
 Replies: the agent answers a directive with `<!-- @Human: … -->`, escaped the same way, through `reply.mjs` (see [Reply](#reply)). The prefix names who the words are for. An element's directives and replies, in file order, are its thread; a reply goes after the thread's last turn. Threads change no element's base, and cleanup removes them.
+
+The tool never drops a directive on its own. The human removes one by clearing it, resolving its thread, or deleting its element in a markdown edit; the agent, by addressing it or running cleanup.
+
+## Canonical form
+
+The formatter owns the file's layout. It changes how the file reads, never what it renders as: whitespace changes only where HTML collapses it, between blocks and inside a run of inline content. Formatting a formatted file changes nothing. `domain/canonical.mjs` holds the rules:
+
+- `<!DOCTYPE html>` first, keeping the doctype's name when the file has one, and one newline at the end. A missing `<html>`, `<head>` or `<body>` is added.
+- Two-space indentation, one block element per line. A block element is one named in `BLOCK` (`html`, `body`, `section`, `div`, `p`, `h1`–`h6`, lists, table parts, `pre`, `figure`, `svg`, …), any element holding one, or an element inside an `<svg>`. A `<text>` in an svg stays whole on one line, since its whitespace renders.
+- An element holding only inline content stays on one line under 90 characters. A longer one takes three: open tag, content indented, close tag.
+- A run of inline nodes is one line, whitespace collapsed to single spaces and trimmed at both ends. Whitespace between two inline siblings stays as a space: `<strong>x</strong> &amp; y` keeps it. Whitespace beside a `<br>` goes. U+00A0 is not whitespace here; it's written `&nbsp;`.
+- An HTML comment in a block container sits on its own line, its text as it was.
+- `pre`, `textarea`, `script`, `style`, `template`: the open tag, the inner content unchanged, the close tag.
+- A void element is its open tag, with no closing slash.
+- Attributes in source order, as `name="value"` with `&` and `"` escaped; an empty value as the bare name.
+- Text escapes `&`, `<` and `>`.
+- `b` becomes `strong`, `i` becomes `em`, and table rows go into `thead` and `tbody`: the forms markdown writes back.
 
 ## Agent instructions
 
@@ -191,7 +209,7 @@ Open `SCOPES-DESIGN.html` in a browser (see [Try it](#try-it)).
 - [ ] `⌘↵`, `Esc`, Done, and clicking outside each commit and close the box. (On a page with a full-width wrapper element, clicking the margin opens a box on the wrapper instead; use Esc.)
 - [ ] In a scope's box with a changed scope and a directive, Tab goes Revert, Content, Clear, Directive, Done, and wraps back to Revert; Shift-Tab goes the other way. A hidden action takes no stop. A button you Tab to wears the accent ring, and nothing moves; a click shows no ring. Enter or Space presses it.
 - [ ] Opening a second box commits and closes the first.
-- [ ] Plain click on a link opens a directive box; ⌘-click on a link navigates.
+- [ ] Plain click on a link opens a directive box; ⌘-, Ctrl-, Shift- or ⌥-click on a link goes to the page, so the link navigates.
 - [ ] The page's own layout and styles look the same with the UI loaded, including while hovering: a card keeps its own box-shadow.
 - [ ] Stopping the server and typing shows `save failed: ...` on the docket; restarting and typing again saves and clears it.
 - [ ] Edit one element in the file on disk while the tab is open, then type a directive on that element: the docket says it wasn't saved and suggests a reload, the box's footer says `not saved`, the file stays untouched, and the box keeps your text.
@@ -203,7 +221,7 @@ Open `SCOPES-DESIGN.html` in a browser (see [Try it](#try-it)).
 
 ## Design
 
-The code is in three tiers, and a file's tier is where it lives: the top-level `*.mjs` files are Tier I, `domain/` is Tier II, `interface/` and `vendor/` are Tier III. Dependencies point down, and no module imports itself through others; `test/architecture.test.mjs` checks both, along with the rest of the rules below. `client.css` and `client.js` run in the browser: the server inlines them into each page. How the UI looks, and the design decisions so far, are in [DESIGN.html](DESIGN.html); it links `client.css`, so it shows the real styles. How editing as markdown behaves, and its design decisions, are in [SCOPES-DESIGN.html](SCOPES-DESIGN.html#decided); how elements keep their IDs across a save is in [its identity table](SCOPES-DESIGN.html#identity).
+The code is in three tiers, and a file's tier is where it lives: the top-level `*.mjs` files are Tier I, `domain/` is Tier II, `interface/` and `vendor/` are Tier III. Dependencies point down, and no module imports itself through others; `test/architecture.test.mjs` checks both, along with the rest of the rules below. `client.css` and `client.js` run in the browser: the server inlines them into each page. The client is a plain script, with no build step, no framework, and no external resources. How the UI looks, and the design decisions so far, are in [DESIGN.html](DESIGN.html); it links `client.css`, so it shows the real styles. How editing as markdown behaves, and its design decisions, are in [SCOPES-DESIGN.html](SCOPES-DESIGN.html#decided); how elements keep their IDs across a save is in [its identity table](SCOPES-DESIGN.html#identity).
 
 The HTML parser is [linkedom](https://github.com/WebReflection/linkedom), bundled with its dependencies into `vendor/linkedom.mjs` (licenses in `vendor/linkedom.LICENSES.txt`) so the tool runs where `npm install` can't, such as behind a corporate proxy. The markdown parser is [markdown-it](https://github.com/markdown-it/markdown-it), bundled the same way into `vendor/markdown-it.mjs`. The HTML-to-markdown writer is our own, in `domain/scopes.mjs`. To upgrade either: change the version in `package.json`'s devDependencies, then `npm install && npm run vendor`, and commit `vendor/`.
 
@@ -221,10 +239,11 @@ The HTML parser is [linkedom](https://github.com/WebReflection/linkedom), bundle
   - **The served page**: `served-page.mjs`. `injectClient`: the client and its data, added to the served copy.
   - **Cleanup**: `cleanup.mjs`. Parse, remove directives and element IDs, serialize (see [Clean up](#clean-up)).
 - **Scopes**: `domain/scopes.mjs`. A scope is what you pick to direct or edit: any block, plus links and images; its whole content edits as markdown, if it's under 4 KB of HTML. Tier II is `scopeElements` (which elements get IDs), `editable` (which scopes edit as markdown), `scopesWithin`, `scopeMarkdown` (a scope as markdown), and `scopeFromMarkdown` (the HTML its markdown saves as). Saving a scope's markdown unchanged gives back the same HTML, element IDs included; saving it edited, each element you left, moved, or changed keeps its ID and its directives, and a new one gets none. A directive on an element the edit deleted goes with it. `test/roundtrip.test.mjs` checks both on every page here and on generated ones. What markdown can't say comes out as HTML, and what isn't text (an svg, a script) rides along as a stand-in, `⟦svg⟧`. `node scopes.mjs --annotate SCOPES-DESIGN.html` writes each case's HTML, scopes, and markdown under it in [SCOPES-DESIGN.html#scopes](SCOPES-DESIGN.html#scopes).
-- **Tier III, interface**: `interface/`, the gateways to the world, and `vendor/`. Only these modules import `node:fs` or `node:child_process`. `files.mjs` is the filesystem gateway: reads, writes, directory listings, watching a file (`watchFile`), the file at the last commit, and the client assets injected into served pages: `client.css` and `client.js`, read on each GET, so a change shows on reload without a restart. `http.mjs`: request paths (under the root, 403 on escape), bodies, content types, what a GET wants by its `Accept` (`wants`), answers, event streams (`openEventStream`), the directory listing page, and `putJson`, the client side that `reply.mjs` calls the server with. `stdout.mjs`: Announcements. `telemetry.mjs`: the OTel API, always loaded and a no-op until the SDK registers, which it loads only with `HRV_TELEMETRY` (see [Telemetry](#telemetry)).
+- **Tier III, interface**: `interface/`, the gateways to the world, and `vendor/`. Only these modules import `node:fs` or `node:child_process`. `files.mjs` is the filesystem gateway: reads, writes, directory listings, watching a file (`watchFile`), the file at the last commit, and the client assets injected into served pages: `client.css` and `client.js`, read on each GET, so a change shows on reload without a restart. `http.mjs`: request paths (under the root, 403 on escape), bodies, content types (so a page's own CSS and images load), what a GET wants by its `Accept` (`wants`), answers (404 for a missing file; for any other error, a plain-text 500 with the message, and its stack on stderr), event streams (`openEventStream`), the directory listing page, and `putJson`, the client side that `reply.mjs` calls the server with. `stdout.mjs`: Announcements. `telemetry.mjs`: the OTel API, always loaded and a no-op until the SDK registers, which it loads only with `HRV_TELEMETRY` (see [Telemetry](#telemetry)).
 - **Markdown edits**: GET serves the markdown of every scope under 4 KB in `#hrv-markdown`, for the box. A PUT with `markdown` replaces the scope with what `scopeFromMarkdown` builds, which reconciles: elements you left or changed keep their IDs and directives. An element that isn't a scope (`hr`, an SVG shape), a scope of 4 KB or more, `body`, and blank markdown get 400. A scope a save grows past 4 KB comes back in the answer's `markdowns` as null, and its Content field goes. The tab doesn't render markdown: it swaps in the `html` the answer carries.
 - **Files it serves**: agent-generated documents whose generation we control. The tool may require things of them, limit what they contain, and rewrite them on disk. When a file shape causes trouble, normalize it into a shape the tool handles rather than supporting every HTML a browser accepts. If a requirement can't be met by normalizing, add it to the agent instructions above.
-- **Deviation from the spec**: element IDs live in the file, and a PUT carries one change with its base instead of the whole set of directives. The served page carries the file's hash as `data-version` on the `#hrv-directives` script, the settled turns of each thread with a reply in `#hrv-threads` (`{"<id>": [{"prefix", "text"}]}`, through the last reply), every element's base in `#hrv-bases`, every scope's markdown in `#hrv-markdown`, and every scope's markdown at the file's last commit in `#hrv-committed`, for Revert. The server reads that with `git show HEAD:` and normalizes it, so a commit without IDs gets the numbers the page got when first opened.
+- **What the served page carries**: no directives as HTML comments; they come as data, in JSON scripts with `<` written `<`. `#hrv-directives` holds each element's directive, with the file's hash as its `data-version`. The page also carries the settled turns of each thread with a reply in `#hrv-threads` (`{"<id>": [{"prefix", "text"}]}`, through the last reply), every element's base in `#hrv-bases`, every scope's markdown in `#hrv-markdown`, and every scope's markdown at the file's last commit in `#hrv-committed`, for Revert. The server reads that with `git show HEAD:` and normalizes it, so a commit without IDs gets the numbers the page got when first opened.
+- **Non-goals**: more than one user, auth, or remote access (the server listens on 127.0.0.1); history or undo beyond git, Revert, and the box's ⌘Z; edits that keep the source's layout, since the formatter owns it.
 
 ## Gotchas for maintainers
 

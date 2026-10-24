@@ -828,6 +828,10 @@ first.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;one&lt;/li&gt;&lt;li&gt;two&lt;/li&gt;&lt;/u
           A directive is <code>&lt;!-- @AI: … --&gt;</code>, attached to exactly one element.
         </li>
         <li>Formatting is idempotent: a normalized file loads unchanged.</li>
+        <li>Formatting changes how the file reads, never what it renders as.</li>
+        <li>
+          The tool never drops a directive on its own: the human clears it, or the agent addresses it.
+        </li>
         <li>A save can't overwrite an element its tab didn't see (conflict check).</li>
         <li>An element ID never changes and is never reused.</li>
         <li>Dependencies point down: orchestration → domain → interface.</li>
@@ -883,7 +887,6 @@ first.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;one&lt;/li&gt;&lt;li&gt;two&lt;/li&gt;&lt;/u
           <strong>Tracker</strong>
           <p>Work lives in <code>yx</code>. Run <code>yx list</code>.</p>
           <ul>
-            <li>Spec: <code>html-revisor-spec.md</code> (to be folded into this document)</li>
             <li>Usage: <a href="https://github.com/jessitron/html-revisor#readme">README.md</a></li>
             <li>Scope decisions: <a href="SCOPES-DESIGN.html#decided">SCOPES-DESIGN.html</a></li>
             <li>Telemetry and its queries: <a href="OBSERVABILITY.html">OBSERVABILITY.html</a></li>

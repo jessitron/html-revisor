@@ -18,8 +18,10 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
     <p>Wave 1. Fold the spec into the living docs.</p>
     <section id="status" class="status">
       <h2>Status</h2>
-      <p class="status-value">planned</p>
-      <p class="status-why">Waiting for the coordinator to start wave 1.</p>
+      <p class="status-value">merged-ready</p>
+      <p class="status-why">
+        The spec is folded in and deleted; the suite passes. Jess: review the OVERVIEW changes under Result.
+      </p>
     </section>
     <section id="plan" class="plan">
       <h2>Plan</h2>
@@ -40,6 +42,12 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
       <h2>Log</h2>
       <ul>
         <li>2026-10-24: page made by Herald.</li>
+        <li>
+          2026-10-24 started: read the spec line by line against <code>domain/canonical.mjs</code>, <code>domain/directives.mjs</code>, <code>domain/served-page.mjs</code>, <code>interface/http.mjs</code>, <code>server.mjs</code>, <code>client.js</code>.
+        </li>
+        <li>
+          2026-10-24: folded the spec into <code>README.md</code> and <code>OVERVIEW.html</code>, deleted it, removed its mentions. Suite: 192 pass, 0 fail. One commit; its hash is under Result.
+        </li>
       </ul>
     </section>
     <section id="guesses" class="guesses">
@@ -51,16 +59,95 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
         <p>
           <strong>Why:</strong> starting guess from the coordinator. A kept line costs a reader a moment; a cut line is gone for good once the spec is deleted.
         </p>
-        <p><strong>If wrong:</strong> the Log names each line kept on doubt; cut those.</p>
+        <p>
+          <strong>If wrong:</strong> the lines kept on doubt are the README's <code>http.mjs</code> error and content-type clause, the served page's <code>&lt;</code> note, and the Non-goals bullet; cut those.
+        </p>
+      </div>
+      <div id="guess-scopes-design-unchanged" class="guess">
+        <p><strong>Guess:</strong> <code>SCOPES-DESIGN.html</code> gets no new row.</p>
+        <p>
+          <strong>Why:</strong> its tables hold scope, markdown, and identity decisions. The spec's identity section (<code>data-n</code> by document order, never on disk) is history: the identity table already says IDs live in the file as <code>data-hrv</code>. Nothing else in the spec is about scopes.
+        </p>
+        <p>
+          <strong>If wrong:</strong> add a row to the <code>#identity</code> table in <code>SCOPES-DESIGN.html</code>.
+        </p>
+      </div>
+      <div id="guess-canonical-in-readme" class="guess">
+        <p>
+          <strong>Guess:</strong> the canonical layout rules go in a new README section, "Canonical form", after "Directive format".
+        </p>
+        <p>
+          <strong>Why:</strong> no doc held them; README ships with the tool, beside the directive format an agent reads. OVERVIEW is a picture and already draws normalize in <code>#d-normalize</code>.
+        </p>
+        <p>
+          <strong>If wrong:</strong> move the section out of <code>README.md</code>, or trim it to the principle and a pointer to <code>domain/canonical.mjs</code>.
+        </p>
+      </div>
+      <div id="guess-what-was-dropped" class="guess">
+        <p>
+          <strong>Guess:</strong> dropped as history or no longer true: <code>data-n</code> identity; PUT as the full set of directives; the GET and PUT step lists (README's Design has the current ones); the log line <code>path — N pending notes</code> (the server doesn't print it); the client UI details that DESIGN.html and the checklist replaced (dashed outline, pencil marker, inset accent, 400 ms debounce, toast); the acceptance tests (now in <code>test/</code>); the Python option; "one file I can read in ten minutes"; the lifecycle walk-through (OVERVIEW's loop draws it).
+        </p>
+        <p><strong>Why:</strong> checked each against the code; none holds as written.</p>
+        <p>
+          <strong>If wrong:</strong> <code>git show HEAD~1:html-revisor-spec.md</code> on the commit before the deletion has the text.
+        </p>
+      </div>
+      <div id="guess-frozen-test-page" class="guess">
+        <p>
+          <strong>Guess:</strong> <code>test/pages/OVERVIEW.html</code> still names the spec in its Tracker card; left as is.
+        </p>
+        <p>
+          <strong>Why:</strong> it is a frozen test input, refreshed on purpose in its own commit (CLAUDE.md).
+        </p>
+        <p><strong>If wrong:</strong> refresh that copy in its own commit.</p>
       </div>
     </section>
     <section id="result" class="result">
       <h2>Result</h2>
-      <p>None yet.</p>
+      <ul>
+        <li>
+          Commit: "Fold html-revisor-spec.md into README and OVERVIEW, and delete it - claude" (the hash is in the coordinator's merge; it is this page's own commit).
+        </li>
+        <li>
+          Tests: <code>node --test --test-reporter=tap</code>: <code># tests 193</code>, <code># pass 192</code>, <code># fail 0</code> (one skipped).
+        </li>
+      </ul>
+      <p>
+        What changed in <code>OVERVIEW.html</code>, for Jess to review before a push makes it public:
+      </p>
+      <ul>
+        <li>
+          Invariants: added "Formatting changes how the file reads, never what it renders as."
+        </li>
+        <li>
+          Invariants: added "The tool never drops a directive on its own: the human clears it, or the agent addresses it."
+        </li>
+        <li>
+          Current work, Tracker card: removed the line "Spec: <code>html-revisor-spec.md</code> (to be folded into this document)".
+        </li>
+      </ul>
+      <p>What changed in <code>README.md</code>:</p>
+      <ul>
+        <li>
+          Directive format: reading doesn't undo the escaping; several directives in a row read as one, joined with newlines; who removes a directive.
+        </li>
+        <li>
+          New section "Canonical form": the formatter's layout rules and its principle, checked against <code>domain/canonical.mjs</code>.
+        </li>
+        <li>
+          Design: the client has no build step, framework, or external resources; <code>http.mjs</code>'s 404, plain-text 500, and content types; "Deviation from the spec" is now "What the served page carries"; a Non-goals bullet.
+        </li>
+        <li>Manual checklist: any modifier-click on a link navigates, not ⌘ alone.</li>
+      </ul>
+      <p>
+        <code>CLAUDE.md</code> no longer names the spec. <code>html-revisor-spec.md</code> is deleted. <code>SCOPES-DESIGN.html</code> is unchanged.
+      </p>
     </section>
     <section id="gotchas" class="gotchas">
       <h2>Gotchas</h2>
-      <p>None yet.</p>
+      <p>
+        None. The one skipped test is the Honeycomb one, with no key in the shell; <code>TESTING.html</code> says so.
+      </p>
     </section>
     <section id="new-yaks" class="new-yaks">
       <h2>New yaks</h2>
