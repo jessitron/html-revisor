@@ -1,0 +1,1 @@
+live-notice.test.mjs: close the server's sockets and wait on conditions
