@@ -145,6 +145,14 @@ test('an Announcement carries the base of its thread; a revision with no thread 
   assert.equal(announcementOf(again, plainId, { directive: '', markdown: 'before' }, '@AI').thread, undefined);
 });
 
+test('an Announcement of a Resolve carries the turns that went, even with nothing else changed', () => {
+  const document = page('<h1>Title</h1><p>text</p>');
+  const id = idOf(document, 'p');
+  const ended = turns(['@AI', 'one'], ['@Human', 'two']);
+  assert.deepEqual(announcementOf(document, id, { directive: '' }, '@AI', ended), { id, element: 'p', heading: 'Title', resolved: ended });
+  assert.equal(announcementOf(document, id, { directive: '' }, '@AI'), null, 'no Resolve, nothing changed');
+});
+
 test('removeThreads takes out directives and replies, and leaves other comments', () => {
   const document = page('<p><!-- @AI: one --><!-- @Human: two --><!-- ordinary -->text</p>');
   removeThreads(document, '@AI');

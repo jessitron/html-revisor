@@ -36,7 +36,7 @@ export function parseArgs(argv) {
 
 // telemetry: the server sends spans, so the page's client records its own and posts them here.
 export function createServer({ root, author, telemetry = false }) {
-  const config = { root: path.resolve(root), author, telemetry, inTurn: oneAtATime() };
+  const config = { root: path.resolve(root), author, telemetry, inTurn: oneAtATime(), resolved: resolvedTurns() };
   return http.createServer((req, res) => {
     // Spans from the browser get no span of their own: one per batch would be noise.
     if (req.url === SPANS_PATH) return receiveSpans(req, res).catch((err) => sendError(res, err));
@@ -61,6 +61,23 @@ function oneAtATime() {
     tails.set(file, tail);
     tail.then(() => tails.get(file) === tail && tails.delete(file));
     return result;
+  };
+}
+
+// The turns each Resolve took out of a file, until the box's Done announces them. Resolve closes
+// the box, so its Done comes next in the file's turn, and one box session is one Announcement.
+// note(file, id, turns) after a resolve; take(file, id) gives them once, [] when there are none.
+// A Done that never comes leaves them for the element's next Done: the Resolve did happen.
+function resolvedTurns() {
+  const turns = new Map();
+  const key = (file, id) => `${file}\n${id}`;
+  return {
+    note: (file, id, resolved) => resolved.length && turns.set(key(file, id), resolved),
+    take: (file, id) => {
+      const resolved = turns.get(key(file, id)) ?? [];
+      turns.delete(key(file, id));
+      return resolved;
+    },
   };
 }
 
@@ -141,7 +158,7 @@ async function getPage(res, file, urlPath, { author, telemetry, inTurn }) {
 // PUT: the body is one change to one element, with the base the tab started from:
 //   {"id": "7", "base": "…", "directive": "text"}   sets the element's directive; "" removes it
 //   {"id": "7", "base": "…", "markdown": "…"}       replaces a scope with what its markdown says
-//   {"id": "7", "base": "…", "resolve": true}       Resolve: removes the element's thread
+//   {"id": "7", "base": "…", "resolve": true}       Resolve: removes the element's thread; Done announces its turns
 // The directive is the element's open turn: after a reply, setting it adds a turn to the thread.
 // IDs come first, so elements an agent added since the last format have them. A base that
 // doesn't match the element now, or an ID that isn't there, is a conflict: 412, nothing written.
@@ -204,7 +221,7 @@ async function putReply(res, file, urlPath, { id, thread, reply }, { author }) {
   sendJson(res, 200, { ok: true, count, thread: threadBaseOf(reread, author), before: fingerprint(onDisk), after: fingerprint(written) });
 }
 
-async function applyChange(res, file, urlPath, { id, base, directive, markdown }, kind, { author }) {
+async function applyChange(res, file, urlPath, { id, base, directive, markdown }, kind, { author, resolved }) {
   const span = trace.getActiveSpan();
   span?.setAttributes({ 'hrv.page': urlPath, 'hrv.change.kind': kind, 'hrv.scope.id': id, 'hrv.change.bytes': (directive ?? markdown ?? '').length });
   const onDisk = await inSpan('read file', {}, () => readText(file));
@@ -220,11 +237,12 @@ async function applyChange(res, file, urlPath, { id, base, directive, markdown }
     console.log(`${urlPath} — conflict on element ${id} (${el ? 'it changed on disk' : 'no such element'})`);
     return sendJson(res, 412, { ok: false, error: el ? 'that element changed on disk' : 'that element is gone from the file' });
   }
-  let changed, answer = {};
+  let changed, answer = {}, ended = [];
   if (kind === 'directive') {
     inSpan('set directive', {}, () => setDirective(el, directive, author));
     changed = around([el]);
   } else if (kind === 'resolve') {
+    ended = threadOf(el, author);
     inSpan('resolve', {}, () => removeThread(el, author));
     changed = around([el]);
   } else {
@@ -235,6 +253,7 @@ async function applyChange(res, file, urlPath, { id, base, directive, markdown }
   }
   const written = inSpan('serialize', {}, () => serialize(document));
   if (written !== onDisk) await inSpan('write file', {}, () => writeText(file, written));
+  resolved.note(file, id, ended);
   const count = Object.keys(collectDirectives(document, author)).length;
   // Bases and markdown as a reload would serve them: from the file in canonical layout.
   const served = inSpan('reparse', {}, () => {
@@ -262,9 +281,9 @@ async function applyChange(res, file, urlPath, { id, base, directive, markdown }
 // POST: Done, the box closed. The body is what the box opened with:
 //   {"id": "7", "directive": "text", "markdown": "…"}   markdown only for a scope
 // The tab sends it after the box's last change, so the file holds what the box left. What
-// changed goes out as an Announcement; nothing changed announces nothing. The answer says which:
-// {"announced": true}, for the tab's telemetry.
-async function postDone(req, res, file, urlPath, { author, inTurn }) {
+// changed goes out as an Announcement, with the turns a Resolve took; nothing changed announces
+// nothing. The answer says which: {"announced": true}, for the tab's telemetry.
+async function postDone(req, res, file, urlPath, { author, inTurn, resolved }) {
   const opened = await readJson(req);
   const { id, directive, markdown } = opened ?? {};
   if (typeof id !== 'string' || typeof directive !== 'string' || (markdown !== undefined && typeof markdown !== 'string')) {
@@ -273,9 +292,9 @@ async function postDone(req, res, file, urlPath, { author, inTurn }) {
   const span = trace.getActiveSpan();
   span?.setAttributes({ 'hrv.page': urlPath, 'hrv.scope.id': id });
   // Read in turn, so the file holds every change that came in before Done.
-  const onDisk = await inTurn(file, () => inSpan('read file', {}, () => readText(file)));
+  const [onDisk, ended] = await inTurn(file, async () => [await inSpan('read file', {}, () => readText(file)), resolved.take(file, id)]);
   const document = inSpan('parse', {}, () => parse(onDisk));
-  const announcement = inSpan('announcement', {}, () => announcementOf(document, id, { directive, markdown }, author));
+  const announcement = inSpan('announcement', {}, () => announcementOf(document, id, { directive, markdown }, author, ended));
   span?.setAttribute('hrv.announced', !!announcement);
   if (announcement) announce({ page: urlPath, ...announcement });
   sendJson(res, 200, { announced: !!announcement });

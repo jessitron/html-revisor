@@ -482,6 +482,40 @@ test('Resolve removes the thread, directives and replies, and nothing else', () 
     assert.match(s.read('thread.html'), /<!-- @AI: keep -->/);
   }));
 
+// Resolve closes the box: the tab sends the resolve, then Done with what the box opened with.
+test('Done after a Resolve announces it once, with the turns that went; a Clear announces none', () =>
+  withServer(async (s) => {
+    s.write('thread.html', '<h1>Title</h1><p><!-- @AI: one --><!-- @Human: two -->text</p><p><!-- @AI: three --><!-- @Human: four -->other</p>');
+    const { document, bases } = await s.page('thread.html');
+    const [p, q] = [...document.querySelectorAll('p')].map((e) => e.getAttribute('data-hrv'));
+    await s.put('thread.html', { id: p, base: bases[p], resolve: true });
+    assert.deepEqual(await (await s.done('thread.html', { id: p, directive: '' })).json(), { announced: true });
+    // q: an unsent turn, then Resolve. The directive went too, and resolved tells it from a Clear.
+    const typed = await (await s.put('thread.html', { id: q, base: bases[q], directive: 'five' })).json();
+    await s.put('thread.html', { id: q, base: typed.bases[q], resolve: true });
+    await s.done('thread.html', { id: q, directive: 'five' });
+    await s.waitForLog('\n\{', 2);
+    assert.deepEqual(announcements(s.stdout), [
+      { page: '/thread.html', id: p, element: 'p', heading: 'Title', resolved: [{ prefix: '@AI', text: 'one' }, { prefix: '@Human', text: 'two' }] },
+      {
+        page: '/thread.html', id: q, element: 'p', heading: 'Title', directive: { before: 'five', after: '' },
+        resolved: [{ prefix: '@AI', text: 'three' }, { prefix: '@Human', text: 'four' }, { prefix: '@AI', text: 'five' }],
+      },
+    ]);
+    assert.deepEqual(await (await s.done('thread.html', { id: p, directive: '' })).json(), { announced: false }, 'a Resolve announces once');
+  }));
+
+test('a Clear announces the directive gone, with no resolved', () =>
+  withServer(async (s) => {
+    const { document, bases } = await s.page('page.html');
+    const p = idOf(document, 'p');
+    const typed = await (await s.put('page.html', { id: p, base: bases[p], directive: 'say more' })).json();
+    await s.put('page.html', { id: p, base: typed.bases[p], directive: '' });
+    await s.done('page.html', { id: p, directive: 'say more' });
+    await s.waitForLog('\n\{', 1);
+    assert.deepEqual(announcements(s.stdout), [{ page: '/page.html', id: p, element: 'p', heading: 'Title', directive: { before: 'say more', after: '' } }]);
+  }));
+
 test('a PUT body must be one change: id, base, and a directive, a markdown, or resolve', () =>
   withServer(async (s) => {
     for (const body of [{ directives: {} }, { id: '1', base: 'x' }, { id: '1', base: 'x', directive: 'a', markdown: 'b' }, { id: 1, base: 'x', markdown: 'b' }, { id: '1', base: 'x', text: 'b' }, { id: '1', base: 'x', resolve: 'yes' }, { id: '1', base: 'x', directive: '', resolve: true }]) {
