@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Pruner: away run, 2026-10-24</title>
+    <style>
+body { font: 16px/1.5 system-ui, sans-serif; color: #1d2330; background: #f3efe6; max-width: 900px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+section { background: #fff; border-radius: 12px; padding: 1rem 1.5rem; margin: 0 0 1rem; }
+code { font-family: ui-monospace, monospace; font-size: .85em; }
+.status-value { font-weight: 600; }
+.guess { border-left: 3px solid #bc4c00; padding: .25rem .9rem; margin: .75rem 0; }
+.log li, .result li { margin: .2rem 0; }
+</style>
+  </head>
+  <body>
+    <p><a href="index.html">Away run, 2026-10-24</a></p>
+    <h1>Pruner</h1>
+    <p>
+      Round 3, wave 1. The server's traces lose the step spans that never cost anything, and the PUTs with no write get explained.
+    </p>
+    <section id="status" class="status">
+      <h2>Status</h2>
+      <p class="status-value">planned</p>
+      <p class="status-why">Page made by Tally.</p>
+    </section>
+    <section id="plan" class="plan">
+      <h2>Plan</h2>
+      <p>Yaks, in this order:</p>
+      <ul>
+        <li>
+          <code>explain-put-change-without-write-file-and-exception-events-in-local-traces-o593</code>: Explain PUT change without write file, and exception events, in local traces
+        </li>
+        <li>
+          <code>remove-server-step-spans-that-stay-under-1-ms-on-a-big-page-r0sf</code>: Remove server step spans that stay under 1 ms on a big page
+        </li>
+      </ul>
+      <p>
+        Work, o593: find which PUTs skip <code>write file</code> and what threw. Read <code>applyChange</code> in <code>server.mjs</code> first: it writes only when the serialized file differs from what it read. Confirm against the traces in Honeycomb (team modernity, env <code>local</code>, dataset <code>html-revisor</code>) with the honeycomb-modernity MCP if this session has it. Write the answer in <code>OBSERVABILITY.html</code> where a reader of the waterfall would look, and add an attribute (for example <code>hrv.wrote</code>) if a query can't tell the cases apart.
+      </p>
+      <p>
+        Work, r0sf: Jess decided to keep step spans for now and remove the ones that never pass 1 ms. Over 7 days on <code>OBSERVABILITY.html</code>, only <code>check base</code> and <code>set directive</code> stayed under 1 ms. Before removing, run saves on a temp copy of <code>test/pages/mintlify-animal-fables.html</code> (320 KB) and take MAX <code>duration_ms</code> by <code>parent.name</code>, <code>name</code>. Send spans with <code>with-be</code> (see CLAUDE.md's telemetry gotcha), or measure in-process with the stand-in collector in <code>test/telemetry.test.mjs</code>. Remove a span only if it stays under 1 ms there too; its attributes move to the parent span. Then drop the sentence of intent from <code>OBSERVABILITY.html</code>'s waterfall note, and update the waterfall if it draws a span that went.
+      </p>
+      <p>
+        Files it may touch: <code>server.mjs</code>, <code>OBSERVABILITY.html</code>, <code>test/telemetry.test.mjs</code> (its step list names <code>check base</code> and <code>set directive</code>), README's "What it traces" line, this page. Scratch scripts in <code>/tmp/pruner</code>. After editing <code>OBSERVABILITY.html</code>, run the formatter and cleanup on it.
+      </p>
+    </section>
+    <section id="log" class="log">
+      <h2>Log</h2>
+      <ul>
+        <li>2026-10-24: page made by Tally.</li>
+      </ul>
+    </section>
+    <section id="guesses" class="guesses">
+      <h2>Guesses</h2>
+      <p>None yet. Starting guesses from Tally, to confirm or replace:</p>
+      <ul>
+        <li>
+          o593: the PUTs with no write are saves that changed nothing (an empty directive on an element with none, or markdown saved unchanged), and the exceptions are refused saves (412, 400) recorded on the span. If the traces show otherwise, write up what they show and add a yak.
+        </li>
+        <li>
+          r0sf: if this session can't query Honeycomb, the in-process measurement on the mintlify page decides. A span that passes 1 ms on the big page stays.
+        </li>
+      </ul>
+    </section>
+    <section id="result" class="result">
+      <h2>Result</h2>
+      <p>Not yet.</p>
+    </section>
+    <section id="gotchas" class="gotchas">
+      <h2>Gotchas</h2>
+      <p>None yet.</p>
+    </section>
+    <section id="new-yaks" class="new-yaks">
+      <h2>New yaks</h2>
+      <p>None yet.</p>
+    </section>
+  </body>
+</html>

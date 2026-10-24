@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Roadrunner: away run, 2026-10-24</title>
+    <style>
+body { font: 16px/1.5 system-ui, sans-serif; color: #1d2330; background: #f3efe6; max-width: 900px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+section { background: #fff; border-radius: 12px; padding: 1rem 1.5rem; margin: 0 0 1rem; }
+code { font-family: ui-monospace, monospace; font-size: .85em; }
+.status-value { font-weight: 600; }
+.guess { border-left: 3px solid #bc4c00; padding: .25rem .9rem; margin: .75rem 0; }
+.log li, .result li { margin: .2rem 0; }
+</style>
+  </head>
+  <body>
+    <p><a href="index.html">Away run, 2026-10-24</a></p>
+    <h1>Roadrunner</h1>
+    <p>
+      Round 3, wave 1. Cut the client tests' wall time, so the suite stops waiting on them.
+    </p>
+    <section id="status" class="status">
+      <h2>Status</h2>
+      <p class="status-value">planned</p>
+      <p class="status-why">Page made by Tally.</p>
+    </section>
+    <section id="plan" class="plan">
+      <h2>Plan</h2>
+      <p>Yaks:</p>
+      <ul>
+        <li><code>clienttestmjs-is-the-long-bar-yg3n</code>: client.test.mjs is the long bar</li>
+      </ul>
+      <p>
+        Work: measure first. <code>test/client.test.mjs</code> takes 10.2 s alone, 10 tests, and the suite waits on it. Two tests take 5.5 s: "a reply stays new through opening the box and reloading" (3.3 s) and "the docket counts new replies in a second row" (2.2 s). Look for fixed waits: <code>connected()</code> sleeps 100 ms after the stream opens, <code>until()</code> polls every 20 ms, and one test sleeps 200 ms. Look also for timers in <code>client.js</code> the tests wait out (a debounce, the 2 s span post). Time each test file alone before and after: the next long bar is <code>roundtrip-generated-edits.test.mjs</code> at 8.1 s, so the suite lands near 8 s at best. Update <code>TESTING.html</code> <code>#suite</code> and <code>#recommendations</code> with the new numbers.
+      </p>
+      <p>
+        Files it may touch: <code>test/client.test.mjs</code>, new files under <code>test/</code> if it splits, <code>TESTING.html</code>, this page. <code>client.js</code> only to make a wait the test sets (a timer length passed in from the test tab), with no change to what a user sees. Keep out of <code>server.mjs</code>; if a server hook would save time, add a yak. README edits, if any: one or two lines.
+      </p>
+      <p>
+        Mind CLAUDE.md's gotchas for client tests: a failing <code>assert.equal</code> on two linkedom elements hangs the run, and linkedom has no focus model (the test tab fakes it).
+      </p>
+    </section>
+    <section id="log" class="log">
+      <h2>Log</h2>
+      <ul>
+        <li>2026-10-24: page made by Tally.</li>
+      </ul>
+    </section>
+    <section id="guesses" class="guesses">
+      <h2>Guesses</h2>
+      <p>None yet. Starting guesses from Tally, to confirm or replace:</p>
+      <ul>
+        <li>
+          Replace fixed sleeps with waits on a condition the test can see (the tab's DOM, a request answered), and leave every assertion as it is.
+        </li>
+        <li>
+          If the two slow tests wait out a timer in <code>client.js</code>, let the test tab set it short, the way it already supplies <code>setTimeout</code> and <code>requestAnimationFrame</code>. Splitting the file so its tests run side by side comes second, if cutting waits isn't enough.
+        </li>
+      </ul>
+    </section>
+    <section id="result" class="result">
+      <h2>Result</h2>
+      <p>Not yet.</p>
+    </section>
+    <section id="gotchas" class="gotchas">
+      <h2>Gotchas</h2>
+      <p>None yet.</p>
+    </section>
+    <section id="new-yaks" class="new-yaks">
+      <h2>New yaks</h2>
+      <p>None yet.</p>
+    </section>
+  </body>
+</html>

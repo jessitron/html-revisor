@@ -363,5 +363,85 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
         </li>
       </ul>
     </section>
+    <section id="round-3">
+      <h2>Round 3</h2>
+      <p>
+        Same process rules as round 2. No round 3 agent edits <code>client.js</code> beyond Roadrunner's test hooks, so no wave waits on another for it. <code>REPLY-DESIGN.html</code> holds Jess's live iterate loop (element IDs and 5 directives): no agent touches it. The locked worktree <code>agent-a5e579ab3090ce628</code> is merged into main and has been still for two hours. Each agent keeps its <code>README.md</code> edits to a line or two. Matchmaker may move stand-in pairing between domain modules; it says so on its page if it does, and Porter starts after it merges.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Wave</th>
+            <th>Agent</th>
+            <th>Yaks</th>
+            <th>Status</th>
+            <th>Page</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>0</td>
+            <td>Tally</td>
+            <td>
+              Closes round 2, adds its gotchas to <code>CLAUDE.md</code>, picks round 3's yaks, makes this section and the agent pages
+            </td>
+            <td>
+              <!-- coordinator: status tally -->
+              planned
+            </td>
+            <td><a href="#round-3">this section</a></td>
+          </tr>
+          <tr>
+            <td>1</td>
+            <td>Roadrunner</td>
+            <td><code>clienttestmjs-is-the-long-bar-yg3n</code>: client.test.mjs is the long bar</td>
+            <td>
+              <!-- coordinator: status roadrunner -->
+              planned
+            </td>
+            <td><a href="roadrunner.html">roadrunner.html</a></td>
+          </tr>
+          <tr>
+            <td>1</td>
+            <td>Matchmaker</td>
+            <td>
+              <code>removing-a-block-that-holds-stand-ins-hands-its-tokens-originals-to-the-tokens-after-it-1t8w</code>: Removing a block that holds stand-ins hands its tokens' originals to the tokens after it<br><code>reconcile-swapping-two-near-identical-siblings-crosses-their-textarea-contents-pxym</code>: Reconcile: swapping two near-identical siblings crosses their textarea contents
+            </td>
+            <td>
+              <!-- coordinator: status matchmaker -->
+              planned
+            </td>
+            <td><a href="matchmaker.html">matchmaker.html</a></td>
+          </tr>
+          <tr>
+            <td>1</td>
+            <td>Pruner</td>
+            <td>
+              <code>explain-put-change-without-write-file-and-exception-events-in-local-traces-o593</code>: Explain PUT change without write file, and exception events, in local traces<br><code>remove-server-step-spans-that-stay-under-1-ms-on-a-big-page-r0sf</code>: Remove server step spans that stay under 1 ms on a big page
+            </td>
+            <td>
+              <!-- coordinator: status pruner -->
+              planned
+            </td>
+            <td><a href="pruner.html">pruner.html</a></td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Porter</td>
+            <td>
+              <code>links-edit-as-markdown-links-the-save-carries-title-target-class-back-from-the-original-h5vt</code>: Links edit as markdown links; the save carries title, target, class back from the original. Waits for Matchmaker (<code>domain/scopes.mjs</code>, <code>SCOPES-DESIGN.html</code>).
+            </td>
+            <td>
+              <!-- coordinator: status porter -->
+              planned
+            </td>
+            <td><a href="porter.html">porter.html</a></td>
+          </tr>
+        </tbody>
+      </table>
+      <h3>Summary</h3>
+      <!-- coordinator: summary round 3 -->
+      <p>Not yet.</p>
+    </section>
   </body>
 </html>
