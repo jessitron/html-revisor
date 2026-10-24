@@ -1,5 +1,6 @@
 // html-revisor client. Directives live in the file on disk; this script edits them through PUT,
-// and tells the server when a box closes (Done) through POST.
+// and tells the server when a box closes (Done) through POST. An event stream from the server
+// tells it when the file changes, and it catches up (Live notice).
 (function () {
   'use strict';
 
@@ -19,7 +20,8 @@
   var version = null;       // fingerprint of the file as this tab last saw it
   var changedOnDisk = false; // a save found the file changed by someone else
   var inFlight = null;      // the change the PUT in flight carries
-  var savedDirectives = {}; // id -> directive text as the file on disk holds it, for telemetry
+  var savedDirectives = {}; // id -> directive text as the file on disk holds it
+  var boxBehind = null;     // the file changed the open box's element: 'reply' or 'directive'; it catches up when the box closes
 
   try {
     var data = document.getElementById('hrv-directives');
@@ -502,9 +504,27 @@
       (problem ? ' hrv-error' : '');
   }
 
-  function showProblem(text) {
+  var problemIsNotice = false;   // the docket shows a notice, not an error
+
+  function showProblem(text, isNotice) {
     problem = text;
+    problemIsNotice = !!(text && isNotice);
     updateDocket();
+  }
+
+  // What the docket says when the file changed under the tab: content it can't show without a
+  // reload, or a change to the open box's element, which shows when the box closes.
+  function notice() {
+    if (changedOnDisk) return 'the page changed on disk; reload to see it';
+    if (boxBehind === 'reply') return 'a reply came in here; close the box to see it';
+    if (boxBehind) return 'this directive changed on disk; close the box to see it';
+    return null;
+  }
+
+  // A notice takes the docket's message unless an error holds it.
+  function showNotice() {
+    if (problem && !problemIsNotice) return;
+    showProblem(notice(), true);
   }
 
   // Elements with open threads, in document order.
@@ -748,6 +768,7 @@
     saving = true;
     var change = unsent.shift();
     if (change.kind === 'done') return sendDone(change);
+    if (change.kind === 'refresh') return refresh(change);
     var failed = false;
     var fromBox = !!box;   // a save made while a box is open reports in the box
     inFlight = change;
@@ -756,10 +777,11 @@
     var apply = null;
     var headers = { 'Content-Type': 'application/json' };
     if (put) headers.traceparent = '00-' + put.traceId + '-' + put.spanId + '-01';
+    var body = bodyFor(change);
     fetch(location.pathname, {
       method: 'PUT',
       headers: headers,
-      body: JSON.stringify(bodyFor(change))
+      body: JSON.stringify(body)
     }).then(function (res) {
       if (put) put.attributes['http.response.status_code'] = res.status;
       endSpan(put);
@@ -777,17 +799,20 @@
         return;
       }
       for (var id in data.bases) bases[id] = data.bases[id];
-      if (change.kind !== 'markdown') savedDirectives[change.id] = directives[change.id] || '';
+      if (change.kind === 'directive') savedDirectives[change.id] = body.directive;
+      if (change.kind === 'resolve') savedDirectives[change.id] = '';
       if (change.kind === 'markdown') applyScope(change.id, data);
       if (change.span && typeof data.html === 'string') {
         change.span.attributes['hrv.html.after'] = capped(data.html);
         change.span.attributes['hrv.html.after.length'] = data.html.length;
       }
-      if (data.before !== version) changedOnDisk = true;
+      // The file changed since this tab last saw it: catch up on what else changed.
+      if (data.before !== version) addRefresh(null);
       version = data.after;
-      showProblem(changedOnDisk ? 'the page changed on disk; reload to see it' : null);
+      showProblem(notice(), true);
       // A newer edit, waiting or queued, keeps the box at "saving…".
-      if (fromBox && box && unsent.length === 0 && !saveTimer) boxStatus('saved');
+      // A catch-up waiting is no save: the notice of this very save queues one.
+      if (fromBox && box && !saveTimer && !unsent.some(function (c) { return c.kind !== 'refresh'; })) boxStatus('saved');
     }).catch(function (err) {
       failed = 'save failed: ' + (err && err.message ? err.message : err);
       endSpan(put, failed);
@@ -831,6 +856,113 @@
       saving = false;
       saveNow();
     });
+  }
+
+  // ---- live notice ----
+
+  // The server tells the tab of every change to the file: the tab's saves and other tabs',
+  // the agent's replies, and edits that go around the server. Each notice names the file's
+  // version after it; a version the tab holds already, its own save's, is no news. Otherwise
+  // the tab fetches the page's state and catches up. The fetch takes its turn in the queue of
+  // saves, so the state it reads includes the tab's saves before it, and an answer to one of them
+  // can't land on top of it.
+  function listen() {
+    if (!window.EventSource) return;
+    var events = new EventSource(location.pathname);
+    events.addEventListener('change', function (e) {
+      var heard;
+      try { heard = JSON.parse(e.data); } catch (err) { return; }
+      if (heard.version === version) return;
+      addRefresh(heard.version);
+      if (!saving && !saveTimer) saveNow();
+    });
+  }
+
+  // Queue a catch-up to the version named, or to whatever the file holds when version is null.
+  // One waits at a time, aimed at the newest.
+  function addRefresh(target) {
+    for (var i = 0; i < unsent.length; i++) {
+      if (unsent[i].kind === 'refresh') {
+        if (unsent[i].target !== null) unsent[i].target = target;
+        return;
+      }
+    }
+    unsent.push({ kind: 'refresh', target: target });
+  }
+
+  function refresh(change) {
+    if (change.target !== null && change.target === version) {
+      saving = false;
+      return saveNow();
+    }
+    var span = startSpan('refresh', null, { 'hrv.version.before': version || '', 'hrv.version.target': change.target || '' }, 'client');
+    var headers = { Accept: 'application/json' };
+    if (span) headers.traceparent = '00-' + span.traceId + '-' + span.spanId + '-01';
+    var failed = false;
+    fetch(location.pathname, { headers: headers, cache: 'no-store' }).then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(function (state) {
+      var caught = applyState(state);
+      if (span) {
+        span.attributes['hrv.changed'] = caught.changed;
+        span.attributes['hrv.updated'] = caught.updated;
+      }
+    }).catch(function (err) {
+      // The next notice, or the next save's answer, tries again.
+      failed = 'refresh failed: ' + (err && err.message ? err.message : err);
+    }).then(function () {
+      endSpan(span, failed);
+      saving = false;
+      saveNow();
+    });
+  }
+
+  // A change for id waits to go out: the state from the server doesn't have it yet.
+  function waiting(id) {
+    return unsent.some(function (c) { return c.id === id && c.kind !== 'done'; });
+  }
+
+  // Take the file's threads, so markers and the docket match it: a reply turns its marker to the
+  // bubble, a directive the agent removed takes its marker away. The open box's element waits
+  // until the box closes, so nothing changes under the user's typing, and so does an element
+  // with a change of the tab's waiting to go out. Content the tab can't show (an element whose
+  // base changed) keeps its old base, so a save there is refused, and the docket says to reload.
+  function applyState(state) {
+    var ids = {}, updated = 0, later = false;
+    [directives, threads, state.directives, state.threads].forEach(function (m) {
+      for (var k in m) ids[k] = true;
+    });
+    for (var id in ids) {
+      var there = !!elementFor(id);   // an element new to the file shows after a reload
+      var directive = there ? state.directives[id] : undefined;
+      var thread = there ? state.threads[id] : undefined;
+      var threadNow = JSON.stringify(thread || null) !== JSON.stringify(threads[id] || null);
+      if (id === boxId) {
+        if (threadNow) boxBehind = 'reply';
+        else if ((directive || '') !== (savedDirectives[id] || '') && !boxBehind) boxBehind = 'directive';
+        continue;
+      }
+      if (!threadNow && (directive || '') === (directives[id] || '')) continue;
+      if (waiting(id)) { later = true; continue; }
+      if (directive) directives[id] = directive;
+      else delete directives[id];
+      savedDirectives[id] = directive || '';
+      if (thread) threads[id] = thread;
+      else delete threads[id];
+      syncMarker(id);
+      updated++;
+    }
+    var changed = Array.prototype.some.call(document.querySelectorAll('[data-hrv]'), function (el) {
+      var k = el.getAttribute('data-hrv');
+      return !inLayer(el) && state.bases[k] !== bases[k];
+    });
+    if (changed) changedOnDisk = true;
+    version = state.version;
+    if (later) addRefresh(null);
+    updateDocket();
+    showNotice();
+    return { changed: changed, updated: updated };
   }
 
   function scheduleSave(kind, id) {
@@ -893,6 +1025,11 @@
     }, 'client');
     unsent.push({ kind: 'done', id: id, opened: boxOpened, span: span });
     dropBox();
+    // The file changed this element while the box was open: catch up, after the box's saves.
+    if (boxBehind) {
+      boxBehind = null;
+      addRefresh(null);
+    }
     saveNow();
     if (inFlight) addEvent(inFlight.span, 'close box', { 'hrv.close.by': by, 'hrv.scope.id': id, 'hrv.pending': unsent.length });
   }
@@ -1159,4 +1296,5 @@
   for (var id in directives) syncMarker(id);
   for (var t in threads) syncMarker(t);
   updateDocket();
+  listen();
 })();
