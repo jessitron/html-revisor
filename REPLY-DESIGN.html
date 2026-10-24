@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-hrv-next="571" lang="en">
+<html data-hrv-next="577" lang="en">
   <head>
     <meta charset="utf-8">
     <title>html-revisor: reply design</title>
@@ -142,7 +142,7 @@
       <text data-hrv="45" class="sub" x="250" y="196">working: your turn is last</text>
       <rect data-hrv="40" class="ready" x="240" y="276" width="190" height="46" rx="6"></rect>
       <text data-hrv="41" x="250" y="295">iterate-on-docs replies</text>
-      <text data-hrv="42" class="sub" x="250" y="312">Contract too, on a branch</text>
+      <text data-hrv="42" class="sub" x="250" y="312">written, on a branch</text>
       <line data-hrv="35" class="msg" x1="430" y1="299" x2="466" y2="299" marker-end="url(#road-arrow)"></line>
       <rect data-hrv="31" class="waits" x="470" y="276" width="190" height="46" rx="6"></rect>
       <text data-hrv="32" x="480" y="295">Deploy and release</text>
@@ -179,7 +179,7 @@
         <strong>A subagent is building the client yaks, in order:</strong> thread arrives live in an open box (with the duplicate-turn fix), new stays new, directive status (working), the docket's replies row, and review off hiding the arrows.
       </li>
       <li data-hrv="562">
-        <strong>A second subagent is writing the iterate-on-docs side on a branch there,</strong> <code>replies-in-the-page</code>: the Contract carry, and the skill watching Announcements and answering with <code>reply.mjs</code>. Its main stays as it was, so your plugin doesn't change under you.
+        <strong>The iterate-on-docs side is written,</strong> on its branch <code>replies-in-the-page</code>, three commits: the Contract carry, the skill's reply loop (watch Announcements, answer with <code>reply.mjs</code>, commit after each reply), and the README. Its main is as it was, so your plugin doesn't change under you. Not yet run against a live server; the vendored html-revisor there is 46 commits behind and has no <code>reply.mjs</code> until a deploy.
       </li>
       <li data-hrv="563">
         <strong>The server restarts when work merges,</strong> on the same port. Reload the page after.
@@ -201,6 +201,24 @@
       </li>
       <li data-hrv="570">
         <strong>Deploy and release wait for you.</strong> I'll deploy html-revisor and merge the iterate-on-docs branch together once you've tried the client work. Want me to deploy without you, and only hold the release?
+      </li>
+      <li data-hrv="571">
+        <strong>The skill's reply loop replaces the turn loop</strong> whenever the agent can watch the server's output (Monitor, in Claude Code). Markdown, and an agent that can't watch, keep the turn loop. You don't choose. OK?
+      </li>
+      <li data-hrv="572">
+        <strong>The server's output goes to a log in TMPDIR, and Monitor tails it.</strong> Running the server under Monitor would kill it when the monitor expires (30 minutes at most).
+      </li>
+      <li data-hrv="573">
+        <strong>The agent commits before it acts on an Announcement, and again after each reply,</strong> so your edits stay in commits of their own.
+      </li>
+      <li data-hrv="574">
+        <strong>The agent runs the formatter on the live file before each commit.</strong> That writes around the server; Live notice catches it. My worry: if the formatter changes an element, your tab says to reload. I think it should skip the formatter in the reply loop, since the server keeps the file formatted. Agree?
+      </li>
+      <li data-hrv="575">
+        <strong>A directive written by hand in an editor</strong> has no Announcement and no thread base, so the agent carries it out and removes it, the old way.
+      </li>
+      <li data-hrv="576">
+        <strong>An edit with no directive gets no reply.</strong> Replies on edits come later.
       </li>
     </ol>
     <h2 data-hrv="150" id="flow">Flow</h2>
