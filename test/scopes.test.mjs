@@ -232,6 +232,24 @@ test('two images of one picture that swap places keep their own sizes', () => {
   assert.match(back, /alt="small" width="9">.*alt="big" width="90"/);
 });
 
+// Two cards alike but for their headings, each with two textareas.
+const card = (name) =>
+  `<div class="card"><h3>${name}</h3><p>Text</p><textarea class="text">${name} text</textarea><p>Directive</p><textarea class="directive">${name} directive</textarea></div>`;
+const cardMarkdown = (name) => `<div class="card">\n\n### ${name}\n\nText\n\n⟦textarea⟧\n\nDirective\n\n⟦textarea⟧\n\n</div>`;
+const textareas = (html) => [...html.matchAll(/<textarea class="(\w+)">([^<]*)<\/textarea>/g)].map((m) => `${m[1]}: ${m[2]}`);
+
+test('removing a block that holds stand-ins leaves the next block its own', () => {
+  const { document, el } = scopeIn(`<section>${card('Alpha')}${card('Beta')}</section>`);
+  const back = canonicalHTML(document, scopeFromMarkdown(el, cardMarkdown('Beta')));
+  assert.deepEqual(textareas(back), ['text: Beta text', 'directive: Beta directive']);
+});
+
+test('two blocks that swap places take their own stand-ins with them', () => {
+  const { document, el } = scopeIn(`<section>${card('Alpha')}${card('Beta')}</section>`);
+  const back = canonicalHTML(document, scopeFromMarkdown(el, `${cardMarkdown('Beta')}\n\n${cardMarkdown('Alpha')}`));
+  assert.deepEqual(textareas(back), ['text: Beta text', 'directive: Beta directive', 'text: Alpha text', 'directive: Alpha directive']);
+});
+
 test('deleting an inline icon leaves a diagram between blocks, not in a paragraph', () => {
   const icon = '<svg viewBox="0 0 1 1"><circle r="1"></circle></svg>';
   const { document, el } = scopeIn(`<section><p>a ${icon} b</p><svg viewBox="0 0 9 9"><text>diagram</text></svg></section>`);

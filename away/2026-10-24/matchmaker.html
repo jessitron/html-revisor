@@ -20,8 +20,8 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
     </p>
     <section id="status" class="status">
       <h2>Status</h2>
-      <p class="status-value">planned</p>
-      <p class="status-why">Page made by Tally.</p>
+      <p class="status-value">working</p>
+      <p class="status-why">Fix in; writing the Decided row.</p>
     </section>
     <section id="plan" class="plan">
       <h2>Plan</h2>
@@ -48,19 +48,36 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
       <h2>Log</h2>
       <ul>
         <li>2026-10-24: page made by Tally.</li>
+        <li>
+          2026-10-24 16:20: both yaks reproduce. 1t8w on <code>test/pages/DESIGN.html</code> seed 173 with editable-only numbering; pxym on <code>DESIGN.html</code> from <code>124c901</code> at seed 172 ("remove" fails there too). Same cause: <code>restore()</code> pairs tokens by order.
+        </li>
+        <li>
+          2026-10-24 16:43: <code>restore()</code> now pairs each token with the original whose surroundings are most like its own. Both repros pass; suite green. Moved <code>likeness()</code> out of <code>domain/identity.mjs</code> into a new <code>domain/likeness.mjs</code>, so <code>scopes.mjs</code> can use it without a cycle.
+        </li>
       </ul>
     </section>
     <section id="guesses" class="guesses">
       <h2>Guesses</h2>
-      <p>None yet. Starting guesses from Tally, to confirm or replace:</p>
-      <ul>
-        <li>
-          A token pairs with an original by the block around it, the way reconcile pairs elements, before it falls back to order: a token in a block that came back takes that block's originals of its kind, and only a token in a new block takes the next one left.
-        </li>
-        <li>
-          One fix covers both yaks: pxym is the swap case of 1t8w. If they turn out to differ, finish 1t8w and write up pxym.
-        </li>
-      </ul>
+      <div id="guess-token-surroundings" class="guess">
+        <p>
+          <strong>Guess:</strong> a stand-in token goes back to the original whose surroundings are most like its own: each enclosing element's tag and text, stand-ins' text aside, compared level by level from the nearest, with reconcile's <code>likeness()</code>. A tie goes to the next of its kind, as before. The rule that a token alone in its paragraph takes one that stood between blocks still filters first. No identity in the markdown: the token stays <code>⟦textarea⟧</code>.
+        </p>
+        <p>
+          <strong>Why:</strong> it is Tally's starting guess (a block that came back takes its own originals) without running reconcile inside <code>restore()</code>, which runs on every round-trip check before IDs exist. A visible ID in the token, like <code>⟦textarea 3⟧</code>, would put noise in the markdown Jess edits.
+        </p>
+        <p>
+          <strong>If wrong:</strong> <code>closest()</code> and <code>surroundings()</code> in <code>domain/scopes.mjs</code>; the S9 row in <code>SCOPES-DESIGN.html</code>; the two card tests in <code>test/scopes.test.mjs</code>. To go back to order alone, have <code>closest()</code> return <code>candidates[0]</code>.
+        </p>
+      </div>
+      <div id="guess-one-fix" class="guess">
+        <p><strong>Guess:</strong> pxym is the swap case of 1t8w, and one fix closes both.</p>
+        <p>
+          <strong>Why:</strong> both repros cross the same two textareas in the same pair of directive-box demos, and both pass after the fix. pxym's symptom was <code>restore()</code>, not reconcile: reconcile pairs IDs, the textareas' contents came from the token order.
+        </p>
+        <p>
+          <strong>If wrong:</strong> reopen <code>reconcile-swapping-two-near-identical-siblings-crosses-their-textarea-contents-pxym</code>.
+        </p>
+      </div>
     </section>
     <section id="result" class="result">
       <h2>Result</h2>

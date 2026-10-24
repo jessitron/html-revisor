@@ -10,6 +10,7 @@
 // identity.mjs (reconcile) and directives.mjs (carryDirectives), which scopeFromMarkdown in
 // markdown-edits.mjs puts together (SCOPES-DESIGN.html#identity). test/roundtrip-*.test.mjs.
 import { trimAscii, formatElement, VOID } from './canonical.mjs';
+import { likeness } from './likeness.mjs';
 import { MarkdownIt } from '../vendor/markdown-it.mjs';
 
 // ---- Kinds of element ---------------------------------------------------
@@ -460,8 +461,9 @@ function codeBlock(el, markdown) {
   return pre;
 }
 
-// What markdown holds as a stand-in comes back from the prior HTML, in order: ⟦svg⟧ is the
-// next svg, ⟦script⟧ the next script, and an image keeps the attributes markdown can't say (D2).
+// What markdown holds as a stand-in comes back from the prior HTML: ⟦svg⟧ is an svg, ⟦script⟧ a
+// script, the one whose surroundings are most like the token's (closest), else the next of its
+// kind. An image keeps the attributes markdown can't say (D2).
 // One that stood between blocks comes out of the paragraph markdown put it in. A token alone in
 // its paragraph takes the next one that stood between blocks, and one inside text the next one
 // that sat in text, so deleting an inline icon doesn't hand its place to a diagram. A token in an
@@ -481,13 +483,16 @@ function restore(prior, nodes) {
   const holder = prior[0].ownerDocument.createElement('div');
   holder.append(...nodes);
   const alone = new Set();
+  const nearest = closest(prior);
   // Where each mark sits, before any is swapped: a swapped one is no longer a stand-in beside the next.
-  const marks = [...holder.querySelectorAll(STAND_IN)].map((mark) => [mark, inOwnParagraph(mark)]);
-  for (const [mark, ownParagraph] of marks) {
+  const marks = [...holder.querySelectorAll(STAND_IN)].map((mark) => [mark, inOwnParagraph(mark), surroundings(mark, holder)]);
+  for (const [mark, ownParagraph, around] of marks) {
     const name = mark.getAttribute('name');
     const left = tokens.get(name) ?? [];
-    const at = mark.hasAttribute('in-html') ? 0 : left.findIndex((o) => standsAlone(o) === ownParagraph);
-    const [original] = left.splice(Math.max(at, 0), 1);
+    const fits = (o) => mark.hasAttribute('in-html') || standsAlone(o) === ownParagraph;
+    const fitting = left.some(fits) ? left.filter(fits) : left.slice(0, 1);
+    const pick = nearest(around, fitting);
+    const [original] = pick ? left.splice(left.indexOf(pick), 1) : [];
     if (!original) {
       mark.replaceWith(`⟦${name}⟧`); // nothing it stood for: the text you typed
       continue;
@@ -515,6 +520,43 @@ function restore(prior, nodes) {
     if (kids.length > 0 && kids.every((k) => alone.has(k)) && !hasAttrs(p)) p.replaceWith(...p.childNodes);
   }
   return [...holder.childNodes];
+}
+
+// What a stand-in sits in, nearest first, up to the edge: each element's tag and text, the
+// stand-ins' own text aside. A plain element with no text says nothing, so it doesn't count:
+// the paragraph markdown puts a lone token in lines up with no level.
+function surroundings(node, edge) {
+  const out = [];
+  for (let el = node.parentNode; el && el !== edge && el.nodeType === 1; el = el.parentNode) {
+    const text = collapse(proseText(el)).trim();
+    if (text !== '' || hasAttrs(el)) out.push(`${openTag(el)}${text}`);
+  }
+  return out;
+}
+
+function proseText(n) {
+  if (n.nodeType === 3) return n.data;
+  if (n.nodeType !== 1 || n.localName === STAND_IN || NONPROSE.has(n.localName) || HIDDEN.has(n.localName)) return '';
+  return [...n.childNodes].map(proseText).join('');
+}
+
+// Of the originals a token could take, the one whose surroundings are most like the token's,
+// level by level from the nearest; a tie goes to the first. A block that came back, edited or
+// moved, takes its own stand-ins; a token in a new block takes the next one left (S9).
+function closest(prior) {
+  const edge = prior[0].parentNode;
+  const known = new Map();
+  const around = (o) => known.get(o) ?? known.set(o, surroundings(o, edge)).get(o);
+  const score = (x, y) => (x === y ? 2 : x === undefined || y === undefined ? 0 : likeness(x, y));
+  return (mine, candidates) => {
+    let best = candidates;
+    for (let level = 0; best.length > 1 && best.some((o) => around(o).length > level); level++) {
+      const scores = best.map((o) => score(mine[level], around(o)[level]));
+      const top = Math.max(...scores);
+      best = best.filter((o, i) => scores[i] === top);
+    }
+    return best[0];
+  };
 }
 
 // Whether markdown put the token in a paragraph of its own, maybe beside other stand-ins.
