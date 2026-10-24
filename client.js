@@ -611,9 +611,10 @@
     updateDocket();
   }
 
-  // ⌥↓ and ⌥↑ step, unless the reader is typing somewhere.
+  // ⌥↓ and ⌥↑ step, unless the reader is typing somewhere. Review off, they go to the page,
+  // as the docket's arrows hide: there are no marks to step to.
   document.addEventListener('keydown', function (e) {
-    if (!e.altKey || e.metaKey || e.ctrlKey || e.shiftKey) return;
+    if (!reviewing || !e.altKey || e.metaKey || e.ctrlKey || e.shiftKey) return;
     if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
     var t = e.target;
     if (t instanceof Element && (t.isContentEditable || t.closest('input, textarea, select'))) return;

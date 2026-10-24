@@ -107,6 +107,7 @@ async function openTab(s, name, { storage = new Map() } = {}) {
     window, document, layer, el,
     // The element the docket last stepped to: its tag. No layout, so no tip shows.
     steppedTo: () => scrolled.at(-1)?.localName,
+    steps: () => scrolled.length,
     idOf: (selector) => el(selector).getAttribute('data-hrv'),
     box: () => layer.querySelector('.hrv-box'),
     field: () => layer.querySelector('.hrv-box textarea.hrv-directive'),
@@ -324,6 +325,29 @@ test('the docket counts new replies in a second row, steps through them, and rin
     tab.open('li');
     tab.type('thanks');
     assert.equal(row2(), '1 new reply', 'a turn takes it off the second row');
+    tab.close();
+  }));
+
+test('review off: the docket hides its arrows, and ⌥↓ goes to the page', () =>
+  withServer(async (s) => {
+    const tab = await openTab(s, 'page.html');
+    tab.open('p');
+    tab.type('look here');
+    tab.done();
+    const altDown = () => {
+      const e = new tab.window.Event('keydown', { bubbles: true, cancelable: true });
+      Object.assign(e, { key: 'ArrowDown', altKey: true });
+      tab.document.body.dispatchEvent(e);
+    };
+    altDown();
+    assert.equal(tab.steppedTo(), 'p', 'review on, it steps');
+    tab.click(tab.layer.querySelector('.hrv-docket-main'));
+    assert.ok(tab.docket().classList.contains('hrv-off'));
+    const steps = tab.steps();
+    altDown();
+    assert.equal(tab.steps(), steps, 'review off, no step');
+    const css = fs.readFileSync(path.join(here, '..', 'client.css'), 'utf8');
+    assert.match(css, /\.hrv-docket\.hrv-off \.hrv-step \{ display: none; \}/, 'the arrows hide');
     tab.close();
   }));
 
