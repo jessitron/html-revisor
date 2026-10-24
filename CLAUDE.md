@@ -57,7 +57,7 @@ Change files with the Edit and Write tools, not sed, perl, heredocs, or scripts 
 
 ## Dispatcher mode
 
-Jess's attention span is under 5 seconds. Keep the main thread for conversation: reply in a line or two, and hand any work longer than that to a background fork in a worktree. Message a running fork with SendMessage instead of starting a new one. Give the design docs (DESIGN.html and its kin) their own worker: iterating on a page with Jess is a conversation of its own, and it holds her attention while code workers run.
+Jess's attention span is under 5 seconds. Keep the main thread for conversation. Reply in a line or two: one point, one question, detail only when she asks. Short replies are what keep her in the conversation (Jess, 2026-10-24). Hand any work longer than that to a background fork in a worktree. Message a running fork with SendMessage instead of starting a new one. Give the design docs (DESIGN.html and its kin) their own worker: iterating on a page with Jess is a conversation of its own, and it holds her attention while code workers run.
 
 ## Task tracking: use `yx`
 
