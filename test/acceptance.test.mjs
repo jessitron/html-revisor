@@ -1,5 +1,6 @@
 // Acceptance tests from the spec. Each test copies the fixtures to a temp dir,
-// starts the server as a child process on a random port, and talks to it over HTTP.
+// starts the server on a random port, and talks to it over HTTP. The server runs in this
+// process; the tests of the CLI itself (--author, a file argument) spawn server.mjs.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn, execFileSync } from 'node:child_process';
@@ -8,6 +9,7 @@ import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { format } from 'node:util';
 import { parseHTML } from '../vendor/linkedom.mjs';
 import { normalize } from '../domain/format.mjs';
 import { fingerprint } from '../domain/bases.mjs';
@@ -20,19 +22,17 @@ const serverFile = path.join(here, '..', 'server.mjs');
 // server prints a telemetry line first and sends every test's spans out.
 const env = Object.fromEntries(Object.entries(process.env).filter(([k]) => !/^(OTEL_|HRV_TELEMETRY)/.test(k)));
 
-// Run fn with a live server whose root is a fresh copy of the fixtures.
-async function withServer(fn, args = []) {
+// Run fn with a live server whose root is a fresh copy of the fixtures. With no args the
+// server runs in this process, from createServer, and its console lines are the log. With
+// CLI args it runs as the CLI runs it: server.mjs in a child process, its stdout the log.
+async function withServer(fn, args) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'html-revisor-'));
   fs.cpSync(path.join(here, 'fixtures'), dir, { recursive: true });
-  const child = spawn(process.execPath, [serverFile, dir, '--port', '0', ...args], { env });
-  let stdout = '';
-  let stderr = '';
-  child.stdout.on('data', (d) => (stdout += d));
-  child.stderr.on('data', (d) => (stderr += d));
+  const run = args ? spawned(dir, args) : inProcess(dir);
   const server = {
     dir,
-    get stdout() { return stdout; },
-    get stderr() { return stderr; },
+    get stdout() { return run.stdout; },
+    get stderr() { return run.stderr; },
     read: (name) => fs.readFileSync(path.join(dir, name), 'utf8'),
     write: (name, text) => fs.writeFileSync(path.join(dir, name), text),
     get: (p) => fetch(server.base + p),
@@ -71,30 +71,56 @@ async function withServer(fn, args = []) {
     // Wait until the log has a line matching re (stdout arrives slightly after the response).
     async waitForLog(re, count = 1) {
       for (let i = 0; i < 200; i++) {
-        if ((stdout.match(new RegExp(re, 'g')) ?? []).length >= count) return;
+        if ((run.stdout.match(new RegExp(re, 'g')) ?? []).length >= count) return;
         await new Promise((r) => setTimeout(r, 10));
       }
-      assert.fail(`log never matched ${re}; got:\n${stdout}`);
+      assert.fail(`log never matched ${re}; got:\n${run.stdout}`);
     },
   };
   try {
-    await new Promise((resolve, reject) => {
-      const timer = setTimeout(() => reject(new Error(`no startup line; stderr: ${stderr}`)), 5000);
-      child.stdout.on('data', () => {
-        const m = stdout.match(/html-revisor: (http:\/\/localhost:\d+\/) serving/);
-        if (m) {
-          clearTimeout(timer);
-          server.base = m[1];
-          resolve();
-        }
-      });
-      child.on('exit', (code) => reject(new Error(`server exited ${code}; stderr: ${stderr}`)));
-    });
+    server.base = await run.started;
     await fn(server);
   } finally {
-    child.kill();
+    await run.stop();
     fs.rmSync(dir, { recursive: true, force: true });
   }
+}
+
+// The server from createServer, in this process. Tests in a file run one at a time,
+// so the console is this server's alone while it runs.
+function inProcess(dir) {
+  const run = { stdout: '', stderr: '' };
+  const { log, error } = console;
+  console.log = (...a) => (run.stdout += format(...a) + '\n');
+  console.error = (...a) => (run.stderr += format(...a) + '\n');
+  const server = createServer({ root: dir, author: '@AI' });
+  run.started = new Promise((r) => server.listen(0, '127.0.0.1', () => r(`http://localhost:${server.address().port}/`)));
+  run.stop = async () => {
+    await new Promise((r) => server.close(r));
+    Object.assign(console, { log, error });
+  };
+  return run;
+}
+
+// server.mjs as the CLI runs it, in a child process; started resolves to the URL its startup line names.
+function spawned(dir, args) {
+  const child = spawn(process.execPath, [serverFile, dir, '--port', '0', ...args], { env });
+  const run = { stdout: '', stderr: '' };
+  child.stdout.on('data', (d) => (run.stdout += d));
+  child.stderr.on('data', (d) => (run.stderr += d));
+  run.started = new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`no startup line; stderr: ${run.stderr}`)), 5000);
+    child.stdout.on('data', () => {
+      const m = run.stdout.match(/html-revisor: (http:\/\/localhost:\d+\/) serving/);
+      if (m) {
+        clearTimeout(timer);
+        resolve(m[1]);
+      }
+    });
+    child.on('exit', (code) => reject(new Error(`server exited ${code}; stderr: ${run.stderr}`)));
+  });
+  run.stop = () => child.kill();
+  return run;
 }
 
 const idOf = (document, selector) => document.querySelector(selector).getAttribute('data-hrv');
