@@ -265,16 +265,7 @@
       <div data-hrv="228">
         <div data-hrv="229" class="tile" style="background: #fff; color: #222;">
           <p data-hrv="230">Waiting</p>
-          <p data-hrv="231">
-            <!-- @AI: I'm thinking - what if the client sets it to working immediately on save? if it has the expectation that the agent will reply. That would feel responsive -->
-            <!-- @Human: I like it: it answers Done at once, and no agent round trip. I'd start working on Done, not on each save, since a save happens as you type. One catch: the tab can't tell whether an agent is listening. With no loop running, the dots would sit there forever, a promise nobody keeps. The server can know: the iterate skill starts it with a flag that says an agent answers this page, and the client shows working on Done only then. A reply clears the dots. Want it that way? If so, I'll write it into #working and the Directive status yak, and it gets simpler: no CLI call for working at all. -->
-            <!-- @AI: yeah, the tab just has to guess. someday we'll have modes for that.... oh does it already? perfec. The server should tell the client whether to expect Done- -&gt; working
-Yeah, the CLI for working goes away entirely -->
-            <!-- @Human: Written into #working: Done starts working in the tab, and the reply ends it. No CLI call, nothing in the file. Modes are a yak for later; none exist yet (the server's only flags are port and author). One more thought: with an agent on every page, 'you spoke last' and 'working' mean the same thing, so working could come straight from the file and survive a reload. Want that? -->
-            <!-- @AI: this makes sense, sure -->
-            <!-- @Human: Written into #working: working is your turn being last in the thread. It shows when you close the box and survives a reload. One consequence: the pencil now means a directive you're still writing. Directive status is in scope now, and I'll fork it off once Live notice lands, since both touch client.js. -->
-            Working
-          </p>
+          <p data-hrv="231">Working</p>
           <p data-hrv="232">New reply</p>
           <div data-hrv="233" class="hrv-layer">
             <div data-hrv="234" class="hrv-marker" style="left: 14px; top: 12px;"></div>
