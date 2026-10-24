@@ -1,6 +1,6 @@
 // Directives: requests about one element, in the file as <!-- author: text -->. Where one sits
-// says which element it is about. Tier II, pure functions over a DOM; the served page and
-// scopes.mjs both use the placement rule.
+// says which element it is about. Tier II, pure functions over a DOM; the served page and a
+// markdown save (carryDirectives) both use the placement rule.
 import { VOID, RAW, trimAscii } from './canonical.mjs';
 import { ID } from './identity.mjs';
 
@@ -157,4 +157,24 @@ export function attachComments(el, comments) {
   const last = first?.nodeType === 1 && directiveGoesBefore(first);
   const [parent, next] = before ? [el.parentNode, el] : [el, last ? null : el.firstChild];
   for (const comment of comments) parent.insertBefore(comment, next);
+}
+
+// Directives ride with their element through a rewrite: markdown doesn't show them, so each
+// comment in the prior scope goes onto its element's partner (reconcile in identity.mjs pairs
+// them). One whose element the edit deleted goes with it (Jess,
+// 2026-10-12). The scope's own stay; if the scope came back as something else, they go on its
+// first element, or where it was.
+export function carryDirectives(el, nodes, partners) {
+  const holder = el.ownerDocument.createElement('div');
+  holder.append(...nodes);
+  const moving = new Map(); // partner → comments, in order
+  for (const comment of allComments(el)) {
+    const owner = directiveOwner(comment);
+    if (owner !== el && !partners.has(owner)) continue;
+    const target = partners.get(owner) ?? holder.firstElementChild ?? holder;
+    if (!moving.has(target)) moving.set(target, []);
+    moving.get(target).push(comment.cloneNode());
+  }
+  for (const [target, comments] of moving) attachComments(target, comments);
+  return [...holder.childNodes];
 }

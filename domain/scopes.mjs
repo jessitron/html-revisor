@@ -5,11 +5,11 @@
 // A scope is any block element, plus links, images, and spans. You pick it to leave a directive or to
 // edit its whole content as markdown: a section, a list, one list item, a table, one cell (Jess,
 // 2026-10-12, F2 in SCOPES-DESIGN.html#scopes). Other inline elements, like strong, belong to their
-// block. scopeMarkdown writes a scope as markdown and scopeFromMarkdown reads it back; saving
-// it unchanged gives back the same HTML, element IDs included. Saving it
-// edited, each element keeps its ID and its directives (SCOPES-DESIGN.html#identity). test/roundtrip-*.test.mjs.
+// block. scopeMarkdown writes a scope as markdown and nodesFromMarkdown reads it back. This
+// module is the markdown language alone: element IDs and directives ride across a save in
+// identity.mjs (reconcile) and directives.mjs (carryDirectives), which scopeFromMarkdown in
+// markdown-edits.mjs puts together (SCOPES-DESIGN.html#identity). test/roundtrip-*.test.mjs.
 import { trimAscii, formatElement, VOID } from './canonical.mjs';
-import { allComments, directiveOwner, attachComments } from './directives.mjs';
 import { MarkdownIt } from '../vendor/markdown-it.mjs';
 
 // ---- Kinds of element ---------------------------------------------------
@@ -33,12 +33,12 @@ const BLOCK = new Set(
 function holdsBlocks(el) {
   return [...el.children].some((c) => BLOCK.has(c.localName) || (!NONPROSE.has(c.localName) && holdsBlocks(c)));
 }
-const isBlock = (el) => BLOCK.has(el.localName) || holdsBlocks(el);
+export const isBlock = (el) => BLOCK.has(el.localName) || holdsBlocks(el);
 
 // Attributes the tool adds. Markdown doesn't carry them; the prior HTML does.
 const IGNORED_ATTRS = new Set(['data-chunk', 'data-hrv']);
 const attrNames = (el) => [...el.attributes].map((a) => a.name).filter((a) => !IGNORED_ATTRS.has(a));
-const hasAttrs = (el) => attrNames(el).length > 0;
+export const hasAttrs = (el) => attrNames(el).length > 0;
 
 // ---- Scopes -------------------------------------------------------------
 
@@ -385,13 +385,9 @@ const escapeEntities = (text) => text.replace(/&(?=[a-zA-Z#][a-zA-Z0-9]*;)/g, '&
 // The nodes that replace a scope's element when its markdown is saved. The prior element says
 // what shape the markdown has, the same way it did for scopeMarkdown: an item's content, a
 // list's lines, a paragraph's phrasing. Opening a scope and saving it unchanged gives back
-// the same HTML, element IDs and directives included (SCOPES-DESIGN.html#identity).
-export function scopeFromMarkdown(el, markdown) {
-  const nodes = rebuild(el, markdown);
-  return carryDirectives(el, nodes, reconcile([el], nodes));
-}
-
-function rebuild(el, markdown) {
+// the same HTML, element IDs and directives aside: reconcile and carryDirectives bring those
+// back.
+export function nodesFromMarkdown(el, markdown) {
   const nodes = restore([el], fromMarkdown(el, markdown));
   if (holdsParagraphs(el) && nodes.length === 1) keepBareText(el, nodes[0]);
   return nodes;
@@ -424,7 +420,7 @@ function keepBareText(prior, el) {
 
 // Whether saving this markdown unchanged gives back the scope as it is.
 export const roundTrips = (el, markdown) =>
-  canonicalHTML(el.ownerDocument, [el]) === canonicalHTML(el.ownerDocument, rebuild(el, markdown));
+  canonicalHTML(el.ownerDocument, [el]) === canonicalHTML(el.ownerDocument, nodesFromMarkdown(el, markdown));
 
 function fromMarkdown(el, markdown) {
   const name = el.localName;
@@ -497,7 +493,7 @@ function restore(prior, nodes) {
       continue;
     }
     const copy = original.cloneNode(true);
-    allComments(copy).forEach((c) => c.remove()); // its directives come back with the rest
+    stripForDisplay(copy, []); // its directives come back with the rest
     if (standsAlone(original)) alone.add(copy);
     mark.replaceWith(copy);
   }
@@ -554,134 +550,6 @@ function carryOver(original, img) {
   attrs.push(...said);
   for (const a of [...img.attributes]) img.removeAttribute(a.name);
   for (const [name, value] of attrs.reverse()) img.setAttribute(name, value); // linkedom puts a new attribute first
-}
-
-// ---- Reconcile ----------------------------------------------------------
-
-// Element IDs come back from the prior HTML. Directives, the open box, and the 412 check find
-// elements by them. Siblings pair up the way a diff does: first the ones that came back the
-// same, then, between those, ones with the same tag. Those are the elements you edited; they
-// keep their IDs so their directives stay with them (Jess, 2026-10-12). A pair's children pair
-// up the same way. An element with no pair is new, and the formatter gives it an ID.
-// Returns the pairs: prior element → its partner.
-const HRV = 'data-hrv';
-
-function reconcile(prior, nodes) {
-  for (const n of nodes) if (n.nodeType === 1) [n, ...n.querySelectorAll(`[${HRV}]`)].forEach((e) => e.removeAttribute(HRV));
-  const partners = new Map();
-  pairUp(prior[0].ownerDocument, prior, nodes, partners);
-  return partners;
-}
-
-// Directives ride with their element: markdown doesn't show them, so each comment in the prior
-// scope goes onto its element's partner. One whose element the edit deleted goes with it (Jess,
-// 2026-10-12). The scope's own stay; if the scope came back as something else, they go on its
-// first element, or where it was.
-function carryDirectives(el, nodes, partners) {
-  const holder = el.ownerDocument.createElement('div');
-  holder.append(...nodes);
-  const moving = new Map(); // partner → comments, in order
-  for (const comment of allComments(el)) {
-    const owner = directiveOwner(comment);
-    if (owner !== el && !partners.has(owner)) continue;
-    const target = partners.get(owner) ?? holder.firstElementChild ?? holder;
-    if (!moving.has(target)) moving.set(target, []);
-    moving.get(target).push(comment.cloneNode());
-  }
-  for (const [target, comments] of moving) attachComments(target, comments);
-  return [...holder.childNodes];
-}
-
-function pairUp(document, prior, nodes, partners) {
-  const before = prior.filter((n) => n.nodeType === 1);
-  const after = nodes.filter((n) => n.nodeType === 1);
-  const keys = (els) => els.map((e) => canonicalHTML(document, [e]));
-  const [beforeKeys, afterKeys] = [keys(before), keys(after)];
-  const pairs = new Map(); // after index → before index
-  const same = commonSubsequence(beforeKeys, afterKeys);
-  let [i, j] = [0, 0];
-  for (const [si, sj] of [...same, [before.length, after.length]]) {
-    pairGap(before, after, i, si, j, sj, pairs, beforeKeys, afterKeys);
-    if (si < before.length) pairs.set(sj, si);
-    [i, j] = [si + 1, sj + 1];
-  }
-  // An element that moved, unchanged, past others.
-  const taken = new Set(pairs.values());
-  for (const [b, key] of beforeKeys.entries()) {
-    if (taken.has(b)) continue;
-    const a = afterKeys.findIndex((k, x) => k === key && !pairs.has(x));
-    if (a >= 0) pairs.set(a, b);
-  }
-  // Bare text beside blocks, edited, comes back as a paragraph (C10): what was in it pairs with
-  // what is in the paragraph.
-  const paired = new Set(pairs.values());
-  const bare = before.filter((e, b) => !paired.has(b) && !isBlock(e));
-  const wrapped = after.filter((e, a) => !pairs.has(a) && e.localName === 'p' && !hasAttrs(e));
-  if (bare.length > 0 && wrapped.length > 0) pairUp(document, bare, wrapped.flatMap((p) => [...p.childNodes]), partners);
-  for (const [a, b] of pairs) {
-    if (before[b].hasAttribute(HRV)) after[a].setAttribute(HRV, before[b].getAttribute(HRV));
-    partners.set(before[b], after[a]);
-    pairUp(document, [...before[b].childNodes], [...after[a].childNodes], partners);
-  }
-}
-
-// Between two unchanged siblings: as many before as after, the same tags in order, is an edit
-// of each. Otherwise the most alike pairs first, same tag, in order, so a new item typed beside
-// an edited one doesn't take its ID.
-function pairGap(before, after, b0, b1, a0, a1, pairs, beforeKeys, afterKeys) {
-  if (b1 - b0 === a1 - a0 && after.slice(a0, a1).every((el, k) => el.localName === before[b0 + k].localName)) {
-    for (let k = 0; k < a1 - a0; k++) pairs.set(a0 + k, b0 + k);
-    return;
-  }
-  const candidates = [];
-  for (let b = b0; b < b1; b++)
-    for (let a = a0; a < a1; a++)
-      if (before[b].localName === after[a].localName) candidates.push([likeness(beforeKeys[b], afterKeys[a]), b, a]);
-  const taken = [];
-  for (const [, b, a] of candidates.sort((x, y) => y[0] - x[0])) {
-    if (taken.some(([tb, ta]) => tb === b || ta === a || tb < b !== ta < a)) continue;
-    taken.push([b, a]);
-    pairs.set(a, b);
-  }
-}
-
-// How alike two elements of one tag are, by their content: of the character pairs in the
-// shorter, the share the other holds too. Typing more into an item keeps it alike; its tags,
-// the same on both, don't count. Ties go to the closer length (the Dice coefficient). An
-// element with no content, like an img, compares its tag.
-function likeness(x, y) {
-  const inner = (s) => s.replace(/^<[^>]*>/, '').replace(/<\/[^>]*>$/, '');
-  if (inner(x) && inner(y)) [x, y] = [inner(x), inner(y)];
-  const pairsOf = (s) => {
-    const counts = new Map();
-    for (let i = 0; i < s.length - 1; i++) counts.set(s.slice(i, i + 2), (counts.get(s.slice(i, i + 2)) ?? 0) + 1);
-    return counts;
-  };
-  const [px, py] = [pairsOf(x), pairsOf(y)];
-  let shared = 0;
-  for (const [p, n] of px) shared += Math.min(n, py.get(p) ?? 0);
-  const contained = shared / Math.max(Math.min(x.length, y.length) - 1, 1);
-  const dice = (2 * shared) / Math.max(x.length + y.length - 2, 1);
-  return contained + dice / 100;
-}
-
-// Index pairs of a longest common subsequence, in order. Of the longest, the one whose pairs
-// moved least: edit an item into a copy of its neighbor, and each copy still pairs in place.
-function commonSubsequence(xs, ys) {
-  const worth = xs.length + ys.length + 1; // one more pair outweighs any distance
-  const best = Array.from({ length: xs.length + 1 }, () => new Array(ys.length + 1).fill(0));
-  for (let i = xs.length - 1; i >= 0; i--)
-    for (let j = ys.length - 1; j >= 0; j--) {
-      const skip = Math.max(best[i + 1][j], best[i][j + 1]);
-      best[i][j] = xs[i] === ys[j] ? Math.max(skip, best[i + 1][j + 1] + worth - Math.abs(i - j)) : skip;
-    }
-  const out = [];
-  for (let i = 0, j = 0; i < xs.length && j < ys.length; ) {
-    if (xs[i] === ys[j] && best[i][j] === best[i + 1][j + 1] + worth - Math.abs(i - j)) out.push([i++, j++]);
-    else if (best[i + 1][j] >= best[i][j + 1]) i++;
-    else j++;
-  }
-  return out;
 }
 
 const shell = (el, nodes) => {

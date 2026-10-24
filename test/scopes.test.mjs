@@ -2,7 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { normalize } from '../domain/format.mjs';
 import { parse, serialize } from '../domain/canonical.mjs';
-import { scopeOf, scopesWithin, scopeMarkdown, scopeFromMarkdown, roundTrips, canonicalHTML, annotate, editable, EDIT_LIMIT, scopeElements } from '../domain/scopes.mjs';
+import { scopeOf, scopesWithin, scopeMarkdown, roundTrips, canonicalHTML, annotate, editable, EDIT_LIMIT, scopeElements } from '../domain/scopes.mjs';
+import { scopeFromMarkdown } from '../domain/markdown-edits.mjs';
 
 const body = (html) => parse(`<html><body>${html}</body></html>`).querySelector('body');
 const markdownOf = (html) => scopeMarkdown(body(html).firstElementChild);

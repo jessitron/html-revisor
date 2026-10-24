@@ -1,10 +1,10 @@
 // Markdown edits: the markdown the box shows for each scope, and what saving it does to the
 // document. Tier II, pure functions over a DOM.
 import { parse, trimAscii } from './canonical.mjs';
-import { ID } from './identity.mjs';
-import { removeThreads } from './directives.mjs';
-import { scopeElements, scopeMarkdown, scopeFromMarkdown, editable } from './scopes.mjs';
-import { normalize, assignIds } from './format.mjs';
+import { ID, assignIds, reconcile } from './identity.mjs';
+import { removeThreads, carryDirectives } from './directives.mjs';
+import { scopeElements, scopeMarkdown, nodesFromMarkdown, editable } from './scopes.mjs';
+import { normalize } from './format.mjs';
 
 // Each scope's markdown, by ID: what the box shows. Not body's, which nobody picks, and not a
 // scope too big to edit.
@@ -29,8 +29,17 @@ export function committedMarkdowns(html, author) {
   }
 }
 
+// The nodes that replace a scope's element when its markdown is saved: what the markdown says
+// (scopes.mjs), with the IDs (identity.mjs) and directives (directives.mjs) of the elements you
+// left or changed. Saving it unchanged gives back the same HTML, element IDs and directives
+// included (SCOPES-DESIGN.html#identity).
+export function scopeFromMarkdown(el, markdown) {
+  const nodes = nodesFromMarkdown(el, markdown);
+  return carryDirectives(el, nodes, reconcile([el], nodes));
+}
+
 // Replace a scope with what its markdown says. The elements you left or changed keep their IDs
-// and directives (scopes.mjs reconciles); new ones get IDs. Returns the nodes that replaced it,
+// and directives (scopeFromMarkdown); new ones get IDs. Returns the nodes that replaced it,
 // or null, changing nothing, for an element that isn't a scope, one too big to edit, or blank markdown.
 export function saveMarkdown(el, markdown) {
   const document = el.ownerDocument;

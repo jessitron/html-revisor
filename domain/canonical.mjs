@@ -1,7 +1,7 @@
 // Canonical form: parse an HTML document, add a missing skeleton, rewrite into canonical
 // forms, and serialize in canonical layout. Tier II, pure functions over a DOM.
 import { parseHTML } from '../vendor/linkedom.mjs';
-import { ID } from './identity.mjs';
+import { ID } from './id-attribute.mjs';
 
 // ---- Parse, skeleton, layout, serialize ---------------------------------
 
