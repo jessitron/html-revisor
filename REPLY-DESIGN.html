@@ -56,7 +56,7 @@
     --rp-dots: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect x='0' y='5.75' width='4.5' height='4.5'/><rect x='5.75' y='5.75' width='4.5' height='4.5'/><rect x='11.5' y='5.75' width='4.5' height='4.5'/></svg>");
   }
 
-  /* Marker states. Waiting and opened are today's marker, no class. */
+  /* Marker states. Waiting and answered are today's marker, no class. */
   :is(#hrv-layer, .hrv-layer) .hrv-marker.rp-working::before { background: var(--rp-reply); -webkit-mask-image: var(--rp-dots); mask-image: var(--rp-dots); }
   :is(#hrv-layer, .hrv-layer) .hrv-marker.rp-answered::before { background: var(--rp-reply); -webkit-mask-image: var(--rp-bubble); mask-image: var(--rp-bubble); }
   /* The box's icon follows the marker while the agent works. */
@@ -195,8 +195,8 @@
       <line data-hrv="184" class="msg live" x1="340" y1="515" x2="94" y2="515" marker-end="url(#arrow)"></line>
       <text data-hrv="185" x="215" y="507" text-anchor="middle">marker shows the bubble; box shows the thread</text>
       <line data-hrv="186" class="msg" x1="90" y1="565" x2="336" y2="565" marker-end="url(#arrow)"></line>
-      <text data-hrv="187" x="215" y="557" text-anchor="middle">opens the box: marker back to the pencil</text>
-      <text data-hrv="188" x="215" y="600" text-anchor="middle">answers in the box, and around again</text>
+      <text data-hrv="187" x="215" y="557" text-anchor="middle">answers in the box: marker back to the pencil</text>
+      <text data-hrv="188" x="215" y="600" text-anchor="middle">and around again, until she resolves it</text>
       <text data-hrv="189" x="215" y="620" text-anchor="middle" fill="var(--muted)">one thread per element</text>
     </svg>
     <h2 data-hrv="190" id="box">Directive box with a thread</h2>
@@ -254,10 +254,10 @@
         <strong>Waiting:</strong> today's magenta pencil. Your directive, no reply yet.
       </li>
       <li data-hrv="223">
-        <strong>Unread answer:</strong> a green speech bubble. A reply you haven't opened.
+        <strong>New reply:</strong> a green speech bubble. The agent spoke last, so it's your turn. Opening the box doesn't change it; adding a turn or Resolve does.
       </li>
       <li data-hrv="224">
-        <strong>Opened:</strong> back to the magenta pencil. The thread is still there, and the docket's directives step to it.
+        <strong>Answered:</strong> back to the magenta pencil, waiting on the agent again.
       </li>
     </ul>
     <p data-hrv="225" class="note">
@@ -271,7 +271,7 @@
             <!-- @AI: I'm thinking - what if the client sets it to working immediately on save? if it has the expectation that the agent will reply. That would feel responsive -->
             Working
           </p>
-          <p data-hrv="232">Unread answer</p>
+          <p data-hrv="232">New reply</p>
           <div data-hrv="233" class="hrv-layer">
             <div data-hrv="234" class="hrv-marker" style="left: 14px; top: 12px;"></div>
             <div data-hrv="235" class="hrv-marker rp-working" style="left: 14px; top: 43px;"></div>
@@ -284,7 +284,7 @@
         <div data-hrv="239" class="tile" style="background: #18191c; color: #fff;">
           <p data-hrv="240">Waiting</p>
           <p data-hrv="241">Working</p>
-          <p data-hrv="242">Unread answer</p>
+          <p data-hrv="242">New reply</p>
           <div data-hrv="243" class="hrv-layer">
             <div data-hrv="244" class="hrv-marker" style="left: 14px; top: 12px;"></div>
             <div data-hrv="245" class="hrv-marker rp-working" style="left: 14px; top: 43px;"></div>
@@ -297,7 +297,7 @@
         <div data-hrv="249" class="tile" style="background: #d6336c; color: #fff;">
           <p data-hrv="250">Waiting</p>
           <p data-hrv="251">Working</p>
-          <p data-hrv="252">Unread answer</p>
+          <p data-hrv="252">New reply</p>
           <div data-hrv="253" class="hrv-layer">
             <div data-hrv="254" class="hrv-marker" style="left: 14px; top: 12px;"></div>
             <div data-hrv="255" class="hrv-marker rp-working" style="left: 14px; top: 43px;"></div>
@@ -310,7 +310,7 @@
         <div data-hrv="259" class="tile" style="background: #51cf66; color: #111;">
           <p data-hrv="260">Waiting</p>
           <p data-hrv="261">Working</p>
-          <p data-hrv="262">Unread answer</p>
+          <p data-hrv="262">New reply</p>
           <div data-hrv="263" class="hrv-layer">
             <div data-hrv="264" class="hrv-marker" style="left: 14px; top: 12px;"></div>
             <div data-hrv="265" class="hrv-marker rp-working" style="left: 14px; top: 43px;"></div>
@@ -323,7 +323,7 @@
         <div data-hrv="269" class="tile" style="background: repeating-linear-gradient(45deg, #d6336c 0 8px, #12b886 8px 16px); color: #fff;">
           <p data-hrv="270">Waiting</p>
           <p data-hrv="271">Working</p>
-          <p data-hrv="272">Unread answer</p>
+          <p data-hrv="272">New reply</p>
           <div data-hrv="273" class="hrv-layer">
             <div data-hrv="274" class="hrv-marker" style="left: 14px; top: 12px;"></div>
             <div data-hrv="275" class="hrv-marker rp-working" style="left: 14px; top: 43px;"></div>
@@ -336,7 +336,7 @@
         <div data-hrv="279" class="tile" style="background: url(design/cat-on-table.png) center / cover; color: #fff; text-shadow: 0 1px 2px #000;">
           <p data-hrv="280">Waiting</p>
           <p data-hrv="281">Working</p>
-          <p data-hrv="282">Unread answer</p>
+          <p data-hrv="282">New reply</p>
           <div data-hrv="283" class="hrv-layer">
             <div data-hrv="284" class="hrv-marker" style="left: 14px; top: 12px;"></div>
             <div data-hrv="285" class="hrv-marker rp-working" style="left: 14px; top: 43px;"></div>
@@ -370,7 +370,7 @@
           <th data-hrv="299"></th>
           <th data-hrv="300">waiting</th>
           <th data-hrv="301">working</th>
-          <th data-hrv="302">unread answer</th>
+          <th data-hrv="302">new reply</th>
           <th data-hrv="303">not picked: green pencil</th>
           <th data-hrv="304">not picked: pencil + badge</th>
         </tr>
@@ -537,13 +537,13 @@
       </div>
       <div data-hrv="394">
         <p data-hrv="395" class="note">
-          <strong>Hover.</strong> The tip shows whatever was said last in the thread. On an unread answer that's the reply, in prose type with the green rule.
+          <strong>Hover.</strong> The tip shows whatever was said last in the thread. On a new reply that's the reply, in prose type with the green rule.
         </p>
       </div>
     </div>
     <h2 data-hrv="396" id="docket">Docket</h2>
     <p data-hrv="397" class="note">
-      Two rows. The top row counts directives: every open thread. The bottom row counts new replies: the ones you haven't opened. Opening a reply's box takes it off the bottom row; its thread stays in the top one. ⌥↑ and ⌥↓ step through directives, as today. The replies row has its own arrows. Stepping to a reply works as stepping to a directive: the element scrolls to the middle, shows its crop marks, and its marker shows its tip.
+      Two rows. The top row counts directives: every open thread. The bottom row counts new replies: threads where the agent spoke last. Adding a turn takes one off the bottom row, and its thread stays in the top one; Resolve takes it off both. Opening the box changes nothing. ⌥↑ and ⌥↓ step through directives, as today. The replies row has its own arrows. Stepping to a reply works as stepping to a directive: the element scrolls to the middle, shows its crop marks, and its marker shows its tip.
     </p>
     <div data-hrv="398" class="row">
       <div data-hrv="399">
@@ -565,7 +565,7 @@
           </div>
         </div>
         <p data-hrv="414" class="note">
-          <strong>Two new replies.</strong> Five open threads; two hold a reply you haven't opened.
+          <strong>Two new replies.</strong> Five open threads; in two, the agent spoke last.
         </p>
       </div>
       <div data-hrv="415">
@@ -853,9 +853,9 @@ make a yak for this: when review is off, don't show the arrows! they don't work 
         <tr>
           <td data-hrv="98">How do you know the agent has it?</td>
           <td data-hrv="99">
-            When it replies. The marker cycles: magenta pencil, green bubble for an unread answer, and back to the pencil once you open it. A working state comes later.
+            When it replies. The marker cycles: magenta pencil, green bubble when the agent has spoken last, and back to the pencil when you add a turn. Opening the box doesn't change it. A working state comes later.
           </td>
-          <td data-hrv="100">on reload</td>
+          <td data-hrv="100">on reload; opening clears it</td>
           <td data-hrv="101"><a data-hrv="102" href="#marker">marker</a></td>
         </tr>
         <tr>
@@ -881,7 +881,7 @@ make a yak for this: when review is off, don't show the arrows! they don't work 
         <tr>
           <td data-hrv="118">What does the docket count?</td>
           <td data-hrv="119">
-            Two rows. Directives: every open thread. New replies: the ones you haven't opened. ⌥↑ and ⌥↓ step through directives.
+            Two rows. Directives: every open thread. New replies: threads where the agent spoke last. ⌥↑ and ⌥↓ step through directives.
           </td>
           <td data-hrv="120">top row</td>
           <td data-hrv="121"><a data-hrv="122" href="#docket">docket</a></td>
