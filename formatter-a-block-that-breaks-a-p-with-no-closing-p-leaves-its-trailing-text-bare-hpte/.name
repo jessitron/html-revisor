@@ -1,0 +1,1 @@
+Formatter: a block that breaks a p with no closing </p> leaves its trailing text bare
