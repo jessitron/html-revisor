@@ -76,6 +76,10 @@ export function threadOf(el, author) {
   return turnsOn(el, author).map((c) => turnOf(c, author));
 }
 
+// How many times the agent has replied on this element: what a directive save checks, so a
+// turn typed before a reply came in isn't written after it.
+export const replyCount = (el, author) => threadOf(el, author).filter((t) => t.prefix === REPLY).length;
+
 function turnOf(comment, author) {
   const prefix = isDirective(comment, author) ? author : REPLY;
   return { prefix, text: directiveText(comment, prefix) };

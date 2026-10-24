@@ -612,6 +612,25 @@ test('a reply to a thread that changed since is stale: 412 with the turn to read
     assert.match(s.read('page.html'), /and a caption -->\s*<!-- @Human: Added both. -->/);
   }));
 
+test('a directive save that saw fewer replies than the thread has is 412, so a turn typed before a reply lands once', () =>
+  withServer(async (s) => {
+    const { id, announced } = await directAndAnnounce(s, 'page.html', 'p', 'add a diagram');
+    const { bases } = await s.page('page.html');
+    assert.equal((await s.put('page.html', { id, base: bases[id], directive: 'add a diagram', replies: 0 })).status, 200);
+    await s.put('page.html', { id, thread: announced.thread, reply: 'Added one.' });
+    const before = s.read('page.html');
+    const res = await s.put('page.html', { id, base: bases[id], directive: 'add a diagram with arrows', replies: 0 });
+    assert.equal(res.status, 412);
+    assert.deepEqual(await res.json(), { ok: false, error: 'a reply came in on that thread', replies: 1 });
+    assert.equal(s.read('page.html'), before);
+    assert.equal((await s.put('page.html', { id, base: bases[id], directive: 'with arrows', replies: 1 })).status, 200);
+    assert.match(s.read('page.html'), /add a diagram -->\s*<!-- @Human: Added one. -->\s*<!-- @AI: with arrows -->/);
+    for (const replies of [-1, 1.5, '1']) {
+      assert.equal((await s.put('page.html', { id, base: bases[id], directive: 'x', replies })).status, 400, String(replies));
+    }
+    assert.equal((await s.put('page.html', { id, base: bases[id], resolve: true, replies: 1 })).status, 400, 'replies goes with a directive');
+  }));
+
 test('a reply to an element with no thread, or one that is gone, is refused', () =>
   withServer(async (s) => {
     const { id, announced } = await directAndAnnounce(s, 'page.html', 'p', 'add a diagram');

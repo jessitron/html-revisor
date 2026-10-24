@@ -9,7 +9,7 @@ import { formatFiles } from './formatter.mjs';
 import { parse, serialize } from './domain/canonical.mjs';
 import { ID, elementById } from './domain/identity.mjs';
 import { normalize, assignIds } from './domain/format.mjs';
-import { collectDirectives, threadOf, threadsOf, removeThreads, removeThread, setDirective, placeReply } from './domain/directives.mjs';
+import { collectDirectives, threadOf, threadsOf, removeThreads, removeThread, setDirective, placeReply, replyCount } from './domain/directives.mjs';
 import { scopeElements, editable } from './domain/scopes.mjs';
 import { fingerprint, baseOf, basesOf, threadBaseOf, around } from './domain/bases.mjs';
 import { markdownsOf, committedMarkdowns, saveMarkdown, servedHTML, holderOf } from './domain/markdown-edits.mjs';
@@ -264,7 +264,8 @@ async function getState(res, file, urlPath, { author, inTurn }) {
 }
 
 // PUT: the body is one change to one element, with the base the tab started from:
-//   {"id": "7", "base": "…", "directive": "text"}   sets the element's directive; "" removes it
+//   {"id": "7", "base": "…", "directive": "text"}   sets the element's directive; "" removes it.
+//     "replies": n, the replies the tab has seen on the element, makes it 412 if more came since
 //   {"id": "7", "base": "…", "markdown": "…"}       replaces a scope with what its markdown says
 //   {"id": "7", "base": "…", "resolve": true}       Resolve: removes the element's thread; Done announces its turns
 // The directive is the element's open turn: after a reply, setting it adds a turn to the thread.
@@ -287,10 +288,11 @@ async function putChange(req, res, file, urlPath, config) {
     }
     return config.inTurn(file, () => putReply(res, file, urlPath, change, config));
   }
-  const { id, base, directive, markdown, resolve } = change ?? {};
+  const { id, base, directive, markdown, resolve, replies } = change ?? {};
   const kinds = [typeof directive === 'string' && 'directive', typeof markdown === 'string' && 'markdown', resolve === true && 'resolve'].filter(Boolean);
-  if (typeof id !== 'string' || typeof base !== 'string' || kinds.length !== 1) {
-    throw new HttpError(400, 'body must look like {"id": "<id>", "base": "<base>", "directive": "text"}, or with "markdown": "…" or "resolve": true instead');
+  const repliesOk = replies === undefined || (kinds[0] === 'directive' && Number.isInteger(replies) && replies >= 0);
+  if (typeof id !== 'string' || typeof base !== 'string' || kinds.length !== 1 || !repliesOk) {
+    throw new HttpError(400, 'body must look like {"id": "<id>", "base": "<base>", "directive": "text", "replies"?: <n>}, or with "markdown": "…" or "resolve": true instead');
   }
   return config.inTurn(file, () => applyChange(res, file, urlPath, change, kinds[0], config));
 }
@@ -330,7 +332,7 @@ async function putReply(res, file, urlPath, { id, thread, reply }, { author, liv
   sendJson(res, 200, { ok: true, count, thread: threadBaseOf(reread, author), before: fingerprint(onDisk), after: fingerprint(written) });
 }
 
-async function applyChange(res, file, urlPath, { id, base, directive, markdown }, kind, { author, resolved, live }) {
+async function applyChange(res, file, urlPath, { id, base, directive, markdown, replies }, kind, { author, resolved, live }) {
   const span = trace.getActiveSpan();
   span?.setAttributes({ 'hrv.page': urlPath, 'hrv.change.kind': kind, 'hrv.scope.id': id, 'hrv.change.bytes': (directive ?? markdown ?? '').length });
   const onDisk = await inSpan('read file', {}, () => readText(file));
@@ -345,6 +347,12 @@ async function applyChange(res, file, urlPath, { id, base, directive, markdown }
     span?.setAttribute('hrv.conflict', el ? 'changed on disk' : 'no such element');
     console.log(`${urlPath} — conflict on element ${id} (${el ? 'it changed on disk' : 'no such element'})`);
     return sendJson(res, 412, { ok: false, error: el ? 'that element changed on disk' : 'that element is gone from the file' });
+  }
+  // A turn typed before a reply came in: the tab catches up and sends what's left after the reply.
+  const repliesNow = kind === 'directive' && replies !== undefined ? replyCount(el, author) : replies;
+  if (repliesNow !== replies) {
+    span?.setAttribute('hrv.conflict', 'replied since');
+    return sendJson(res, 412, { ok: false, error: 'a reply came in on that thread', replies: repliesNow });
   }
   let changed, answer = {}, ended = [];
   if (kind === 'directive') {
