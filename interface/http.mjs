@@ -100,6 +100,18 @@ export function sendError(res, err) {
   res.end(status === 404 ? 'not found' : String(err.message ?? err));
 }
 
+// The other end: PUT a JSON body to a running server. Resolves to the status and the body as
+// text; a server that isn't there is an Error that says so.
+export async function putJson(url, body) {
+  let res;
+  try {
+    res = await fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  } catch (err) {
+    throw new Error(`no server answers at ${new URL(url).origin}: is it running? (${err.cause?.code ?? err.message})`);
+  }
+  return { status: res.status, text: await res.text() };
+}
+
 const escapeHtml = (s) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/ /g, '&nbsp;').replace(/"/g, '&quot;');
 

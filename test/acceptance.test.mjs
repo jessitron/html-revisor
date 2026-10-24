@@ -620,6 +620,43 @@ test('replies and saves that arrive together all land: the server writes one at 
     for (const n of [0, 1, 2]) assert.match(file, new RegExp(`@AI: save ${n} -->`));
   }));
 
+// The reply CLI, run as the agent runs it. Resolves to its exit status and output.
+function runReply(args) {
+  return new Promise((resolve) => {
+    const child = spawn(process.execPath, [path.join(here, '..', 'reply.mjs'), ...args], { env });
+    let stdout = '';
+    let stderr = '';
+    child.stdout.on('data', (d) => (stdout += d));
+    child.stderr.on('data', (d) => (stderr += d));
+    child.on('exit', (status) => resolve({ status, stdout, stderr }));
+  });
+}
+
+test('reply CLI: the agent replies through the running server, and hears when it is stale', () =>
+  withServer(async (s) => {
+    const { id, announced } = await directAndAnnounce(s, 'page.html', 'p', 'add a diagram');
+    const page = s.base + 'page.html';
+    const landed = await runReply([page, id, announced.thread, "Added one. It's below."]);
+    assert.equal(landed.status, 0, landed.stderr);
+    assert.equal(JSON.parse(landed.stdout).ok, true);
+    assert.equal(landed.stdout.split('\n').length, 2, 'one line of JSON');
+    assert.match(s.read('page.html'), /<!-- @Human: Added one. It's below. -->/);
+    const stale = await runReply([page, id, announced.thread, 'Again.']);
+    assert.equal(stale.status, 1);
+    assert.deepEqual(JSON.parse(stale.stdout), { ok: false, error: 'its thread changed since', directive: '', thread: JSON.parse(landed.stdout).thread });
+  }));
+
+test('reply CLI: usage, and a server that is not there', async () => {
+  for (const args of [[], ['http://localhost:1/x.html', '1', 'abc'], ['x.html', '1', 'abc', 'text'], ['http://localhost:1/x.html', '1', 'abc', 'text', 'more']]) {
+    const { status, stderr } = await runReply(args);
+    assert.equal(status, 2, JSON.stringify(args));
+    assert.match(stderr, /^usage: node reply.mjs <page URL> <id> <thread> <text>/);
+  }
+  const away = await runReply(['http://localhost:1/x.html', '1', 'abc', 'text']);
+  assert.equal(away.status, 1);
+  assert.match(away.stderr, /no server answers at http:\/\/localhost:1: is it running\?/);
+});
+
 test('a Done body must be an id, the directive, and for a scope the markdown', () =>
   withServer(async (s) => {
     for (const body of [{}, { id: '1' }, { id: 1, directive: '' }, { id: '1', directive: '', markdown: 3 }]) {
