@@ -70,6 +70,17 @@ test('table rows go in sections: a leading row of th is the thead', () => {
   assert.equal(layout(sectioned), layout(layout(sectioned)));
 });
 
+test('a tbody that leads with a row of th gives that row to a new thead', () => {
+  const out = layout('<body><table><tbody><tr><th>stage</th><th>status</th></tr><tr><td>1</td><td>ok</td></tr></tbody></table></body>');
+  assert.match(out, /<table>\s*<thead>\s*<tr>\s*<th>stage<\/th>\s*<th>status<\/th>\s*<\/tr>\s*<\/thead>\s*<tbody>\s*<tr>\s*<td>1<\/td>/);
+  const headOnly = layout('<body><table><tbody><tr><th>a</th></tr></tbody></table></body>');
+  assert.match(headOnly, /<table>\s*<thead>\s*<tr>\s*<th>a<\/th>\s*<\/tr>\s*<\/thead>\s*<\/table>/);
+  const withHead = '<body><table><thead><tr><th>h</th></tr></thead><tbody><tr><th>a</th></tr><tr><td>1</td></tr></tbody></table></body>';
+  assert.match(layout(withHead), /<\/thead>\s*<tbody>\s*<tr>\s*<th>a<\/th>/);
+  const mixed = layout('<body><table><tbody><tr><th>k</th><td>v</td></tr></tbody></table></body>');
+  assert.ok(!mixed.includes('<thead>'));
+});
+
 test('only ASCII whitespace collapses; nbsp survives', () => {
   const out = layout('<body><p>a \n\t  b&nbsp;&nbsp;c &nbsp;</p></body>');
   assert.match(out, /<p>a b&nbsp;&nbsp;c &nbsp;<\/p>/);

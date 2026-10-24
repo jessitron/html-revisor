@@ -39,23 +39,39 @@ function rename(el, name) {
 }
 
 // Rows sitting right in a table go in sections, as markdown's tables have them: a leading
-// row of th is the thead, the rest a tbody.
+// row of th is the thead, the rest a tbody. A tbody that leads the table with a row of th
+// gives that row to a new thead.
 function sectionRows(table) {
-  const rows = [...table.children].filter((c) => c.localName === 'tr');
-  if (rows.length === 0) return;
   const document = table.ownerDocument;
+  const rows = [...table.children].filter((c) => c.localName === 'tr');
   const hasHead = [...table.children].some((c) => c.localName === 'thead');
+  const allTh = (tr) => tr.children.length > 0 && [...tr.children].every((c) => c.localName === 'th');
   const [first] = rows;
-  if (!hasHead && first === table.firstElementChild && [...first.children].every((c) => c.localName === 'th')) {
+  if (!hasHead && first && first === table.firstElementChild && allTh(first)) {
     const thead = document.createElement('thead');
     first.replaceWith(thead);
     thead.appendChild(first);
     rows.shift();
   }
-  if (rows.length === 0) return;
-  const tbody = document.createElement('tbody');
-  rows[0].replaceWith(tbody);
-  tbody.append(...rows);
+  if (rows.length > 0) {
+    const tbody = document.createElement('tbody');
+    rows[0].replaceWith(tbody);
+    tbody.append(...rows);
+  }
+  headFromBody(table);
+}
+
+function headFromBody(table) {
+  if ([...table.children].some((c) => c.localName === 'thead')) return;
+  const tbody = [...table.children].find((c) => c.localName !== 'caption' && c.localName !== 'colgroup');
+  if (tbody?.localName !== 'tbody') return;
+  const first = tbody.firstElementChild;
+  if (first?.localName !== 'tr' || first.children.length === 0) return;
+  if (![...first.children].every((c) => c.localName === 'th')) return;
+  const thead = table.ownerDocument.createElement('thead');
+  tbody.before(thead);
+  thead.appendChild(first);
+  if (!tbody.firstElementChild) tbody.remove();
 }
 
 // Browsers supply a missing <html>, <head> or <body>; linkedom does not. It makes the first
