@@ -53,6 +53,9 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
         <li>
           2026-10-24 11:55: TESTING.html carries the new files and times, acceptance as the long bar, and a recommendation to speed it up. Added yak <code>acceptancetestmjs-is-the-long-bar-ueem</code>.
         </li>
+        <li>
+          2026-10-24 12:30: the coordinator rebased onto main. Fixed the conflict in <code>README.md</code>: kept main's Tier III line, put the new round-trip file names in the Scopes line. The commits are now <code>22f8fcd</code> and <code>ab1b1b0</code>. The suite: 214 tests, 213 pass, 1 skipped, 10.0 s.
+        </li>
       </ul>
     </section>
     <section id="guesses" class="guesses">
@@ -95,11 +98,13 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
       <h2>Result</h2>
       <ul>
         <li>
-          <code>ab5a0c3</code> Split roundtrip.test.mjs into four files so node --test runs them side by side
+          <code>22f8fcd</code> Split roundtrip.test.mjs into four files so node --test runs them side by side
         </li>
-        <li><code>TESTING.html</code>: the round-trip split, measured</li>
         <li>
-          <code>node --test --test-reporter=tap</code>: <code># tests 199</code>, <code># pass 198</code>, <code># fail 0</code>, <code># skipped 1</code> (the Honeycomb test, no key).
+          <code>ab1b1b0</code> TESTING.html: the round-trip split, measured; acceptance is the long bar
+        </li>
+        <li>
+          <code>node --test --test-reporter=tap</code>, after the rebase onto main: <code># tests 214</code>, <code># pass 213</code>, <code># fail 0</code>, <code># skipped 1</code> (the Honeycomb test, no key).
         </li>
         <li>
           Suite wall time: 20.5 s before, 9.9 s after. Files alone: <code>roundtrip-generated-edits</code> 6.9 s, <code>roundtrip-pages</code> 4.0 s, <code>roundtrip-generated</code> 3.8 s, <code>roundtrip-mintlify</code> 2.3 s. <code>acceptance.test.mjs</code>, 9.2 s, now sets the time.
