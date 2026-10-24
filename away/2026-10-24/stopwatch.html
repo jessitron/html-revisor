@@ -18,8 +18,10 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
     <p>Round 2, wave 1. Cut the acceptance tests' wall time.</p>
     <section id="status" class="status">
       <h2>Status</h2>
-      <p class="status-value">planned</p>
-      <p class="status-why">Page made by Shepherd; not started.</p>
+      <p class="status-value">merged-ready</p>
+      <p class="status-why">
+        Acceptance went from 9.4 s to 2.3 s plus 3.8 s side by side; the suite is green, rebased on main.
+      </p>
     </section>
     <section id="plan" class="plan">
       <h2>Plan</h2>
@@ -43,31 +45,94 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
       <h2>Log</h2>
       <ul>
         <li>2026-10-24: page made by Shepherd.</li>
+        <li>
+          2026-10-24 measured: acceptance alone 9.4 s, 53 tests. About 100 ms a test is spawning <code>server.mjs</code>; the five live notice tests take 4.0 s, most of it in <code>none()</code> waits of 400 ms.
+        </li>
+        <li>
+          2026-10-24 <code>62d0351</code> (now <code>b9055c0</code>): in-process server for all but the CLI's own tests. Acceptance 5.9 s.
+        </li>
+        <li>
+          2026-10-24 <code>83bef1a</code> (now <code>a1f0e38</code>): live notice tests in <code>test/live-notice.test.mjs</code>, harness in <code>test/acceptance-lib.mjs</code>. 2.3 s and 3.8 s, side by side.
+        </li>
+        <li>
+          2026-10-24: the suite stayed at 10 s wall. <code>client.test.mjs</code> takes 10.2 s alone: it was the long bar on the main I started from, too. Out of scope; added a yak.
+        </li>
+        <li>
+          2026-10-24: rebased on main for Decoder Ring's and Broom's merges; tests 7 and 9b keep their new expected values. TESTING.html updated.
+        </li>
       </ul>
     </section>
     <section id="guesses" class="guesses">
       <h2>Guesses</h2>
-      <p>None yet. Starting guesses from Shepherd, to confirm or replace:</p>
-      <ul>
-        <li>
-          The 180 ms per test is a spawned server process per test, or a sleep waiting for the file watcher. <code>test/client.test.mjs</code> runs <code>createServer</code> in-process; that pattern may serve acceptance too, for the tests that don't test the CLI itself.
-        </li>
-        <li>
-          Keep each test's fresh copy of the fixtures: tests that share a file are a worse cost than time.
-        </li>
-      </ul>
+      <div id="guess-which-spawn" class="guess">
+        <p>
+          <strong>Guess:</strong> the server runs in-process from <code>createServer</code>, its <code>console.log</code> and <code>console.error</code> caught as the log, for every test but the CLI's own: <code>--author</code> (which also checks the directory startup line) and the two file-argument tests still spawn <code>server.mjs</code>. The reply CLI tests still spawn <code>reply.mjs</code>, against an in-process server. Each test keeps its own fixture copy.
+        </p>
+        <p>
+          <strong>Why:</strong> the spawn was the cost, and only those tests are about the entry point. Tests in one file run one at a time, so the console belongs to one server.
+        </p>
+        <p>
+          <strong>If wrong:</strong> pass CLI args to <code>withServer</code> in <code>test/acceptance.test.mjs</code> (for example <code>['--author', '@AI']</code>) to spawn a test; the switch is in <code>test/acceptance-lib.mjs</code>.
+        </p>
+      </div>
+      <div id="guess-split-live" class="guess">
+        <p>
+          <strong>Guess:</strong> split out the live notice tests rather than shorten their 400 ms <code>none()</code> waits.
+        </p>
+        <p>
+          <strong>Why:</strong> a shorter window for "nothing more comes" tests less and may flake; side by side, the waits cost no wall time.
+        </p>
+        <p>
+          <strong>If wrong:</strong> lower the default in <code>listen</code>'s <code>none()</code> in <code>test/live-notice.test.mjs</code>.
+        </p>
+      </div>
+      <div id="guess-client-out" class="guess">
+        <p>
+          <strong>Guess:</strong> leave <code>client.test.mjs</code>, now the long bar at 10.2 s, to a new yak.
+        </p>
+        <p>
+          <strong>Why:</strong> Echo Hunter edits that file in this wave, and my plan named acceptance.
+        </p>
+        <p><strong>If wrong:</strong> start <code>clienttestmjs-is-the-long-bar-yg3n</code>.</p>
+      </div>
     </section>
     <section id="result" class="result">
       <h2>Result</h2>
-      <p>Not yet.</p>
+      <ul>
+        <li>
+          <code>b9055c0</code> acceptance tests: the server runs in-process, but for the CLI's own tests
+        </li>
+        <li>
+          <code>a1f0e38</code> Live notice tests in a file of their own, beside the acceptance tests
+        </li>
+        <li>and the commit with this page and <code>TESTING.html</code>.</li>
+        <li>
+          Acceptance alone: 9.4 s before; now <code>acceptance.test.mjs</code> 2.3 s (46 tests) and <code>live-notice.test.mjs</code> 3.8 s (7 tests), run side by side.
+        </li>
+        <li>
+          Suite before, on the main I started from: <code># tests 219</code>, <code># pass 218</code>, <code># fail 0</code>, 1 skipped, 10.1 s wall. After, rebased on main: <code># tests 223</code>, <code># pass 222</code>, <code># fail 0</code>, 1 skipped, 10.05 s wall, three runs. User CPU fell from 30.8 s to 26.8 s.
+        </li>
+        <li>
+          For a user: nothing. For the suite: the wall time waits on <code>client.test.mjs</code> now.
+        </li>
+      </ul>
     </section>
     <section id="gotchas" class="gotchas">
       <h2>Gotchas</h2>
-      <p>None yet.</p>
+      <ul>
+        <li>
+          The yak named acceptance as the long bar, but <code>client.test.mjs</code> already took 10 s, and TESTING.html didn't list it. Timing every file alone before picking a target would have shown the suite would not move.
+        </li>
+        <li>
+          The worktree guard refuses <code>/usr/bin/time -p</code> in a compound command. A shell script in <code>/tmp/stopwatch</code> run with <code>sh</code> passes.
+        </li>
+      </ul>
     </section>
     <section id="new-yaks" class="new-yaks">
       <h2>New yaks</h2>
-      <p>None yet.</p>
+      <ul>
+        <li><code>clienttestmjs-is-the-long-bar-yg3n</code>: client.test.mjs is the long bar</li>
+      </ul>
     </section>
   </body>
 </html>

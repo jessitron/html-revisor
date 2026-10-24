@@ -45,7 +45,7 @@
   <body>
     <h1>How we test</h1>
     <p>
-      214 tests, all passing, in 10 seconds. They took 57 until scopes over 4 KB stopped editing as markdown, and 20 until the round-trip tests split into four files that run side by side.
+      223 tests, all passing, in 10 seconds. They took 57 until scopes over 4 KB stopped editing as markdown, and 20 until the round-trip tests split into four files that run side by side.
     </p>
     <section id="suite">
       <h2>The suite</h2>
@@ -53,57 +53,53 @@
         <code>npm test</code> is <code>node --test</code>. It runs each file under <code>test/</code> in its own process, several at once, so the suite takes as long as its slowest file. No dependencies: deploy runs these tests inside iterate-on-docs, where <code>npm install</code> can't run.
       </p>
       <div class="bars" role="img" aria-label="Wall time per test file, run alone">
-        <div><code>acceptance.test.mjs</code></div>
-        <div class="bar" title="acceptance.test.mjs: 52 tests, 9.2 s">
-          <span style="width: 46%"></span>9.2 s
+        <div><code>client.test.mjs</code></div>
+        <div class="bar" title="client.test.mjs: 10 tests, 10.2 s">
+          <span style="width: 51%"></span>10.2 s
         </div>
         <div><code>roundtrip-generated-edits.test.mjs</code></div>
-        <div class="bar" title="roundtrip-generated-edits.test.mjs: 5 tests, 6.9 s">
-          <span style="width: 34.5%"></span>6.9 s
+        <div class="bar" title="roundtrip-generated-edits.test.mjs: 5 tests, 8.1 s">
+          <span style="width: 40.5%"></span>8.1 s
         </div>
         <div><code>roundtrip-pages.test.mjs</code></div>
-        <div class="bar" title="roundtrip-pages.test.mjs: 13 tests, 4.0 s">
-          <span style="width: 20%"></span>4.0 s
+        <div class="bar" title="roundtrip-pages.test.mjs: 13 tests, 4.1 s">
+          <span style="width: 20.5%"></span>4.1 s
         </div>
         <div><code>roundtrip-generated.test.mjs</code></div>
-        <div class="bar" title="roundtrip-generated.test.mjs: 3 tests, 3.8 s">
+        <div class="bar" title="roundtrip-generated.test.mjs: 3 tests, 4.1 s">
+          <span style="width: 20.5%"></span>4.1 s
+        </div>
+        <div><code>live-notice.test.mjs</code></div>
+        <div class="bar" title="live-notice.test.mjs: 7 tests, 3.8 s">
           <span style="width: 19%"></span>3.8 s
         </div>
-        <div><code>roundtrip-mintlify.test.mjs</code></div>
-        <div class="bar" title="roundtrip-mintlify.test.mjs: 6 tests, 2.3 s">
+        <div><code>acceptance.test.mjs</code></div>
+        <div class="bar" title="acceptance.test.mjs: 46 tests, 2.3 s, from 9.4 s">
           <span style="width: 11.5%"></span>2.3 s
         </div>
+        <div><code>roundtrip-mintlify.test.mjs</code></div>
+        <div class="bar" title="roundtrip-mintlify.test.mjs: 6 tests, 2.2 s">
+          <span style="width: 11%"></span>2.2 s
+        </div>
         <div><code>telemetry.test.mjs</code></div>
-        <div class="bar" title="telemetry.test.mjs: 5 tests, 0.51 s">
-          <span style="width: 2.5%"></span>0.51 s
+        <div class="bar" title="telemetry.test.mjs: 7 tests, 0.68 s">
+          <span style="width: 3.4%"></span>0.68 s
         </div>
         <div><code>formatter-cli.test.mjs</code></div>
-        <div class="bar" title="formatter-cli.test.mjs: 6 tests, 0.42 s">
-          <span style="width: 2.1%"></span>0.42 s
+        <div class="bar" title="formatter-cli.test.mjs: 6 tests, 0.51 s">
+          <span style="width: 2.5%"></span>0.51 s
         </div>
         <div><code>cleanup.test.mjs</code></div>
-        <div class="bar" title="cleanup.test.mjs: 10 tests, 0.42 s">
-          <span style="width: 2.1%"></span>0.42 s
+        <div class="bar" title="cleanup.test.mjs: 10 tests, 0.47 s">
+          <span style="width: 2.4%"></span>0.47 s
         </div>
-        <div><code>scopes.test.mjs</code></div>
-        <div class="bar" title="scopes.test.mjs: 45 tests, 0.13 s">
-          <span style="width: .6%"></span>0.13 s
-        </div>
-        <div><code>ids.test.mjs</code></div>
-        <div class="bar" title="ids.test.mjs: 6 tests, 0.10 s">
-          <span style="width: .5%"></span>0.10 s
-        </div>
-        <div><code>normalize.test.mjs</code></div>
-        <div class="bar" title="normalize.test.mjs: 21 tests, 0.10 s">
-          <span style="width: .5%"></span>0.10 s
-        </div>
-        <div><code>architecture.test.mjs</code></div>
-        <div class="bar" title="architecture.test.mjs: 5 tests, 0.06 s">
-          <span style="width: .3%"></span>0.06 s
+        <div>the other seven files</div>
+        <div class="bar" title="scopes, annotation, threads, normalize, ids, architecture, and the two -lib files: 0.11 to 0.17 s each">
+          <span style="width: .8%"></span>0.17 s or less each
         </div>
       </div>
       <p class="note">
-        Each file run alone on a 14-core Mac, Node 25.6. The whole suite together: 10 s wall, from 20.5 s before the round-trip split, both measured 2026-10-24. Acceptance is the long bar: the suite waits on it. Its 9.2 s is 52 tests at about 180 ms each; measured before, it was 34 tests in 3.7 s, most of it starting a server process per test.
+        Each file run alone on a 14-core Mac, Node 25.6, startup included. The whole suite together: 10 s wall, measured 2026-10-24, from 20.5 s before the round-trip split. <code>client.test.mjs</code> is the long bar: the suite waits on it. Acceptance was the long bar at 9.4 s, about 100 ms a test in starting a server process; its tests now run the server in-process, from <code>createServer</code>, and the live notice tests, which spend 3.6 s waiting to hear that nothing comes, run beside them in their own file. The two share <code>acceptance-lib.mjs</code>. node --test runs every <code>.mjs</code> under <code>test/</code>, so each <code>-lib</code> file counts as one test.
       </p>
       <table>
         <thead>
@@ -116,17 +112,41 @@
         <tbody>
           <tr>
             <td><code>scopes.test.mjs</code></td>
-            <td class="n">45</td>
+            <td class="n">44</td>
             <td>
               Examples: one shape of HTML, its markdown, and back. The cases SCOPES-DESIGN draws, and the 4 KB limit.
             </td>
           </tr>
           <tr>
             <td><code>acceptance.test.mjs</code></td>
-            <td class="n">52</td>
+            <td class="n">46</td>
             <td>
-              The server: GET, PUT, directives placed in the file, IDs stable across a save, escaping, stale saves, Announcements.
+              The server: GET, PUT, directives placed in the file, IDs stable across a save, escaping, stale saves, Announcements, replies. The server runs in the test's process; the tests of the CLI itself spawn <code>server.mjs</code>.
             </td>
+          </tr>
+          <tr>
+            <td><code>live-notice.test.mjs</code></td>
+            <td class="n">7</td>
+            <td>The event stream that tells an open tab its page changed.</td>
+          </tr>
+          <tr>
+            <td><code>client.test.mjs</code></td>
+            <td class="n">10</td>
+            <td>
+              <code>client.js</code> in a tab made of linkedom, against a real server: what the box, the markers, and the docket say, and what reaches the file.
+            </td>
+          </tr>
+          <tr>
+            <td><code>threads.test.mjs</code></td>
+            <td class="n">19</td>
+            <td>
+              Directives and replies as comments in the file: where a reply goes, and that it reads back.
+            </td>
+          </tr>
+          <tr>
+            <td><code>annotation.test.mjs</code></td>
+            <td class="n">6</td>
+            <td>The reports <code>scopes.mjs --annotate</code> writes under each example.</td>
           </tr>
           <tr>
             <td><code>roundtrip-pages.test.mjs</code></td>
@@ -152,7 +172,7 @@
           </tr>
           <tr>
             <td><code>normalize.test.mjs</code></td>
-            <td class="n">21</td>
+            <td class="n">28</td>
             <td>The formatter's layout, and that it's idempotent on each fixture.</td>
           </tr>
           <tr>
@@ -172,7 +192,7 @@
           </tr>
           <tr>
             <td><code>telemetry.test.mjs</code></td>
-            <td class="n">5</td>
+            <td class="n">7</td>
             <td>
               Spans for GET, PUT, and the box's saves. One test sends to Honeycomb; it skips without a key.
             </td>
@@ -275,7 +295,7 @@
       <h2>Recommendations</h2>
       <ol class="recs">
         <li>
-          <strong>Speed up <code>acceptance.test.mjs</code>.</strong> It is the long bar since the round-trip split, at 9.2 s alone, and the suite waits on it. The longest round-trip file is 6.9 s, so acceptance under that brings the suite to 7 s. Yak: "acceptance.test.mjs is the long bar".
+          <strong>Speed up <code>client.test.mjs</code>.</strong> It is the long bar at 10.2 s alone, and the suite waits on it. Two of its ten tests take 5.5 s of that. The longest round-trip file is 8.1 s, so client under that brings the suite to 8 s. Yak: "client.test.mjs is the long bar".
         </li>
         <li>
           <strong>Run the suite once per ship.</strong> Deploy and release test the same commit back to back. Release could skip its run when the vendored commit hasn't changed since the deploy that tested it. That change lives in iterate-on-docs.
