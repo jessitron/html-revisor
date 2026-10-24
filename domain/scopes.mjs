@@ -294,8 +294,9 @@ function gfmTable(table) {
   return [line(md[0]), line(md[0].map(() => '---')), ...md.slice(1).map(line)].join('\n');
 }
 
-// Phrasing content in markdown. Markdown syntax only for elements with no attributes
-// (a: href and title; img: src and alt, the rest come back from the original, D2); the rest
+// Phrasing content in markdown. Markdown syntax only for elements with no attributes, and for
+// links and images (a: href and title; img: src and alt; the rest come back from the original,
+// B2, D2); the rest
 // stays as HTML, which CommonMark allows inline. If markdown-it wouldn't read the markdown
 // back the same (emphasis beside punctuation, say), the run's marks are written as HTML.
 function inline(nodes) {
@@ -342,7 +343,7 @@ function inlineNode(n, asHTML) {
   if (NONPROSE.has(name) && name !== 'img') return `⟦${name}⟧`;
   if (plain && name in MARKS) return MARKS[name] + kids() + MARKS[name];
   if (plain && name === 'code' && n.children.length === 0) return codeSpan(collapse(n.textContent)) ?? html();
-  if (name === 'a' && !asHTML && attrNames(n).every((a) => a === 'href' || a === 'title') && n.hasAttribute('href')) {
+  if (name === 'a' && !asHTML && n.hasAttribute('href')) {
     const target = destination(n.getAttribute('href'), n.getAttribute('title'));
     return target === null ? html() : `[${kids()}](${target})`;
   }
@@ -463,7 +464,7 @@ function codeBlock(el, markdown) {
 
 // What markdown holds as a stand-in comes back from the prior HTML: ⟦svg⟧ is an svg, ⟦script⟧ a
 // script, the one whose surroundings are most like the token's (closest), else the next of its
-// kind. An image keeps the attributes markdown can't say (D2).
+// kind. An image or a link keeps the attributes markdown can't say (B2, D2; see pairs).
 // One that stood between blocks comes out of the paragraph markdown put it in. A token alone in
 // its paragraph takes the next one that stood between blocks, and one inside text the next one
 // that sat in text, so deleting an inline icon doesn't hand its place to a diagram. A token in an
@@ -471,13 +472,17 @@ function codeBlock(el, markdown) {
 function restore(prior, nodes) {
   const tokens = new Map();
   const images = [];
+  const links = [];
   const collect = (n) => {
     if (n.nodeType !== 1) return;
     if (n.localName === 'img') images.push(n);
     else if (NONPROSE.has(n.localName) || HIDDEN.has(n.localName)) {
       if (!tokens.has(n.localName)) tokens.set(n.localName, []);
       tokens.get(n.localName).push(n);
-    } else [...n.childNodes].forEach(collect);
+    } else {
+      if (n.localName === 'a') links.push(n);
+      [...n.childNodes].forEach(collect);
+    }
   };
   prior.forEach(collect);
   const holder = prior[0].ownerDocument.createElement('div');
@@ -502,19 +507,11 @@ function restore(prior, nodes) {
     if (standsAlone(original)) alone.add(copy);
     mark.replaceWith(copy);
   }
-  // The closest first, so two images of one picture that swap places keep their own sizes: the
-  // same attributes (an image written as HTML says them all), then the same src and alt.
-  const same = (img, names) => (o) => names.every((a) => o.getAttribute(a) === img.getAttribute(a));
-  for (const img of holder.querySelectorAll('img')) {
-    const all = [...new Set([...attrNames(img), ...images.flatMap(attrNames)])];
-    let i = images.findIndex(same(img, all));
-    if (i < 0) i = images.findIndex(same(img, ['src', 'alt']));
-    if (i < 0) i = images.findIndex(same(img, ['src']));
-    if (i < 0) continue;
-    const [original] = images.splice(i, 1);
-    carryOver(original, img);
+  for (const [original, img] of pairs([...holder.querySelectorAll('img')], images, IMAGE_RULES)) {
+    carryOver(original, img, IMAGE_SAYS);
     if (standsAlone(original)) alone.add(img);
   }
+  for (const [original, a] of pairs([...holder.querySelectorAll('a')], links, LINK_RULES)) carryOver(original, a, LINK_SAYS);
   for (const p of holder.querySelectorAll('p')) {
     const kids = [...p.childNodes].filter(meaningful);
     if (kids.length > 0 && kids.every((k) => alone.has(k)) && !hasAttrs(p)) p.replaceWith(...p.childNodes);
@@ -580,18 +577,52 @@ function standsAlone(el) {
   return [next(-1), next(1)].every((s) => !s || (s.nodeType === 1 && isBlock(s)));
 }
 
-function carryOver(original, img) {
-  const said = new Map([...img.attributes].map((a) => [a.name, a.value]));
+// Which original each image or link that markdown wrote came from (B2, D2). One written as
+// HTML says all its attributes, so it keeps them, and takes the original it copies out of the
+// running. The rest pair the closest first, so two images of one picture that swap places keep
+// their own sizes. Each rule is a pass over all of them, so a weak match for one can't take
+// the strong match of another.
+const IMAGE_RULES = [['src', 'alt'], ['src']];
+const LINK_RULES = [['href', 'text'], ['href'], ['text']];
+function pairs(saved, originals, rules) {
+  const left = [...originals];
+  const value = (el, name) => (name === 'text' ? collapse(el.textContent).trim() : el.getAttribute(name));
+  const same = (el, names) => (o) => names.every((a) => value(o, a) === value(el, a));
+  const take = (el, names) => {
+    const i = left.findIndex(same(el, names));
+    return i < 0 ? null : left.splice(i, 1)[0];
+  };
+  const fromMarkdown = saved.filter((el) => el.hasAttribute(FROM_MARKDOWN));
+  for (const el of fromMarkdown) el.removeAttribute(FROM_MARKDOWN);
+  const found = new Map();
+  for (const el of saved.filter((s) => !fromMarkdown.includes(s))) {
+    const copied = take(el, [...new Set([...attrNames(el), ...left.flatMap(attrNames), 'text'])]);
+    if (copied) found.set(el, copied);
+  }
+  for (const names of rules) {
+    for (const el of fromMarkdown) {
+      const original = found.has(el) ? null : take(el, names);
+      if (original) found.set(el, original);
+    }
+  }
+  return saved.filter((el) => found.has(el)).map((el) => [found.get(el), el]);
+}
+
+// What markdown says of each. The original gives back the rest, in its order.
+const IMAGE_SAYS = ['src', 'alt', 'title'];
+const LINK_SAYS = ['href', 'title'];
+function carryOver(original, el, says) {
+  const said = new Map([...el.attributes].map((a) => [a.name, a.value]));
   const attrs = [];
   for (const a of original.attributes) {
-    if (!['src', 'alt', 'title'].includes(a.name)) attrs.push([a.name, a.value]);
+    if (!says.includes(a.name)) attrs.push([a.name, a.value]);
     else if (said.has(a.name)) attrs.push([a.name, said.get(a.name)]);
     said.delete(a.name);
   }
-  if (said.get('alt') === '') said.delete('alt'); // markdown always writes an alt; the original had none
+  if (el.localName === 'img' && said.get('alt') === '') said.delete('alt'); // markdown always writes an alt; the original had none
   attrs.push(...said);
-  for (const a of [...img.attributes]) img.removeAttribute(a.name);
-  for (const [name, value] of attrs.reverse()) img.setAttribute(name, value); // linkedom puts a new attribute first
+  for (const a of [...el.attributes]) el.removeAttribute(a.name);
+  for (const [name, value] of attrs.reverse()) el.setAttribute(name, value); // linkedom puts a new attribute first
 }
 
 const shell = (el, nodes) => {
@@ -759,5 +790,17 @@ markdownIt.renderer.rules.stand_in = (tokens, i) => `<${STAND_IN} name="${tokens
 // sits where the HTML puts it, so it takes the next of its kind (see restore).
 markdownIt.renderer.rules.html_block = (tokens, i) =>
   tokens[i].content.replace(/⟦([a-z][a-z0-9-]*)⟧/g, `<${STAND_IN} name="$1" in-html></${STAND_IN}>`);
+// A link or image markdown wrote carries a mark, so restore can tell it from one written as
+// HTML, which says all its attributes. restore takes the mark off.
+const FROM_MARKDOWN = 'hrv-md';
+const imageRule = markdownIt.renderer.rules.image;
+markdownIt.renderer.rules.image = (tokens, i, ...rest) => {
+  tokens[i].attrPush([FROM_MARKDOWN, '']);
+  return imageRule(tokens, i, ...rest);
+};
+markdownIt.renderer.rules.link_open = (tokens, i, options, env, self) => {
+  tokens[i].attrPush([FROM_MARKDOWN, '']);
+  return self.renderToken(tokens, i, options);
+};
 const render = (markdown) => markdownIt.render(markdown);
 const renderInline = (markdown) => markdownIt.renderInline(markdown);

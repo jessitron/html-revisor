@@ -173,6 +173,7 @@ test('text bare beside blocks stays bare when saved unchanged; edited, it is a p
 test('a link bare beside blocks keeps its ID when its text is edited into a paragraph', () => {
   const { document, el } = scopeIn('<div class="bar"><a class="logo" href="/">home page</a><div class="z"></div></div>');
   const id = el.querySelector('a').getAttribute('data-hrv');
+  assert.equal(scopeMarkdown(el), '[home page](/)\n\n<div class="z"></div>');
   const saved = canonicalHTML(document, scopeFromMarkdown(el, scopeMarkdown(el).replace('home', 'yak')), { ids: true });
   assert.match(saved, new RegExp(`<p><a data-hrv="${id}" class="logo" href="/">yak page</a></p>`));
 });
@@ -193,6 +194,41 @@ test('a destination with a space or parenthesis goes in angle brackets; a title 
   const { markdown, same } = saved('<p><a href="a b(1).html" title="say &quot;hi&quot;">x</a></p>');
   assert.equal(markdown, '[x](<a b(1).html> "say \\"hi\\"")');
   assert.ok(same);
+});
+
+test('a link with a class or a target is a markdown link, and the save carries those back', () => {
+  const link = '<a href="#s" title="this" target="_blank" class="ref">the section</a>';
+  const { markdown, same } = saved(`<p>See ${link}.</p>`);
+  assert.equal(markdown, 'See [the section](#s "this").');
+  assert.ok(same);
+  const { document, el } = scopeIn(`<p>See ${link}.</p>`);
+  const back = canonicalHTML(document, scopeFromMarkdown(el, 'See [the whole section](#s).'));
+  assert.match(back, /<a href="#s" target="_blank" class="ref">the whole section<\/a>/);
+});
+
+test('a link picked alone edits as a markdown link and keeps its other attributes', () => {
+  const { markdown, same } = saved('<a class="logo" href="/" rel="home">home page</a>');
+  assert.equal(markdown, '[home page](/)');
+  assert.ok(same);
+});
+
+test('links pair with their originals: same href and text first, then same href, then same text', () => {
+  const { document, el } = scopeIn('<p><a class="one" href="/a">x</a> <a class="two" href="/a">y</a> <a class="three" href="/b">z</a></p>');
+  const back = canonicalHTML(document, scopeFromMarkdown(el, '[y](/a) [x](/a) [z](/c) [new](/d)'));
+  assert.match(back, /class="two" href="\/a">y<.*class="one" href="\/a">x<.*class="three" href="\/c">z<.*<a href="\/d">new</);
+});
+
+test('a link with a new href and text takes nothing from a link it did not come from', () => {
+  const { document, el } = scopeIn('<p><a class="old" href="/a">docs</a></p>');
+  const back = canonicalHTML(document, scopeFromMarkdown(el, '[home](/) and [docs](/a)'));
+  assert.match(back, /<a href="\/">home<\/a> and <a class="old" href="\/a">docs<\/a>/);
+});
+
+test('a link or image written as HTML keeps the attributes it says', () => {
+  const { document, el } = scopeIn('<p><a class="ref" href="/a">x</a> <img src="a.png" alt="A" width="9"></p>');
+  const back = canonicalHTML(document, scopeFromMarkdown(el, '<a href="/a">x</a> <img src="a.png" alt="A" width="20">'));
+  assert.match(back, /<p><a href="\/a">x<\/a> <img src="a.png" alt="A" width="20"><\/p>/);
+  assert.doesNotMatch(canonicalHTML(document, scopeFromMarkdown(el, '[x](/a) ![A](a.png)')), /hrv-md/);
 });
 
 // The IDs of a list's items after saving markdown over it, by their place in the prior list.

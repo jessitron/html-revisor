@@ -20,9 +20,9 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
     </p>
     <section id="status" class="status">
       <h2>Status</h2>
-      <p class="status-value">planned</p>
+      <p class="status-value">working</p>
       <p class="status-why">
-        Page made by Tally; waits for Matchmaker, which edits <code>restore()</code> in <code>domain/scopes.mjs</code> too.
+        Links edit as markdown and pair with their originals; Decided table and annotation next.
       </p>
     </section>
     <section id="plan" class="plan">
@@ -45,19 +45,47 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
       <h2>Log</h2>
       <ul>
         <li>2026-10-24: page made by Tally.</li>
+        <li>
+          2026-10-24 15:10: started. Any link with an href writes as <code>[text](href "title")</code>; <code>restore()</code> pairs links and carries their other attributes back.
+        </li>
+        <li>
+          2026-10-24 15:40: in a generated page, a markdown link took the original of an HTML-written link beside it. Links and images that markdown wrote now carry a mark, <code>hrv-md</code>, so <code>pairs()</code> can tell them from ones written as HTML.
+        </li>
       </ul>
     </section>
     <section id="guesses" class="guesses">
       <h2>Guesses</h2>
-      <p>None yet. Starting guesses from Tally, to confirm or replace:</p>
-      <ul>
-        <li>
-          A link pairs with an original the way an image does: the closest first. Same attributes, then the same href and text, then the same href, each in order among the links left. A link with a new href pairs with nothing and keeps only what markdown said.
-        </li>
-        <li>
-          The markdown wins for what it says: href, title, and the text. The original gives back the rest (class, target, rel, and others), in its order.
-        </li>
-      </ul>
+      <div id="guess-pairing-rules" class="guess">
+        <p>
+          <strong>Guess:</strong> a link markdown wrote pairs with an original by the same href and text, then the same href, then the same text. Each rule is one pass over all the links, in order. A link with a new href and new text pairs with nothing and keeps only what markdown says.
+        </p>
+        <p>
+          <strong>Why:</strong> Tally's starting guess, plus "same text": changing a link's href is a common edit, and it shouldn't drop the class or target. A pass over all links keeps a weak match for one from taking another's strong match.
+        </p>
+        <p>
+          <strong>If wrong:</strong> change <code>LINK_RULES</code> in <code>domain/scopes.mjs</code>; the test is "links pair with their originals" in <code>test/scopes.test.mjs</code>.
+        </p>
+      </div>
+      <div id="guess-markdown-wins" class="guess">
+        <p>
+          <strong>Guess:</strong> markdown wins for href, title, and text; the original gives back the rest (class, target, rel, others) in its order. Deleting the title in markdown drops it from the link.
+        </p>
+        <p><strong>Why:</strong> images follow the same rule (D2).</p>
+        <p>
+          <strong>If wrong:</strong> <code>LINK_SAYS</code> and <code>carryOver()</code> in <code>domain/scopes.mjs</code>.
+        </p>
+      </div>
+      <div id="guess-html-says-all" class="guess">
+        <p>
+          <strong>Guess:</strong> a link or image written as HTML in the markdown keeps the attributes it says and takes nothing from the original; it takes the original it copies out of the running. This changes images: before, an HTML image given a new width got the old width back.
+        </p>
+        <p>
+          <strong>Why:</strong> writing HTML is how you say what markdown can't, removing an attribute included. A seed in the generated round-trip test showed a markdown link taking the original of an HTML link beside it.
+        </p>
+        <p>
+          <strong>If wrong:</strong> <code>pairs()</code> and the <code>FROM_MARKDOWN</code> renderer rules in <code>domain/scopes.mjs</code>.
+        </p>
+      </div>
     </section>
     <section id="result" class="result">
       <h2>Result</h2>
