@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-hrv-next="543" lang="en">
+<html data-hrv-next="544" lang="en">
   <head>
     <meta charset="utf-8">
     <title>html-revisor: reply design</title>
@@ -144,177 +144,15 @@
       <text data-hrv="41" x="480" y="179">iterate-on-docs replies</text>
       <text data-hrv="42" class="sub" x="480" y="196">agent answers in the page</text>
       <rect data-hrv="43" class="later" x="700" y="44" width="190" height="46" rx="6"></rect>
-      <text data-hrv="44" x="710" y="63">Working status</text>
-      <text data-hrv="45" class="sub" x="710" y="80">after Server writes replies</text>
+      <text data-hrv="44" x="710" y="63">Directive status</text>
+      <text data-hrv="45" class="sub" x="710" y="80">working, before the reply</text>
       <rect data-hrv="46" class="later" x="700" y="102" width="190" height="46" rx="6"></rect>
       <text data-hrv="47" x="710" y="121">Replies on edits</text>
       <text data-hrv="48" class="sub" x="710" y="138">after Server writes replies</text>
     </svg>
     <p data-hrv="49" class="note">
-      To see a reply today, write <code>&lt;!-- @Human: … --&gt;</code> after the thread's last turn by hand, and reload. Nothing writes replies yet. The “built” column below marks each decision the code has.
+      To see a reply today, write <code>&lt;!-- @Human: … --&gt;</code> after the thread's last turn by hand, and reload. Nothing writes replies yet. The “built” column in <a data-hrv="543" href="#decided">Decided</a> marks each decision the code has.
     </p>
-    <h2 data-hrv="50" id="decided">
-      <!-- @AI: This section should move to the bottom. -->
-      Decided
-    </h2>
-    <table data-hrv="51">
-      <thead>
-        <tr>
-          <th data-hrv="52">question</th>
-          <th data-hrv="53">answer</th>
-          <th data-hrv="54">built</th>
-          <th data-hrv="55">see</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td data-hrv="56">Where do replies live?</td>
-          <td data-hrv="57">
-            In the page's HTML file, as HTML comments beside the directive, outside the element's content hash. A reply goes after the last turn in the thread, and the whole thread sits where a directive does: a run of turns before an image or a pre is that element's, so its parent's thread goes last. Cleanup removes them.
-          </td>
-          <td data-hrv="58">✓</td>
-          <td data-hrv="59"></td>
-        </tr>
-        <tr>
-          <td data-hrv="60">Who writes the live file?</td>
-          <td data-hrv="61">
-            The server, and it should be the only process that does. The agent hands it replies and status through a CLI that calls the running server, so the server orders the agent's writes with the browser's saves.
-          </td>
-          <td data-hrv="62"></td>
-          <td data-hrv="63"><a data-hrv="64" href="#flow">flow</a></td>
-        </tr>
-        <tr>
-          <td data-hrv="65">Who commits?</td>
-          <td data-hrv="66">
-            The agent, each time it adds a reply, in whatever way it commits. The server never commits. A commit may catch half an edit of yours; the next one picks up the rest. So every turn is in history before Resolve removes its thread.
-          </td>
-          <td data-hrv="67"></td>
-          <td data-hrv="68"><a data-hrv="69" href="#flow">flow</a></td>
-        </tr>
-        <tr>
-          <td data-hrv="70">What is a turn now?</td>
-          <td data-hrv="71">
-            A point to diff from. The agent notes the commit at the last turn boundary, so a diff from it shows every edit and directive since. That's a backup: the agent already hears each one from the server's output.
-          </td>
-          <td data-hrv="72"></td>
-          <td data-hrv="73"></td>
-        </tr>
-        <tr>
-          <td data-hrv="74">What if the directive changes while the agent replies?</td>
-          <td data-hrv="75">
-            The server refuses the agent's write as stale, the same way it refuses a browser save on an element that changed.
-          </td>
-          <td data-hrv="76"></td>
-          <td data-hrv="77"></td>
-        </tr>
-        <tr>
-          <td data-hrv="78">How does the tab learn of a reply?</td>
-          <td data-hrv="79">
-            The server pushes each change it makes to the open tab. It also watches the file, for a write that goes around it.
-          </td>
-          <td data-hrv="80"></td>
-          <td data-hrv="81"><a data-hrv="82" href="#flow">flow</a></td>
-        </tr>
-        <tr>
-          <td data-hrv="83">Where does a reply show?</td>
-          <td data-hrv="84">In the box, below the directive: a thread, one per element.</td>
-          <td data-hrv="85">on reload</td>
-          <td data-hrv="86"><a data-hrv="87" href="#box">box</a></td>
-        </tr>
-        <tr>
-          <td data-hrv="88">How do you answer a reply?</td>
-          <td data-hrv="89">Add a turn to the thread. The directive stays as you wrote it.</td>
-          <td data-hrv="90">✓</td>
-          <td data-hrv="91"><a data-hrv="92" href="#box">box</a></td>
-        </tr>
-        <tr>
-          <td data-hrv="93">Which type is monospace?</td>
-          <td data-hrv="94">Content alone. Directives, your turns, and replies are prose.</td>
-          <td data-hrv="95">✓</td>
-          <td data-hrv="96"><a data-hrv="97" href="#box">box</a></td>
-        </tr>
-        <tr>
-          <td data-hrv="98">How do you know the agent has it?</td>
-          <td data-hrv="99">
-            When it replies. The marker cycles: magenta pencil, green bubble for an unread answer, and back to the pencil once you open it. A working state comes later.
-          </td>
-          <td data-hrv="100">on reload</td>
-          <td data-hrv="101"><a data-hrv="102" href="#marker">marker</a></td>
-        </tr>
-        <tr>
-          <td data-hrv="103">Does anything move?</td>
-          <td data-hrv="104">No. Nothing blinks or pulses.</td>
-          <td data-hrv="105">✓</td>
-          <td data-hrv="106"><a data-hrv="107" href="#marker">marker</a></td>
-        </tr>
-        <tr>
-          <td data-hrv="108">Whose color is whose?</td>
-          <td data-hrv="109">
-            Magenta is yours, green the agent's. The glyph's shape and the words “you” and “agent” say it too, so color is never the only cue. DESIGN.html's palette changes to match when this ships.
-          </td>
-          <td data-hrv="110">✓</td>
-          <td data-hrv="111"><a data-hrv="112" href="#marker">marker</a></td>
-        </tr>
-        <tr>
-          <td data-hrv="113">What does a hover show?</td>
-          <td data-hrv="114">Whatever was said last in the thread.</td>
-          <td data-hrv="115">✓</td>
-          <td data-hrv="116"><a data-hrv="117" href="#marker">marker</a></td>
-        </tr>
-        <tr>
-          <td data-hrv="118">What does the docket count?</td>
-          <td data-hrv="119">
-            Two rows. Directives: every open thread. New replies: the ones you haven't opened. ⌥↑ and ⌥↓ step through directives.
-          </td>
-          <td data-hrv="120">top row</td>
-          <td data-hrv="121"><a data-hrv="122" href="#docket">docket</a></td>
-        </tr>
-        <tr>
-          <td data-hrv="123">How does a thread end?</td>
-          <td data-hrv="124">
-            You end it, with Resolve beside Done. It removes the directive and its replies. Clear, on your field, empties the turn you haven't sent.
-          </td>
-          <td data-hrv="125">✓</td>
-          <td data-hrv="126"><a data-hrv="127" href="#box">box</a></td>
-        </tr>
-        <tr>
-          <td data-hrv="128">Does the agent end a thread?</td>
-          <td data-hrv="129">No. When it has nothing more to say, it replies 👍.</td>
-          <td data-hrv="130"></td>
-          <td data-hrv="131"></td>
-        </tr>
-        <tr>
-          <td data-hrv="132">What if you add a turn while the agent works?</td>
-          <td data-hrv="133">
-            The agent sees it the next time it reads the server's output. Its reply comes back stale; it reads your turn and replies again.
-          </td>
-          <td data-hrv="134"></td>
-          <td data-hrv="135"><a data-hrv="136" href="#flow">flow</a></td>
-        </tr>
-        <tr>
-          <td data-hrv="137">How does the file tell whose turn is whose?</td>
-          <td data-hrv="138">
-            By the prefix, which names who the words are for. Your turns are <code>&lt;!-- @AI: … --&gt;</code>, as directives are today. The agent's replies are <code>&lt;!-- @Human: … --&gt;</code>. A thread is the run of them beside the element, in order.
-          </td>
-          <td data-hrv="139">✓</td>
-          <td data-hrv="140"></td>
-        </tr>
-        <tr>
-          <td data-hrv="141">What changes in the Contract?</td>
-          <td data-hrv="142">
-            The <code>@Human</code> prefix, the CLI that writes a reply, and the words you see: reply, new replies, Resolve.
-          </td>
-          <td data-hrv="143">README only</td>
-          <td data-hrv="144"></td>
-        </tr>
-        <tr>
-          <td data-hrv="145">What can get a reply?</td>
-          <td data-hrv="146">A directive. Replies on edits come later.</td>
-          <td data-hrv="147">✓</td>
-          <td data-hrv="148"><a data-hrv="149" href="#later">later</a></td>
-        </tr>
-      </tbody>
-    </table>
     <h2 data-hrv="150" id="flow">Flow</h2>
     <p data-hrv="151">
       One directive, start to answer. The Announcement on stdout already exists; the rest is new. Magenta arrows are the server pushing to the tab.
@@ -928,6 +766,165 @@
         </p>
       </div>
     </div>
+    <h2 data-hrv="50" id="decided">Decided</h2>
+    <table data-hrv="51">
+      <thead>
+        <tr>
+          <th data-hrv="52">question</th>
+          <th data-hrv="53">answer</th>
+          <th data-hrv="54">built</th>
+          <th data-hrv="55">see</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td data-hrv="56">Where do replies live?</td>
+          <td data-hrv="57">
+            In the page's HTML file, as HTML comments beside the directive, outside the element's content hash. A reply goes after the last turn in the thread, and the whole thread sits where a directive does: a run of turns before an image or a pre is that element's, so its parent's thread goes last. Cleanup removes them.
+          </td>
+          <td data-hrv="58">✓</td>
+          <td data-hrv="59"></td>
+        </tr>
+        <tr>
+          <td data-hrv="60">Who writes the live file?</td>
+          <td data-hrv="61">
+            The server, and it should be the only process that does. The agent hands it replies and status through a CLI that calls the running server, so the server orders the agent's writes with the browser's saves.
+          </td>
+          <td data-hrv="62"></td>
+          <td data-hrv="63"><a data-hrv="64" href="#flow">flow</a></td>
+        </tr>
+        <tr>
+          <td data-hrv="65">Who commits?</td>
+          <td data-hrv="66">
+            The agent, each time it adds a reply, in whatever way it commits. The server never commits. A commit may catch half an edit of yours; the next one picks up the rest. So every turn is in history before Resolve removes its thread.
+          </td>
+          <td data-hrv="67"></td>
+          <td data-hrv="68"><a data-hrv="69" href="#flow">flow</a></td>
+        </tr>
+        <tr>
+          <td data-hrv="70">What is a turn now?</td>
+          <td data-hrv="71">
+            A point to diff from. The agent notes the commit at the last turn boundary, so a diff from it shows every edit and directive since. That's a backup: the agent already hears each one from the server's output.
+          </td>
+          <td data-hrv="72"></td>
+          <td data-hrv="73"></td>
+        </tr>
+        <tr>
+          <td data-hrv="74">What if the directive changes while the agent replies?</td>
+          <td data-hrv="75">
+            The server refuses the agent's write as stale, the same way it refuses a browser save on an element that changed.
+          </td>
+          <td data-hrv="76"></td>
+          <td data-hrv="77"></td>
+        </tr>
+        <tr>
+          <td data-hrv="78">How does the tab learn of a reply?</td>
+          <td data-hrv="79">
+            The server pushes each change it makes to the open tab. It also watches the file, for a write that goes around it.
+          </td>
+          <td data-hrv="80"></td>
+          <td data-hrv="81"><a data-hrv="82" href="#flow">flow</a></td>
+        </tr>
+        <tr>
+          <td data-hrv="83">Where does a reply show?</td>
+          <td data-hrv="84">In the box, below the directive: a thread, one per element.</td>
+          <td data-hrv="85">on reload</td>
+          <td data-hrv="86"><a data-hrv="87" href="#box">box</a></td>
+        </tr>
+        <tr>
+          <td data-hrv="88">How do you answer a reply?</td>
+          <td data-hrv="89">Add a turn to the thread. The directive stays as you wrote it.</td>
+          <td data-hrv="90">✓</td>
+          <td data-hrv="91"><a data-hrv="92" href="#box">box</a></td>
+        </tr>
+        <tr>
+          <td data-hrv="93">Which type is monospace?</td>
+          <td data-hrv="94">Content alone. Directives, your turns, and replies are prose.</td>
+          <td data-hrv="95">✓</td>
+          <td data-hrv="96"><a data-hrv="97" href="#box">box</a></td>
+        </tr>
+        <tr>
+          <td data-hrv="98">How do you know the agent has it?</td>
+          <td data-hrv="99">
+            When it replies. The marker cycles: magenta pencil, green bubble for an unread answer, and back to the pencil once you open it. A working state comes later.
+          </td>
+          <td data-hrv="100">on reload</td>
+          <td data-hrv="101"><a data-hrv="102" href="#marker">marker</a></td>
+        </tr>
+        <tr>
+          <td data-hrv="103">Does anything move?</td>
+          <td data-hrv="104">No. Nothing blinks or pulses.</td>
+          <td data-hrv="105">✓</td>
+          <td data-hrv="106"><a data-hrv="107" href="#marker">marker</a></td>
+        </tr>
+        <tr>
+          <td data-hrv="108">Whose color is whose?</td>
+          <td data-hrv="109">
+            Magenta is yours, green the agent's. The glyph's shape and the words “you” and “agent” say it too, so color is never the only cue. DESIGN.html's palette changes to match when this ships.
+          </td>
+          <td data-hrv="110">✓</td>
+          <td data-hrv="111"><a data-hrv="112" href="#marker">marker</a></td>
+        </tr>
+        <tr>
+          <td data-hrv="113">What does a hover show?</td>
+          <td data-hrv="114">Whatever was said last in the thread.</td>
+          <td data-hrv="115">✓</td>
+          <td data-hrv="116"><a data-hrv="117" href="#marker">marker</a></td>
+        </tr>
+        <tr>
+          <td data-hrv="118">What does the docket count?</td>
+          <td data-hrv="119">
+            Two rows. Directives: every open thread. New replies: the ones you haven't opened. ⌥↑ and ⌥↓ step through directives.
+          </td>
+          <td data-hrv="120">top row</td>
+          <td data-hrv="121"><a data-hrv="122" href="#docket">docket</a></td>
+        </tr>
+        <tr>
+          <td data-hrv="123">How does a thread end?</td>
+          <td data-hrv="124">
+            You end it, with Resolve beside Done. It removes the directive and its replies. Clear, on your field, empties the turn you haven't sent.
+          </td>
+          <td data-hrv="125">✓</td>
+          <td data-hrv="126"><a data-hrv="127" href="#box">box</a></td>
+        </tr>
+        <tr>
+          <td data-hrv="128">Does the agent end a thread?</td>
+          <td data-hrv="129">No. When it has nothing more to say, it replies 👍.</td>
+          <td data-hrv="130"></td>
+          <td data-hrv="131"></td>
+        </tr>
+        <tr>
+          <td data-hrv="132">What if you add a turn while the agent works?</td>
+          <td data-hrv="133">
+            The agent sees it the next time it reads the server's output. Its reply comes back stale; it reads your turn and replies again.
+          </td>
+          <td data-hrv="134"></td>
+          <td data-hrv="135"><a data-hrv="136" href="#flow">flow</a></td>
+        </tr>
+        <tr>
+          <td data-hrv="137">How does the file tell whose turn is whose?</td>
+          <td data-hrv="138">
+            By the prefix, which names who the words are for. Your turns are <code>&lt;!-- @AI: … --&gt;</code>, as directives are today. The agent's replies are <code>&lt;!-- @Human: … --&gt;</code>. A thread is the run of them beside the element, in order.
+          </td>
+          <td data-hrv="139">✓</td>
+          <td data-hrv="140"></td>
+        </tr>
+        <tr>
+          <td data-hrv="141">What changes in the Contract?</td>
+          <td data-hrv="142">
+            The <code>@Human</code> prefix, the CLI that writes a reply, and the words you see: reply, new replies, Resolve.
+          </td>
+          <td data-hrv="143">README only</td>
+          <td data-hrv="144"></td>
+        </tr>
+        <tr>
+          <td data-hrv="145">What can get a reply?</td>
+          <td data-hrv="146">A directive. Replies on edits come later.</td>
+          <td data-hrv="147">✓</td>
+          <td data-hrv="148"><a data-hrv="149" href="#later">later</a></td>
+        </tr>
+      </tbody>
+    </table>
     <script>
   // Crop marks, with the client's geometry, as DESIGN.html draws them.
   const gap = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hrv-crop-gap'));
