@@ -12,7 +12,7 @@ import { normalize } from './domain/format.mjs';
 import { collectDirectives, threadOf, threadsOf, removeThreads, removeThread, setDirective, placeReply, replyCount } from './domain/directives.mjs';
 import { scopeElements, editable } from './domain/scopes.mjs';
 import { fingerprint, baseOf, basesOf, threadBaseOf, around } from './domain/bases.mjs';
-import { markdownsOf, committedMarkdowns, saveMarkdown, servedHTML, holderOf } from './domain/markdown-edits.mjs';
+import { markdownsOf, committedMarkdowns, saveMarkdown, spillOf, settle, spillIds, servedHTML, holderOf } from './domain/markdown-edits.mjs';
 import { announcementOf } from './domain/announcements.mjs';
 import { injectClient } from './domain/served-page.mjs';
 import { readText, readBytes, writeText, listDirectory, isDirectory, readCommitted, readClientAssets, watchFile } from './interface/files.mjs';
@@ -267,14 +267,16 @@ async function getState(res, file, urlPath, { author, inTurn }) {
 //   {"id": "7", "base": "…", "directive": "text"}   sets the element's directive; "" removes it.
 //     "replies": n, the replies the tab has seen on the element, makes it 412 if more came since
 //   {"id": "7", "base": "…", "markdown": "…"}       replaces a scope with what its markdown says
-//   {"id": "7", "base": "…", "resolve": true}       Resolve: removes the element's thread; Done announces its turns
+//     "spill": ["8", "9"], the other elements the box's last save made, replaces them too
+//   {"id": "7", "base": "…", "resolve": true}     Resolve: removes the element's thread; Done announces its turns
 // The directive is the element's open turn: after a reply, setting it adds a turn to the thread.
 // IDs come first, so elements an agent added since the last format have them. A base that
 // doesn't match the element now, or an ID that isn't there, is a conflict: 412, nothing written.
 // The answer carries the new bases of the element and the elements around it, and the file's
 // fingerprint before and after, so the tab can notice an outside change. A markdown save also
-// answers with the HTML that replaced the scope, as served, the ID now holding the scope, and
-// the new markdown of the scopes around it.
+// answers with the HTML that replaced the scope, as served and as the file reads back, the ID
+// now holding the scope, the spill (the other elements it made, as when a typed <p> splits a
+// paragraph), and the new markdown of the scopes around it.
 //
 // The agent's reply is a PUT too, from reply.mjs, with the thread's base instead of the element's:
 //   {"id": "7", "thread": "…", "reply": "text"}      adds <!-- @Human: text --> to the thread
@@ -288,11 +290,12 @@ async function putChange(req, res, file, urlPath, config) {
     }
     return config.inTurn(file, () => putReply(res, file, urlPath, change, config));
   }
-  const { id, base, directive, markdown, resolve, replies } = change ?? {};
+  const { id, base, directive, markdown, resolve, replies, spill } = change ?? {};
   const kinds = [typeof directive === 'string' && 'directive', typeof markdown === 'string' && 'markdown', resolve === true && 'resolve'].filter(Boolean);
   const repliesOk = replies === undefined || (kinds[0] === 'directive' && Number.isInteger(replies) && replies >= 0);
-  if (typeof id !== 'string' || typeof base !== 'string' || kinds.length !== 1 || !repliesOk) {
-    throw new HttpError(400, 'body must look like {"id": "<id>", "base": "<base>", "directive": "text", "replies"?: <n>}, or with "markdown": "…" or "resolve": true instead');
+  const spillOk = spill === undefined || (kinds[0] === 'markdown' && Array.isArray(spill) && spill.every((s) => typeof s === 'string' && s !== id));
+  if (typeof id !== 'string' || typeof base !== 'string' || kinds.length !== 1 || !repliesOk || !spillOk) {
+    throw new HttpError(400, 'body must look like {"id": "<id>", "base": "<base>", "directive": "text", "replies"?: <n>}, or with "markdown": "…", "spill"?: ["<id>"], or "resolve": true instead');
   }
   return config.inTurn(file, () => applyChange(res, file, urlPath, change, kinds[0], config));
 }
@@ -332,12 +335,13 @@ async function putReply(res, file, urlPath, { id, thread, reply }, { author, liv
   sendJson(res, 200, { ok: true, count, thread: threadBaseOf(reread, author), before: fingerprint(onDisk), after: fingerprint(written) });
 }
 
-async function applyChange(res, file, urlPath, { id, base, directive, markdown, replies }, kind, { author, resolved, live }) {
+async function applyChange(res, file, urlPath, { id, base, directive, markdown, replies, spill = [] }, kind, { author, resolved, live }) {
   const span = trace.getActiveSpan();
   span?.setAttributes({ 'hrv.page': urlPath, 'hrv.change.kind': kind, 'hrv.scope.id': id, 'hrv.change.bytes': (directive ?? markdown ?? '').length });
+  if (spill.length) span?.setAttribute('hrv.spill.count', spill.length);
   const onDisk = await inSpan('read file', {}, () => readText(file));
   span?.setAttribute('hrv.page.bytes', onDisk.length);
-  const document = inSpan('parse', {}, () => {
+  let document = inSpan('parse', {}, () => {
     const doc = parse(onDisk);
     assignIds(doc);
     return doc;
@@ -347,6 +351,12 @@ async function applyChange(res, file, urlPath, { id, base, directive, markdown, 
     span?.setAttribute('hrv.conflict', el ? 'changed on disk' : 'no such element');
     console.log(`${urlPath} — conflict on element ${id} (${el ? 'it changed on disk' : 'no such element'})`);
     return sendJson(res, 412, { ok: false, error: el ? 'that element changed on disk' : 'that element is gone from the file' });
+  }
+  const spilled = spillOf(el, spill);
+  if (!spilled) {
+    span?.setAttribute('hrv.conflict', 'spill moved');
+    console.log(`${urlPath} — conflict on element ${id} (what its last save made changed on disk)`);
+    return sendJson(res, 412, { ok: false, error: 'what the last save made changed on disk' });
   }
   // A turn typed before a reply came in: the tab catches up and sends what's left after the reply.
   const repliesNow = kind === 'directive' && replies !== undefined ? replyCount(el, author) : replies;
@@ -363,10 +373,17 @@ async function applyChange(res, file, urlPath, { id, base, directive, markdown, 
     inSpan('resolve', {}, () => removeThread(el, author));
     changed = around([el]);
   } else {
-    const nodes = inSpan('set markdown', {}, () => saveMarkdown(el, markdown));
-    if (!nodes) throw new HttpError(400, 'markdown edits need a scope under 4 KB and non-blank markdown');
+    const saved = inSpan('set markdown', {}, () => saveMarkdown(el, markdown, spilled));
+    if (!saved) throw new HttpError(400, 'markdown edits need a scope under 4 KB and non-blank markdown');
+    const settled = inSpan('settle', {}, () => settle(document, saved));
+    document = settled.document;
+    const { nodes } = settled;
     changed = around(nodes.filter((n) => n.nodeType === 1));
-    answer = inSpan('served html', {}, () => ({ html: servedHTML(nodes, author), id: holderOf(nodes, id, new Set(scopeElements(document))) }));
+    answer = inSpan('served html', {}, () => {
+      const holder = holderOf(nodes, id, new Set(scopeElements(document)));
+      return { html: servedHTML(nodes, author), id: holder, spill: spillIds(nodes, holder) };
+    });
+    if (answer.spill.length) span?.setAttribute('hrv.spill.made', answer.spill.length);
   }
   const written = inSpan('serialize', {}, () => serialize(document));
   if (written !== onDisk) {

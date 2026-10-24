@@ -9,6 +9,7 @@
   var markdowns = {};       // id -> markdown of each scope, as the server last saw it
   var committed = {};       // id -> markdown of each scope at the file's last commit, for Revert
   var edits = {};           // id -> markdown typed for a scope in this tab, not yet answered
+  var spills = {};          // id -> {session, ids}: the other elements a box's last save made, which its next save replaces
   var bases = {};           // id -> base: the element's content as the server last saw it
   var markers = {};         // id -> marker element
   var box = null;           // the open directive box, if any
@@ -737,6 +738,8 @@
     if (change.kind === 'resolve') body.resolve = true;
     else body[change.kind] = change.kind === 'markdown' ? edits[change.id] : (directives[change.id] || '');
     if (change.kind === 'directive') body.replies = repliesSeen(change.id);
+    var spill = spills[change.id];
+    if (change.kind === 'markdown' && spill && spill.session === change.session) body.spill = spill.ids;
     return body;
   }
 
@@ -748,11 +751,15 @@
   // markdown of the scopes around it. Elements the edit deleted take their directives with them.
   // If the scope's own element went (a list typed into a paragraph), its ID moves to the one
   // that holds it now, and so do its directive, the box, and changes not yet sent.
-  function applyScope(id, data) {
+  // A save can make elements beside the scope's own (a <p> typed in a paragraph splits it): the
+  // box's next save replaces them too, so the page takes its HTML in place of all of them.
+  function applyScope(id, data, session, sent) {
     var el = elementFor(id);
-    if (el) el.replaceWith(fragmentFor(el, data.html));
+    if (el) replaceRun([el].concat((sent || []).map(elementFor).filter(Boolean)), fragmentFor(el, data.html));
     for (var k in data.markdowns) markdowns[k] = data.markdowns[k];
     if (data.id && data.id !== id) moveId(id, data.id);
+    delete spills[id];
+    if (data.id && data.spill && data.spill.length) spills[data.id] = { session: session, ids: data.spill };
     for (var d in markers) {
       if (!elementFor(d)) {
         delete directives[d];
@@ -767,6 +774,19 @@
     }
     updateDocket();
     schedulePosition();
+  }
+
+  // The fragment goes where the first of the elements was; they and everything between them go.
+  function replaceRun(els, fragment) {
+    var first = els[0], last = els[0];
+    els.forEach(function (e) {
+      if (e.parentNode !== first.parentNode) return;
+      if (first.compareDocumentPosition(e) & Node.DOCUMENT_POSITION_PRECEDING) first = e;
+      if (last.compareDocumentPosition(e) & Node.DOCUMENT_POSITION_FOLLOWING) last = e;
+    });
+    while (first !== last && first.nextSibling && first.nextSibling !== last) first.parentNode.removeChild(first.nextSibling);
+    if (first !== last) last.remove();
+    first.replaceWith(fragment);
   }
 
   // A template parses as HTML, where an SVG <text> is an unknown element that doesn't draw.
@@ -844,7 +864,7 @@
       for (var id in data.bases) bases[id] = data.bases[id];
       if (change.kind === 'directive') savedDirectives[change.id] = body.directive;
       if (change.kind === 'resolve') savedDirectives[change.id] = '';
-      if (change.kind === 'markdown') applyScope(change.id, data);
+      if (change.kind === 'markdown') applyScope(change.id, data, change.session, body.spill);
       if (change.span && typeof data.html === 'string') {
         change.span.attributes['hrv.html.after'] = capped(data.html);
         change.span.attributes['hrv.html.after.length'] = data.html.length;

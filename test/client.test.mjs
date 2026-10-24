@@ -396,11 +396,14 @@ test('a <p> typed in the Content box splits the paragraph; the next saves replac
     }
     assert.equal(s.read('page.html').split(', with newlines').length - 1, 1, 'one copy of the text after the <p>');
     assert.equal(paragraphs(), before + 2, 'the split made two more paragraphs, once');
-    assert.equal(tab.document.body.innerHTML.split(', with newlines').length - 1, 1, 'the tab shows one copy too');
+    const shown = () => [...tab.document.querySelectorAll('p')].map((p) => p.textContent.trim());
+    await until(() => shown().includes(', with newlines, and got'));
+    assert.deepEqual(shown(), ['I edited a', ', with newlines, and got', '', 'Second bold paragraph'], 'the tab shows one copy too');
     tab.type('I edited a paragraph', content());
     await until(() => s.read('page.html').includes('I edited a paragraph'));
     assert.equal(paragraphs(), before, 'markdown without the <p> puts back one paragraph');
-    assert.equal(tab.document.body.innerHTML.split(', with newlines').length - 1, 0, 'and so does the tab');
+    await until(() => shown()[0] === 'I edited a paragraph');
+    assert.deepEqual(shown(), ['I edited a paragraph', 'Second bold paragraph'], 'and so does the tab');
     assert.ok(tab.box(), 'the box stays open');
     tab.close();
   }));
