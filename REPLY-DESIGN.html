@@ -123,11 +123,13 @@
         <!-- @AI: ok, does it work? can you write a reply? -->
         <!-- @Human: It works: reply.mjs handed this to the server, and the server wrote it into the file. You're reading it after a reload; live arrival waits on Live notice. Resolve it when you've seen it. -->
         <!-- @AI: great! is this gonna say working... -->
+        <!-- @Human: Not yet. Working isn't built, so the marker stays the magenta pencil until a reply turns it green. Once 'Directive status: working' lands, Done shows the green dots right away. -->
       </rect>
       <text data-hrv="20" x="20" y="179">✓ Server writes replies</text>
       <text data-hrv="21" class="sub" x="20" y="196">reply.mjs, refused when stale</text>
       <rect data-hrv="22" class="ready" x="240" y="44" width="190" height="46" rx="6" stroke-width="3">
         <!-- @AI: yaaah let's do this -->
+        <!-- @Human: On it: a subagent is building Live notice now. When it lands, a reply's green bubble shows up without a reload. -->
       </rect>
       <text data-hrv="23" x="250" y="63">Live notice</text>
       <text data-hrv="24" class="sub" x="250" y="80">building now</text>
@@ -276,6 +278,7 @@
             <!-- @Human: I like it: it answers Done at once, and no agent round trip. I'd start working on Done, not on each save, since a save happens as you type. One catch: the tab can't tell whether an agent is listening. With no loop running, the dots would sit there forever, a promise nobody keeps. The server can know: the iterate skill starts it with a flag that says an agent answers this page, and the client shows working on Done only then. A reply clears the dots. Want it that way? If so, I'll write it into #working and the Directive status yak, and it gets simpler: no CLI call for working at all. -->
             <!-- @AI: yeah, the tab just has to guess. someday we'll have modes for that.... oh does it already? perfec. The server should tell the client whether to expect Done- -&gt; working
 Yeah, the CLI for working goes away entirely -->
+            <!-- @Human: Written into #working: Done starts working in the tab, and the reply ends it. No CLI call, nothing in the file. Modes are a yak for later; none exist yet (the server's only flags are port and author). One more thought: with an agent on every page, 'you spoke last' and 'working' mean the same thing, so working could come straight from the file and survive a reload. Want that? -->
             Working
           </p>
           <p data-hrv="232">New reply</p>
