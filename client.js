@@ -756,9 +756,11 @@
   // box's next save replaces them too, so the page takes its HTML in place of all of them.
   function applyScope(id, data, session, sent) {
     var el = elementFor(id);
+    var focused = el && el.contains(document.activeElement);
     if (el) replaceRun([el].concat((sent || []).map(elementFor).filter(Boolean)), fragmentFor(el, data.html));
     for (var k in data.markdowns) markdowns[k] = data.markdowns[k];
     if (data.id && data.id !== id) moveId(id, data.id);
+    if (focused) returnFocus(elementFor(data.id || id));   // focus came back here on close
     delete spills[id];
     if (data.id && data.spill && data.spill.length) spills[data.id] = { session: session, ids: data.spill };
     for (var d in markers) {
@@ -1152,6 +1154,7 @@
     }, 'client');
     unsent.push({ kind: 'done', id: id, opened: boxOpened, span: span });
     dropBox();
+    if (by === 'done' || by === 'key' || by === 'resolve') returnFocus(elementFor(id));
     syncMarker(id);   // closed, a turn of yours is the agent's to work on
     // The file changed this directive while the box was open: catch up, after the box's saves.
     if (boxBehind) {
@@ -1160,6 +1163,21 @@
     }
     saveNow();
     if (inFlight) addEvent(inFlight.span, 'close box', { 'hrv.close.by': by, 'hrv.scope.id': id, 'hrv.pending': unsent.length });
+  }
+
+  // Focus goes back to the element the box was for, as a dialog gives it back to what opened it,
+  // so Tab goes on from there. An element that can't take focus (a p, a section) holds
+  // tabindex=-1 until focus leaves it, so the page keeps no mark.
+  function returnFocus(el) {
+    if (!el) return;
+    el.focus({ preventScroll: true });
+    if (document.activeElement === el) return;
+    el.setAttribute('tabindex', '-1');
+    el.addEventListener('blur', function drop() {
+      el.removeAttribute('tabindex');
+      el.removeEventListener('blur', drop);
+    });
+    el.focus({ preventScroll: true });
   }
 
   // Close the box without committing: its element is gone, and its directive with it.

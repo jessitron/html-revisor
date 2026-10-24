@@ -77,6 +77,18 @@ async function openTab(s, name, { storage = new Map() } = {}) {
   proto.scrollIntoView = function () { scrolled.push(this); };
   proto.setSelectionRange ??= function () {};
   proto.select ??= function () {};
+  // Focus, as a browser keeps it: only a focusable element takes it, the one it leaves hears
+  // blur, and a focused element taken out of the page leaves it on the body.
+  let focused = null;
+  proto.focus = function () {
+    if (focused === this || !this.matches('a[href], button, input, select, textarea, [tabindex]')) return;
+    const was = focused;
+    focused = null;
+    was?.dispatchEvent(new window.Event('blur'));
+    focused = this;
+    this.dispatchEvent(new window.Event('focus'));
+  };
+  Object.defineProperty(document, 'activeElement', { get: () => (focused?.isConnected ? focused : document.body) });
   document.execCommand = () => false;
   Object.assign(window.Node, { DOCUMENT_POSITION_PRECEDING: 2, DOCUMENT_POSITION_FOLLOWING: 4 });
   const streams = [];
@@ -364,6 +376,51 @@ test('a marker click sets where the docket steps from, as a click on its element
     const [, down] = [...tab.layer.querySelectorAll('.hrv-step:not(.hrv-row2)')];
     tab.click(down);
     assert.equal(tab.steppedTo(), 'p', 'the next directive after the heading');
+    tab.close();
+  }));
+
+// A dialog gives focus back to what opened it, so Tab goes on from the element, not the top.
+// assert.ok, not equal, on elements: a failing equal prints the whole linkedom tree and hangs.
+test('Done, Esc, and Cmd-Enter give focus back to the element, which keeps no tabindex after', () =>
+  withServer(async (s) => {
+    const tab = await openTab(s, 'page.html');
+    const key = (init) => {
+      const e = new tab.window.Event('keydown', { bubbles: true, cancelable: true });
+      Object.assign(e, init);
+      tab.field().dispatchEvent(e);
+    };
+    const closers = {
+      Done: () => tab.done(),
+      Esc: () => key({ key: 'Escape' }),
+      'Cmd-Enter': () => key({ key: 'Enter', metaKey: true }),
+    };
+    for (const [how, close] of Object.entries(closers)) {
+      tab.open('p');
+      assert.ok(tab.document.activeElement === tab.field(), 'the box has focus');
+      close();
+      assert.equal(tab.box(), null);
+      assert.ok(tab.document.activeElement === tab.el('p'), `${how}: focus is on the paragraph`);
+      tab.open('h1');
+      assert.equal(tab.el('p').hasAttribute('tabindex'), false, `${how}: the paragraph leaves no tabindex`);
+      tab.done();
+      assert.ok(tab.document.activeElement === tab.el('h1'));
+    }
+    tab.close();
+  }));
+
+test('a link takes focus back as it is, and an element the save replaces keeps it', () =>
+  withServer(async (s) => {
+    const tab = await openTab(s, 'demo.html');
+    const link = 'a[href="other.html"]';
+    tab.open(link);
+    tab.done();
+    assert.ok(tab.document.activeElement === tab.el(link));
+    assert.equal(tab.el(link).getAttribute('tabindex'), null, 'a link needs none');
+    tab.open('h1');
+    tab.type('A new title', tab.layer.querySelector('.hrv-box textarea.hrv-text'));
+    tab.done();
+    await until(() => s.read('demo.html').includes('A new title') && tab.el('h1').textContent.includes('A new title'));
+    assert.ok(tab.document.activeElement === tab.el('h1'), 'the new heading has focus');
     tab.close();
   }));
 
