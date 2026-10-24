@@ -103,7 +103,7 @@
       The agent answers in the page. Each element carries its own small conversation, and many run at once while you keep reviewing.
     </p>
     <h2 data-hrv="4" id="status">Where it stands</h2>
-    <svg data-hrv="5" class="flow road" viewBox="0 0 900 280" role="img" aria-label="Build road for replies: three pieces built, four ready, two waiting, two later">
+    <svg data-hrv="5" class="flow road" viewBox="0 0 900 280" role="img" aria-label="Build road for replies: four pieces built, four ready, two waiting, one later">
       <defs data-hrv="6">
         <marker data-hrv="7" id="road-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
           <path data-hrv="8" d="M0 0L10 5L0 10z" fill="context-stroke"></path>
@@ -128,12 +128,12 @@
       <rect data-hrv="25" class="ready" x="240" y="102" width="190" height="46" rx="6"></rect>
       <text data-hrv="26" x="250" y="121">Docket counts replies</text>
       <text data-hrv="27" class="sub" x="250" y="138">a second row: new replies</text>
-      <rect data-hrv="28" class="ready" x="240" y="160" width="190" height="46" rx="6"></rect>
-      <text data-hrv="29" x="250" y="179">Announce Resolve</text>
-      <text data-hrv="30" class="sub" x="250" y="196">building now</text>
-      <rect data-hrv="31" class="ready" x="240" y="218" width="190" height="46" rx="6"></rect>
-      <text data-hrv="32" x="250" y="237">Carry the Contract</text>
-      <text data-hrv="33" class="sub" x="250" y="254">into iterate-on-docs</text>
+      <rect data-hrv="28" class="built" x="10" y="218" width="190" height="46" rx="6"></rect>
+      <text data-hrv="29" x="20" y="237">✓ Announce Resolve</text>
+      <text data-hrv="30" class="sub" x="20" y="254">with the turns that ended</text>
+      <rect data-hrv="31" class="ready" x="240" y="160" width="190" height="46" rx="6"></rect>
+      <text data-hrv="32" x="250" y="179">Carry the Contract</text>
+      <text data-hrv="33" class="sub" x="250" y="196">into iterate-on-docs</text>
       <line data-hrv="35" class="msg" x1="430" y1="67" x2="466" y2="67" marker-end="url(#road-arrow)"></line>
       <rect data-hrv="36" class="waits" x="470" y="44" width="190" height="46" rx="6"></rect>
       <text data-hrv="37" x="480" y="63">Thread arrives live</text>
@@ -142,12 +142,12 @@
       <rect data-hrv="40" class="waits" x="470" y="116" width="190" height="46" rx="6"></rect>
       <text data-hrv="41" x="480" y="135">iterate-on-docs replies</text>
       <text data-hrv="42" class="sub" x="480" y="152">agent answers in the page</text>
-      <rect data-hrv="43" class="later" x="700" y="44" width="190" height="46" rx="6"></rect>
-      <text data-hrv="44" x="710" y="63">Directive status</text>
-      <text data-hrv="45" class="sub" x="710" y="80">working, before the reply</text>
-      <rect data-hrv="46" class="later" x="700" y="102" width="190" height="46" rx="6"></rect>
-      <text data-hrv="47" x="710" y="121">Replies on edits</text>
-      <text data-hrv="48" class="sub" x="710" y="138">a yak of its own now</text>
+      <rect data-hrv="43" class="ready" x="240" y="218" width="190" height="46" rx="6"></rect>
+      <text data-hrv="44" x="250" y="237">Directive status</text>
+      <text data-hrv="45" class="sub" x="250" y="254">working: your turn is last</text>
+      <rect data-hrv="46" class="later" x="700" y="44" width="190" height="46" rx="6"></rect>
+      <text data-hrv="47" x="710" y="63">Replies on edits</text>
+      <text data-hrv="48" class="sub" x="710" y="80">a yak of its own now</text>
     </svg>
     <p data-hrv="49" class="note">
       An agent replies today with <code>node reply.mjs &lt;page URL&gt; &lt;id&gt; &lt;thread&gt; &lt;text&gt;</code>, the id and thread from the Announcement. The reply shows after a reload. The “built” column in <a data-hrv="543" href="#decided">Decided</a> marks each decision the code has.
