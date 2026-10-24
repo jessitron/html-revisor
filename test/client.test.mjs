@@ -22,10 +22,12 @@ async function withServer(fn) {
   await new Promise((r) => server.listen(0, '127.0.0.1', r));
   const base = `http://127.0.0.1:${server.address().port}`;
   const log = console.log;
-  console.log = () => {};   // the server's lines: Announcements and conflicts; tests read the file
+  const lines = [];
+  console.log = (line) => lines.push(String(line));   // the server's lines: Announcements and conflicts
   try {
     await fn({
       dir, base,
+      announcements: () => lines.filter((l) => l.startsWith('{')).map((l) => JSON.parse(l)),
       read: (name) => fs.readFileSync(path.join(dir, name), 'utf8'),
       write: (name, text) => fs.writeFileSync(path.join(dir, name), text),
     });
@@ -107,6 +109,8 @@ async function openTab(s, name, { storage = new Map() } = {}) {
     marker: (selector) => layer.querySelector(`.hrv-marker[data-for="${tab.idOf(selector)}"]`),
     turns: () => [...layer.querySelectorAll('.hrv-box .hrv-turn')].map((t) => [t.querySelector('.hrv-who').textContent, t.querySelector('.hrv-says').textContent]),
     docket: () => layer.querySelector('.hrv-docket'),
+    message: () => layer.querySelector('.hrv-docket-msg').textContent,
+    label: () => layer.querySelector('.hrv-box textarea.hrv-directive').previousElementSibling.firstChild.textContent,
     click(node) { node.dispatchEvent(new window.Event('click', { bubbles: true, cancelable: true })); },
     open(selector) { tab.click(el(selector)); },
     type(text, field = tab.field()) {
@@ -116,6 +120,8 @@ async function openTab(s, name, { storage = new Map() } = {}) {
     button(text) { return [...layer.querySelectorAll('.hrv-box button')].find((b) => b.textContent === text); },
     done() { tab.click(tab.button('Done')); },
     connected: () => until(() => streams.length > 0).then(() => new Promise((r) => setTimeout(r, 100))),
+    // The tab stops hearing live notices, as when one is on its way while the tab saves.
+    deafen() { streams.forEach((e) => e.close()); },
     close() { streams.forEach((e) => e.close()); timers.forEach((t) => clearTimeout(t)); },
   };
   await tab.connected();
@@ -166,5 +172,81 @@ test('the tab: a reply to a closed box turns its marker to the bubble, without a
     await until(() => s.read('page.html').includes('<!-- @AI: add a diagram -->'));
     await reply(s, 'page.html', tab.idOf('p'), 'Added one.');
     await until(() => tab.marker('p').classList.contains('hrv-answered'));
+    tab.close();
+  }));
+
+// The turns of the file's thread on the paragraph, in order.
+const turnsInFile = (text) => [...text.matchAll(/<!-- (@AI|@Human): (.*?) -->/g)].map((m) => [m[1], m[2]]);
+
+test('a reply to the open box joins its thread; what you add after it is one new turn', () =>
+  withServer(async (s) => {
+    const tab = await openTab(s, 'page.html');
+    tab.open('p');
+    assert.equal(tab.label(), 'Directive');
+    tab.type('add a diagram');
+    await until(() => s.read('page.html').includes('<!-- @AI: add a diagram -->'));
+    await reply(s, 'page.html', tab.idOf('p'), 'Added one.');
+    await until(() => tab.turns().length === 2);
+    assert.deepEqual(tab.turns(), [['you', 'add a diagram'], ['agent', 'Added one.']]);
+    assert.equal(tab.field().value, '', 'what you sent went up into the thread');
+    assert.equal(tab.label(), 'You');
+    assert.ok(tab.button('Resolve'), 'Resolve shows once there is a thread');
+    assert.equal(tab.message(), '', 'no notice to close the box');
+    tab.type('and a caption');
+    await until(() => s.read('page.html').includes('and a caption'));
+    tab.done();
+    await until(() => s.announcements().length === 1);
+    assert.deepEqual(turnsInFile(s.read('page.html')), [['@AI', 'add a diagram'], ['@Human', 'Added one.'], ['@AI', 'and a caption']]);
+    assert.deepEqual(s.announcements()[0].directive, { before: '', after: 'and a caption' }, 'Done tells what you added since the reply');
+    tab.close();
+  }));
+
+test('Done after a reply came into the open box, with nothing added, announces nothing new', () =>
+  withServer(async (s) => {
+    const tab = await openTab(s, 'page.html');
+    tab.open('p');
+    tab.type('add a diagram');
+    tab.done();
+    await until(() => s.announcements().length === 1);
+    tab.open('p');
+    await reply(s, 'page.html', tab.idOf('p'), 'Added one.');
+    await until(() => tab.turns().length === 2);
+    tab.done();
+    await new Promise((r) => setTimeout(r, 200));
+    assert.equal(s.announcements().length, 1);
+    tab.close();
+  }));
+
+test('a turn typed before the tab heard of a reply is refused, and what was past the sent turn goes after the reply, once', () =>
+  withServer(async (s) => {
+    const tab = await openTab(s, 'page.html');
+    tab.open('p');
+    tab.type('add a diagram');
+    await until(() => s.read('page.html').includes('<!-- @AI: add a diagram -->'));
+    tab.deafen();
+    await reply(s, 'page.html', tab.idOf('p'), 'Added one.');
+    tab.type('add a diagram with arrows');
+    await until(() => tab.turns().length === 2);
+    assert.equal(tab.field().value, 'with arrows');
+    await until(() => s.read('page.html').includes('with arrows'));
+    assert.deepEqual(turnsInFile(s.read('page.html')), [['@AI', 'add a diagram'], ['@Human', 'Added one.'], ['@AI', 'with arrows']]);
+    assert.equal(tab.message(), '');
+    tab.close();
+  }));
+
+test('a closed box whose last turn was refused for a reply sends what is left, then Done announces it', () =>
+  withServer(async (s) => {
+    const tab = await openTab(s, 'page.html');
+    tab.open('p');
+    tab.type('add a diagram');
+    await until(() => s.read('page.html').includes('<!-- @AI: add a diagram -->'));
+    tab.deafen();
+    await reply(s, 'page.html', tab.idOf('p'), 'Added one.');
+    tab.type('add a diagram with arrows');
+    tab.done();
+    await until(() => s.announcements().length === 1);
+    assert.deepEqual(turnsInFile(s.read('page.html')), [['@AI', 'add a diagram'], ['@Human', 'Added one.'], ['@AI', 'with arrows']]);
+    assert.deepEqual(s.announcements()[0].directive, { before: '', after: 'with arrows' });
+    assert.equal(tab.message(), '');
     tab.close();
   }));

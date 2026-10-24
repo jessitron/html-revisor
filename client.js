@@ -21,7 +21,7 @@
   var changedOnDisk = false; // a save found the file changed by someone else
   var inFlight = null;      // the change the PUT in flight carries
   var savedDirectives = {}; // id -> directive text as the file on disk holds it
-  var boxBehind = null;     // the file changed the open box's element: 'reply' or 'directive'; it catches up when the box closes
+  var boxBehind = false;    // the file changed the open box's directive; it catches up when the box closes
 
   try {
     var data = document.getElementById('hrv-directives');
@@ -513,10 +513,9 @@
   }
 
   // What the docket says when the file changed under the tab: content it can't show without a
-  // reload, or a change to the open box's element, which shows when the box closes.
+  // reload, or a change on disk to the directive in the open box, which shows when the box closes.
   function notice() {
     if (changedOnDisk) return 'the page changed on disk; reload to see it';
-    if (boxBehind === 'reply') return 'a reply came in here; close the box to see it';
     if (boxBehind) return 'this directive changed on disk; close the box to see it';
     return null;
   }
@@ -699,11 +698,18 @@
     return span;
   }
 
+  // A directive save carries the replies the tab has seen on the element, so the server refuses
+  // one typed before a reply came in, instead of writing it again after the reply.
   function bodyFor(change) {
     var body = { id: change.id, base: bases[change.id] || '' };
     if (change.kind === 'resolve') body.resolve = true;
     else body[change.kind] = change.kind === 'markdown' ? edits[change.id] : (directives[change.id] || '');
+    if (change.kind === 'directive') body.replies = repliesSeen(change.id);
     return body;
+  }
+
+  function repliesSeen(id) {
+    return (threads[id] || []).filter(function (t) { return t.prefix === REPLY; }).length;
   }
 
   // A markdown save answers with the HTML that replaced the scope. The page takes it, and the
@@ -791,6 +797,11 @@
         throw new Error(t || ('HTTP ' + res.status));
       });
     }).then(function (data) {
+      if (!data.ok && typeof data.replies === 'number') {
+        // A reply came in before this turn landed: catch up first, then send what's left of it.
+        unsent.unshift({ kind: 'refresh', target: null, retry: { id: change.id, text: body.directive } });
+        return;
+      }
       if (!data.ok) {
         // A conflict: we weren't taking turns. Say so; the reload is up to the human.
         failed = 'conflict: ' + data.error;
@@ -903,7 +914,7 @@
       if (!res.ok) throw new Error('HTTP ' + res.status);
       return res.json();
     }).then(function (state) {
-      var caught = applyState(state);
+      var caught = applyState(state, change.retry);
       if (span) {
         span.attributes['hrv.changed'] = caught.changed;
         span.attributes['hrv.updated'] = caught.updated;
@@ -924,11 +935,14 @@
   }
 
   // Take the file's threads, so markers and the docket match it: a reply turns its marker to the
-  // bubble, a directive the agent removed takes its marker away. The open box's element waits
-  // until the box closes, so nothing changes under the user's typing, and so does an element
-  // with a change of the tab's waiting to go out. Content the tab can't show (an element whose
-  // base changed) keeps its old base, so a save there is refused, and the docket says to reload.
-  function applyState(state) {
+  // bubble, a directive the agent removed takes its marker away. A thread that changed under
+  // the open box shows in the box, and the field keeps what you typed past what the file had
+  // (turnInBox). The box's directive changed on disk waits until the box closes, so nothing
+  // changes under the user's typing, and so does an element with a change of the tab's waiting
+  // to go out. Content the tab can't show (an element whose base changed) keeps its old base,
+  // so a save there is refused, and the docket says to reload. retry is a turn the server
+  // refused because a reply came in first: {id, text}.
+  function applyState(state, retry) {
     var ids = {}, updated = 0, later = false;
     [directives, threads, state.directives, state.threads].forEach(function (m) {
       for (var k in m) ids[k] = true;
@@ -939,17 +953,22 @@
       var thread = there ? state.threads[id] : undefined;
       var threadNow = JSON.stringify(thread || null) !== JSON.stringify(threads[id] || null);
       if (id === boxId) {
-        if (threadNow) boxBehind = 'reply';
-        else if ((directive || '') !== (savedDirectives[id] || '') && !boxBehind) boxBehind = 'directive';
+        if (threadNow) {
+          turnInBox(thread, directive || '');
+          updated++;
+        } else if ((directive || '') !== (savedDirectives[id] || '')) boxBehind = true;
         continue;
       }
-      if (!threadNow && (directive || '') === (directives[id] || '')) continue;
+      var retried = retry && retry.id === id;
+      if (!retried && !threadNow && (directive || '') === (directives[id] || '')) continue;
       if (waiting(id)) { later = true; continue; }
+      var left = retried ? pastSent(retry.text, savedDirectives[id] || '') : '';
       if (directive) directives[id] = directive;
       else delete directives[id];
       savedDirectives[id] = directive || '';
       if (thread) threads[id] = thread;
       else delete threads[id];
+      if (retried) sendLeft(id, left, directive || '');
       syncMarker(id);
       updated++;
     }
@@ -963,6 +982,59 @@
     updateDocket();
     showNotice();
     return { changed: changed, updated: updated };
+  }
+
+  // The thread changed under the open box. It shows in the box. A reply after the turns the file
+  // held settles them: they go up into the thread, and the field keeps what you typed past them,
+  // to send as your next turn. Done then tells what you added since the reply.
+  function turnInBox(thread, directive) {
+    var ta = box.querySelector('textarea.hrv-directive');
+    var grew = !!thread && extendsThread(thread, threads[boxId] || []);
+    if (thread) threads[boxId] = thread;
+    else delete threads[boxId];
+    if (grew) {
+      var left = pastSent(ta.value, savedDirectives[boxId] || '');
+      savedDirectives[boxId] = directive;
+      boxOpened.directive = directive;
+      if (left !== ta.value) {
+        ta.value = left;
+        fit(ta);
+      }
+      setDirective(boxId, left);
+      if (left.trim() && left.trim() !== directive.trim()) scheduleSave('directive', boxId);
+    }
+    box.hrvSyncActions();
+    box.hrvShowThread();
+    markRead(boxId);
+    syncMarker(boxId);
+  }
+
+  function extendsThread(now, before) {
+    return now.length > before.length && JSON.stringify(now.slice(0, before.length)) === JSON.stringify(before);
+  }
+
+  // What you typed past the turn the file held, sent: that turn is settled now, under a reply.
+  function pastSent(typed, sent) {
+    var s = sent.replace(/\s+$/, '');
+    if (!s) return typed;
+    if (typed.trim() === s.trim()) return '';
+    if (typed.indexOf(s) === 0) return typed.slice(s.length).replace(/^\s+/, '');
+    return typed;
+  }
+
+  // A closed box's turn the server refused, because a reply came first: what's left of it goes
+  // out next, ahead of the box's Done, and Done tells what's new since the reply.
+  function sendLeft(id, left, now) {
+    var session = null;
+    unsent.forEach(function (c) {
+      if (c.kind !== 'done' || c.id !== id) return;
+      c.opened.directive = now;
+      session = c.opened.session;
+    });
+    if (!left.trim()) return;
+    directives[id] = left;
+    var t = clock();
+    unsent.unshift({ kind: 'directive', id: id, session: session, edits: 1, firstEdit: t, lastEdit: t });
   }
 
   function scheduleSave(kind, id) {
@@ -1025,9 +1097,9 @@
     }, 'client');
     unsent.push({ kind: 'done', id: id, opened: boxOpened, span: span });
     dropBox();
-    // The file changed this element while the box was open: catch up, after the box's saves.
+    // The file changed this directive while the box was open: catch up, after the box's saves.
     if (boxBehind) {
-      boxBehind = null;
+      boxBehind = false;
       addRefresh(null);
     }
     saveNow();
@@ -1152,14 +1224,11 @@
 
     // Once the agent has replied, the thread shows above your field, and what you type is your
     // next turn. The turns before it stay as written. Until then, the field is the directive.
-    var thread = threads[id] ? threadView(threads[id]) : null;
-    if (thread) box.appendChild(thread);
-
+    // A reply that comes in while the box is open joins the thread here (showThread).
+    var thread = null;
     var ta = document.createElement('textarea');
     ta.className = 'hrv-directive';
-    ta.setAttribute('aria-label', thread ? 'Your turn' : 'Directive');
     ta.value = directives[id] || '';
-    ta.placeholder = thread ? 'Add to the thread' : 'Directive for this element';
     ta.addEventListener('input', function () {
       fit(ta);
       schedulePosition();
@@ -1167,10 +1236,11 @@
       setDirective(boxId, ta.value);
       scheduleSave('directive', boxId);
     });
-    var clearButton = fieldAction('Clear', (thread ? "Empty the turn you haven't sent" : 'Clear the directive') + ' (' + CLEAR_KEY + ')', function () {
+    var clearButton = fieldAction('Clear', '', function () {
       clearDirective(ta);
     });
-    box.appendChild(label(thread ? 'You' : 'Directive', clearButton));
+    var fieldLabel = label('Directive', clearButton);
+    box.appendChild(fieldLabel);
     box.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' || (e.key === 'Enter' && (e.metaKey || e.ctrlKey))) {
         e.preventDefault();
@@ -1203,15 +1273,32 @@
     var row = document.createElement('div');
     row.className = 'hrv-row';
     row.appendChild(hint);
-    if (thread) {
-      var resolve = button();
-      resolve.className = 'hrv-btn';
-      resolve.textContent = 'Resolve';
-      resolve.title = 'End the thread: remove the directive and its replies';
-      resolve.addEventListener('click', function () { resolveThread(ta); });
-      row.appendChild(resolve);
-    }
+    var resolve = button();
+    resolve.className = 'hrv-btn';
+    resolve.textContent = 'Resolve';
+    resolve.title = 'End the thread: remove the directive and its replies';
+    resolve.addEventListener('click', function () { resolveThread(ta); });
     row.appendChild(done);
+
+    // The thread as the tab holds it now: its turns above your field, the field's words, and
+    // Resolve beside Done. Scrolled to the end, where the newest turn is.
+    function showThread() {
+      var turns = threads[boxId];
+      var view = turns ? threadView(turns) : null;
+      if (thread) thread.remove();
+      thread = view;
+      if (view) box.insertBefore(view, fieldLabel);
+      fieldLabel.firstChild.textContent = view ? 'You' : 'Directive';
+      ta.setAttribute('aria-label', view ? 'Your turn' : 'Directive');
+      ta.placeholder = view ? 'Add to the thread' : 'Directive for this element';
+      clearButton.title = (view ? "Empty the turn you haven't sent" : 'Clear the directive') + ' (' + CLEAR_KEY + ')';
+      if (view && !resolve.parentNode) row.insertBefore(resolve, done);
+      if (!view && resolve.parentNode) resolve.remove();
+      if (view) view.scrollTop = view.scrollHeight;
+      schedulePosition();
+    }
+    box.hrvShowThread = showThread;
+    showThread();
 
     box.appendChild(ta);
     box.appendChild(row);
