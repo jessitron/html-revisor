@@ -20,8 +20,8 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
     </p>
     <section id="status" class="status">
       <h2>Status</h2>
-      <p class="status-value">working</p>
-      <p class="status-why">cfqz done; gl83 next.</p>
+      <p class="status-value">merged-ready</p>
+      <p class="status-why">Both yaks done; full suite green.</p>
     </section>
     <section id="plan" class="plan">
       <h2>Plan</h2>
@@ -53,6 +53,14 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
         <li>
           2026-10-24 12:36: cfqz. Test first: a marker click, then ↓, stepped to the heading itself. The marker's click handler now sets <code>current</code> before <code>openBox</code>, as the element click does. Guess <a href="#guess-marker-sets-current">marker-sets-current</a>.
         </li>
+        <li>2026-10-24 12:37: <code>3955fcb</code>, cfqz.</li>
+        <li>
+          2026-10-24 12:40: gl83. The test tab had no focus model; added one (activeElement, blur, focusable elements). A failing <code>assert.equal</code> on elements hung the run; switched to <code>assert.ok</code>.
+        </li>
+        <li>
+          2026-10-24 12:44: gl83 done, with focus carried to an element a save replaces. Guesses <a href="#guess-which-closes">which-closes</a>, <a href="#guess-tabindex-on-blur">tabindex-on-blur</a>, <a href="#guess-replaced-element">replaced-element</a>. Added 👩🏽‍🦱 yak hpyi to look at the ring.
+        </li>
+        <li>2026-10-24 12:46: <code>961af5c</code>, gl83. Full suite: 230 pass, 0 fail.</li>
       </ul>
     </section>
     <section id="guesses" class="guesses">
@@ -68,27 +76,71 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
           <strong>If wrong:</strong> drop <code>current = id</code> from the marker's click handler in <code>syncMarker</code>, <code>client.js</code>, and the test "a marker click sets where the docket steps from" in <code>test/client.test.mjs</code>.
         </p>
       </div>
-      <p>Starting guesses from Shepherd, to confirm or replace:</p>
-      <ul>
-        <li>
-          gl83: focus the element itself. A focusable one (a link, a button) takes focus as it is. Any other gets <code>tabindex="-1"</code>, the focus call, and the attribute removed on its next blur, so the page keeps no mark beyond <code>data-hrv-review</code>. Use <code>focus({ preventScroll: true })</code> so the page doesn't jump.
-        </li>
-        <li>
-          cfqz: a marker click sets the stepping position to the marker's element, the same call an element click makes, not a new one.
-        </li>
-      </ul>
+      <div id="guess-which-closes" class="guess">
+        <p>
+          <strong>Guess:</strong> Done, Esc, Cmd-Enter, and Resolve return focus to the element. Click away, step, opening another box, and review off do not.
+        </p>
+        <p>
+          <strong>Why:</strong> those four close from inside the box, where focus was. The others put focus somewhere on purpose: the click, the docket, the next box.
+        </p>
+        <p>
+          <strong>If wrong:</strong> change the <code>by</code> list on the <code>returnFocus</code> line in <code>closeBox</code>, <code>client.js</code>.
+        </p>
+      </div>
+      <div id="guess-tabindex-on-blur" class="guess">
+        <p>
+          <strong>Guess:</strong> Shepherd's starting guess. Focus the element; if it didn't take focus, add <code>tabindex="-1"</code>, focus again, and remove the attribute on its next blur. <code>preventScroll</code> keeps the page still. No <code>client.css</code> rule.
+        </p>
+        <p>
+          <strong>Why:</strong> trying focus first asks the browser what is focusable, instead of a selector list. The browser's own focus ring shows where Tab goes from; whether it looks right needs Chrome, so yak hpyi asks Jess.
+        </p>
+        <p>
+          <strong>If wrong:</strong> <code>returnFocus</code> in <code>client.js</code>; a ring rule would go in <code>client.css</code>.
+        </p>
+      </div>
+      <div id="guess-replaced-element" class="guess">
+        <p>
+          <strong>Guess:</strong> when a save's answer replaces the focused element (Done right after a Content edit), the new element takes focus.
+        </p>
+        <p>
+          <strong>Why:</strong> without it, focus drops to the body in the common case of edit, then close.
+        </p>
+        <p>
+          <strong>If wrong:</strong> drop the <code>focused</code> lines in <code>applyScope</code>, <code>client.js</code>, and the second half of the test "a link takes focus back as it is".
+        </p>
+      </div>
     </section>
     <section id="result" class="result">
       <h2>Result</h2>
-      <p>Not yet.</p>
+      <ul>
+        <li><code>3955fcb</code> A marker click sets where the docket steps from</li>
+        <li><code>961af5c</code> Box close gives keyboard focus back to the picked element</li>
+        <li>
+          <code>node --test --test-reporter=tap</code>: <code># pass 230</code>, <code># fail 0</code>.
+        </li>
+        <li>
+          For a user: after a marker click, ↑/↓ step from that element. After Done, Esc, or Cmd-Enter, Tab goes on from the element, not the top of the page. README's manual checklist has a line for it.
+        </li>
+      </ul>
     </section>
     <section id="gotchas" class="gotchas">
       <h2>Gotchas</h2>
-      <p>None yet.</p>
+      <ul>
+        <li>
+          In <code>test/client.test.mjs</code>, a failing <code>assert.equal</code> on two linkedom elements hangs the run: the diff prints the whole tree. It looked like a server hang. A CLAUDE.md line would have saved it: compare elements with <code>assert.ok(a === b, msg)</code>.
+        </li>
+        <li>
+          linkedom has no focus model: <code>focus()</code> only fires an event, and <code>document.activeElement</code> is undefined. The test tab now fakes it.
+        </li>
+      </ul>
     </section>
     <section id="new-yaks" class="new-yaks">
       <h2>New yaks</h2>
-      <p>None yet.</p>
+      <ul>
+        <li>
+          <code>look-at-the-focus-ring-a-paragraph-shows-after-the-box-closes-hpyi</code>: 👩🏽‍🦱 Look at the focus ring a paragraph shows after the box closes
+        </li>
+      </ul>
     </section>
   </body>
 </html>
