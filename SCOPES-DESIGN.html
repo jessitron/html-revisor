@@ -131,7 +131,7 @@
           <tr>
             <td>What isn't text</td>
             <td>
-              A stand-in: <code>⟦svg⟧</code>, <code>⟦script⟧</code>, restored in order from the prior HTML. A literal ⟦ is <code>\⟦</code>. Hidden elements get stand-ins too, so a save keeps them, and inside HTML the markdown writes, a style's blank lines can't end the HTML block. There, a literal ⟦ is <code>&amp;#x27E6;</code>, and a stand-in takes the next of its kind.
+              A stand-in: <code>⟦svg⟧</code>, <code>⟦script⟧</code>, restored from the prior HTML (see <a href="#identity">identity</a>). A literal ⟦ is <code>\⟦</code>. Hidden elements get stand-ins too, so a save keeps them, and inside HTML the markdown writes, a style's blank lines can't end the HTML block. There, a literal ⟦ is <code>&amp;#x27E6;</code>, and a stand-in takes the next of its kind.
             </td>
             <td><a href="#d1">D1</a>, <a href="#d5">D5</a>, <a href="#d7">D7</a></td>
           </tr>
@@ -214,6 +214,13 @@
               Reconciled against the prior HTML. Siblings pair the way a diff does: the ones that came back the same, then, between those, the most alike with the same tag. An edited element keeps its ID, a moved one keeps its own, and a new one gets a fresh ID from the formatter. A pair's children pair the same way.
             </td>
             <td><a href="#c1">C1</a></td>
+          </tr>
+          <tr>
+            <td>Stand-ins after a markdown save</td>
+            <td>
+              Each token takes the original of its kind whose enclosing elements, tag and text, are most like its own, nearest first; a tie goes to the next in order. A block you removed takes its stand-ins with it, and a block you moved keeps its own. The token carries no ID.
+            </td>
+            <td><a href="#d8">D8</a></td>
           </tr>
           <tr>
             <td>Directives across a markdown save</td>
@@ -1899,6 +1906,22 @@ node formatter.mjs try-me.html
             </tr>
           </tbody>
         </table>
+      </div>
+      <div id="d8" class="case">
+        <h4>D8. Two blocks alike, each with stand-ins</h4>
+        <p class="ask">
+          Delete the first card, or swap the two: each ⟦textarea⟧ is the same token. Which textarea does each one get back?
+        </p>
+        <div class="ex">
+          <div class="card">
+            <h3>Alpha</h3>
+            <textarea class="text">Alpha text</textarea>
+          </div>
+          <div class="card">
+            <h3>Beta</h3>
+            <textarea class="text">Beta text</textarea>
+          </div>
+        </div>
       </div>
       <h3>E. Phrasing that isn't prose</h3>
       <div id="e1" class="case">
