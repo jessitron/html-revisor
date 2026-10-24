@@ -20,8 +20,10 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
     </p>
     <section id="status" class="status">
       <h2>Status</h2>
-      <p class="status-value">working</p>
-      <p class="status-why">o593 explained with real traces; r0sf measuring next.</p>
+      <p class="status-value">merged-ready</p>
+      <p class="status-why">
+        o593 done with <code>hrv.wrote</code>; r0sf measured and left open with a recommendation, no span removed. Suite green.
+      </p>
     </section>
     <section id="plan" class="plan">
       <h2>Plan</h2>
@@ -35,13 +37,13 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
         </li>
       </ul>
       <p>
-        Work, o593: find which PUTs skip <code>write file</code> and what threw. Read <code>applyChange</code> in <code>server.mjs</code> first: it writes only when the serialized file differs from what it read. Confirm against the traces in Honeycomb (team modernity, env <code>local</code>, dataset <code>html-revisor</code>) with the honeycomb-modernity MCP if this session has it. Write the answer in <code>OBSERVABILITY.html</code> where a reader of the waterfall would look, and add an attribute (for example <code>hrv.wrote</code>) if a query can't tell the cases apart.
+        Work, o593: find which PUTs skip <code>write file</code> and what threw, in Honeycomb (team modernity, env <code>local</code>, dataset <code>html-revisor</code>). Write the answer in <code>OBSERVABILITY.html</code> where a reader of the waterfall would look, and add <code>hrv.wrote</code> so a query can tell the cases apart.
       </p>
       <p>
-        Work, r0sf: Jess decided to keep step spans for now and remove the ones that never pass 1 ms. Over 7 days on <code>OBSERVABILITY.html</code>, only <code>check base</code> and <code>set directive</code> stayed under 1 ms. Before removing, run saves on a temp copy of <code>test/pages/mintlify-animal-fables.html</code> (320 KB) and take MAX <code>duration_ms</code> by <code>parent.name</code>, <code>name</code>. Send spans with <code>with-be</code> (see CLAUDE.md's telemetry gotcha), or measure in-process with the stand-in collector in <code>test/telemetry.test.mjs</code>. Remove a span only if it stays under 1 ms there too; its attributes move to the parent span. Then drop the sentence of intent from <code>OBSERVABILITY.html</code>'s waterfall note, and update the waterfall if it draws a span that went.
+        Work, r0sf (revised): Jess said "keep them for now", so measure only. Run saves on a temp copy of <code>test/pages/mintlify-animal-fables.html</code> (320 KB), take MAX <code>duration_ms</code> by parent and name, compare with Honeycomb, and write a recommendation here and in the yak's context. Remove no span.
       </p>
       <p>
-        Files it may touch: <code>server.mjs</code>, <code>OBSERVABILITY.html</code>, <code>test/telemetry.test.mjs</code> (its step list names <code>check base</code> and <code>set directive</code>), README's "What it traces" line, this page. Scratch scripts in <code>/tmp/pruner</code>. After editing <code>OBSERVABILITY.html</code>, run the formatter and cleanup on it.
+        Files it may touch: <code>server.mjs</code>, <code>OBSERVABILITY.html</code>, <code>test/telemetry.test.mjs</code>, one README line, this page. Scratch scripts in <code>/tmp/pruner</code>.
       </p>
     </section>
     <section id="log" class="log">
@@ -52,33 +54,98 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
           2026-10-24 18:00: started. The first worktree vanished during a usage-limit pause with nothing committed; resumed in a new worktree, branch <code>worktree-pruner</code>.
         </li>
         <li>
-          2026-10-24 18:20: o593. In env <code>local</code>, 14 days, 125 PUT change 200s have no write file. Real ones are trailing-space saves; the rest are test runs. Added <code>hrv.wrote</code> on PUT change, a test, and a note in <code>OBSERVABILITY.html</code>.
+          2026-10-24 18:20: o593. In env <code>local</code>, 14 days, 125 PUT change 200s have no write file. Real ones are trailing-space saves; the rest are test runs. Added <code>hrv.wrote</code> on PUT change, a test, and a note in <code>OBSERVABILITY.html</code>. Commit <code>f1724a5</code>.
+        </li>
+        <li>
+          2026-10-24 18:45: r0sf plan revised to measure only, per Jess's "keep them for now". Measured on the 320 KB page, two runs; findings in Result and in the yak's context. Yak left open.
         </li>
       </ul>
     </section>
     <section id="guesses" class="guesses">
       <h2>Guesses</h2>
-      <p>None yet. Starting guesses from Tally, to confirm or replace:</p>
-      <ul>
-        <li>
-          o593: the PUTs with no write are saves that changed nothing (an empty directive on an element with none, or markdown saved unchanged), and the exceptions are refused saves (412, 400) recorded on the span. If the traces show otherwise, write up what they show and add a yak.
-        </li>
-        <li>
-          r0sf: if this session can't query Honeycomb, the in-process measurement on the mintlify page decides. A span that passes 1 ms on the big page stays.
-        </li>
-      </ul>
+      <div id="guess-trailing-space" class="guess">
+        <p>
+          <strong>Guess:</strong> the PUTs with no write are working as meant: the save leaves the file as it was, so nothing gets written. I documented them and added <code>hrv.wrote</code>; I did not stop the client from sending them.
+        </p>
+        <p>
+          <strong>Why:</strong> every real case in the traces is a trailing space. A directive of 188 then 189 bytes, or markdown of 84 then 85 bytes (OVERVIEW scope 129, trace <code>3110be49523653dde9aed4aebf2f6808</code>), with page bytes unchanged. <code>setDirective</code> trims, and the canonical file drops a trailing space at the end of a paragraph. Tally's guess of deletes did not hold: every empty directive wrote.
+        </p>
+        <p>
+          <strong>If wrong:</strong> to skip these round trips, the client in <code>client.js</code> could compare trimmed text before it schedules a save; that is client work, Roadrunner's file this round.
+        </p>
+      </div>
+      <div id="guess-exceptions" class="guess">
+        <p><strong>Guess:</strong> the exception events need no fix.</p>
+        <p>
+          <strong>Why:</strong> query <code>cjE8niJmHdA</code>: they are refused requests. Test runs make most of them (bad bodies, <code>nope.html</code>, <code>weird.html</code> in temp dirs). The ones from real use are <code>favicon.ico</code> 404s.
+        </p>
+        <p>
+          <strong>If wrong:</strong> to quiet the favicon ones, <code>server.mjs</code> could answer <code>/favicon.ico</code> with 204 and no exception.
+        </p>
+      </div>
+      <div id="guess-set-directive" class="guess">
+        <p>
+          <strong>Guess:</strong> only <code>check base</code> meets "never passes 1 ms". <code>set directive</code> is Jess's call.
+        </p>
+        <p>
+          <strong>Why:</strong> on 320 KB, <code>set directive</code> never passed 0.56 ms, but in Honeycomb it reached 1.17 ms once, on a page over 30 KB.
+        </p>
+        <p><strong>If wrong:</strong> recommend both in the context of yak <code>r0sf</code>.</p>
+      </div>
     </section>
     <section id="result" class="result">
       <h2>Result</h2>
-      <p>Not yet.</p>
+      <ul>
+        <li>
+          <code>f1724a5</code> PUT change says hrv.wrote: a save that leaves the file as it was writes nothing.
+        </li>
+        <li>
+          <code>node --test --test-reporter=tap</code>: <code># tests 232</code>, <code># pass 231</code>, <code># fail 0</code> (one test skipped: the Honeycomb one, which needs <code>.be</code>).
+        </li>
+        <li>
+          For a user: a query on <code>hrv.wrote = false</code> finds the saves that changed nothing. <code>OBSERVABILITY.html</code> explains the missing <code>write file</code> step under the waterfall.
+        </li>
+      </ul>
+      <p>
+        o593, Honeycomb env <code>local</code>, 14 days. PUT change by status: query <code>bSnmek9Bqh6</code>. PUT change 200s with no write file: query <code>3KdGBkgp85z</code>, rows in <code>itmAjUW489a</code>. Exceptions: <code>cjE8niJmHdA</code>.
+      </p>
+      <p>
+        r0sf, step spans on <code>mintlify-animal-fables.html</code> (320 KB), in-process with a stand-in collector. 40 rounds of directive, the same directive with a trailing space, markdown, clear, and Done, across 635 scope ids. Max over two runs:
+      </p>
+      <ul>
+        <li>
+          Under 1 ms: PUT <code>check base</code> 0.25, PUT <code>set directive</code> 0.56, POST done <code>read file</code> 0.40, GET <code>read file</code> 0.46. PUT <code>read file</code> p50 0.25, max 0.52 in one run and 4.13 in the other.
+        </li>
+        <li>
+          Over 1 ms, all others. The biggest: PUT <code>bases</code> p50 45, max 265; <code>reparse</code> max 333; <code>write file</code> max 383 in one run, 47 in the other; GET <code>markdowns</code> 170.
+        </li>
+        <li>
+          Honeycomb, pages over 30 KB (query <code>zWMXGzCiUg1</code>): <code>check base</code> max 0.90, <code>set directive</code> 1.17, PUT <code>read file</code> 33.9.
+        </li>
+      </ul>
+      <p>
+        Recommendation: remove <code>check base</code>. Keep <code>read file</code>: it does I/O, and it reached 34 ms in real use. <code>set directive</code> is borderline (see the guess). No span removed; yak <code>r0sf</code> is open with these numbers.
+      </p>
     </section>
     <section id="gotchas" class="gotchas">
       <h2>Gotchas</h2>
-      <p>None yet.</p>
+      <ul>
+        <li>
+          The usage-limit pause deleted the agent's worktree: it had no commits, so it counted as unchanged and got cleaned up. Commit something, like the status change on this page, before the first long investigation.
+        </li>
+        <li>
+          In Honeycomb, <code>none.name = write file</code> finds the PUTs that wrote nothing only when each trace holds a single PUT. Now <code>hrv.wrote</code> answers it directly.
+        </li>
+        <li>
+          Max step times on the big page differ a lot between runs (write file 47 vs 383 ms), likely GC pauses. Compare p50 and p90 too, not max alone.
+        </li>
+      </ul>
     </section>
     <section id="new-yaks" class="new-yaks">
       <h2>New yaks</h2>
-      <p>None yet.</p>
+      <p>
+        None. The slow steps on the big page belong to the open yak "Saves are fast on a big nested page".
+      </p>
     </section>
   </body>
 </html>
