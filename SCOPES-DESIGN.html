@@ -1922,6 +1922,60 @@ node formatter.mjs try-me.html
             <textarea class="text">Beta text</textarea>
           </div>
         </div>
+        <details class="scope-report">
+          <summary>HTML</summary>
+          <pre>&lt;div class="card"&gt;
+  &lt;h3&gt;Alpha&lt;/h3&gt;
+  &lt;textarea class="text"&gt;Alpha text&lt;/textarea&gt;
+&lt;/div&gt;
+&lt;div class="card"&gt;
+  &lt;h3&gt;Beta&lt;/h3&gt;
+  &lt;textarea class="text"&gt;Beta text&lt;/textarea&gt;
+&lt;/div&gt;</pre>
+        </details>
+        <table class="scope-report">
+          <thead>
+            <tr>
+              <th>element</th>
+              <th>what markdown can say</th>
+              <th>what you would edit</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>&lt;div.card&gt;</td>
+              <td>markdown with ⟦tokens⟧</td>
+              <td>
+                <pre>### Alpha
+
+⟦textarea⟧</pre>
+              </td>
+            </tr>
+            <tr>
+              <td> &lt;h3&gt;</td>
+              <td>all markdown</td>
+              <td>
+                <pre>Alpha</pre>
+              </td>
+            </tr>
+            <tr>
+              <td>&lt;div.card&gt;</td>
+              <td>markdown with ⟦tokens⟧</td>
+              <td>
+                <pre>### Beta
+
+⟦textarea⟧</pre>
+              </td>
+            </tr>
+            <tr>
+              <td> &lt;h3&gt;</td>
+              <td>all markdown</td>
+              <td>
+                <pre>Beta</pre>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
       <h3>E. Phrasing that isn't prose</h3>
       <div id="e1" class="case">
