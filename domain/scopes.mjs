@@ -9,7 +9,7 @@
 // module is the markdown language alone: element IDs and directives ride across a save in
 // identity.mjs (reconcile) and directives.mjs (carryDirectives), which scopeFromMarkdown in
 // markdown-edits.mjs puts together (SCOPES-DESIGN.html#identity). test/roundtrip-*.test.mjs.
-import { trimAscii, formatElement, VOID } from './canonical.mjs';
+import { trimAscii, formatElement, VOID, canonicalize } from './canonical.mjs';
 import { MarkdownIt } from '../vendor/markdown-it.mjs';
 
 // ---- Kinds of element ---------------------------------------------------
@@ -652,7 +652,8 @@ function reportRows(document, scope, depth = 0) {
 // ---- Annotation ---------------------------------------------------------
 
 // Under each .ex example: a details holding its HTML, and a table of its scopes. Annotating
-// again replaces the old ones, leaving everything else (directives included) where it was.
+// again replaces the old ones, leaving everything else (directives included) where it was. The
+// page comes out in canonical form, its tables sectioned as parse sections them.
 export function annotate(document) {
   clearAnnotations(document);
   for (const ex of document.querySelectorAll('.ex')) {
@@ -680,6 +681,7 @@ export function annotate(document) {
   style.setAttribute('id', 'scope-view');
   style.textContent = SCOPE_VIEW_CSS;
   document.querySelector('head').appendChild(style);
+  canonicalize(document);
 }
 
 const LEGEND = `Under each example: its HTML (click to open), then a row for each element you could pick,

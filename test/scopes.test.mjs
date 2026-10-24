@@ -87,6 +87,14 @@ test('annotating twice gives the same page', () => {
   assert.equal(scopeOf(document.querySelector('.ex')).children.length, 1);
 });
 
+test('annotating writes the page in canonical form', () => {
+  const document = parse('<html><head></head><body><div class="ex"><p>a</p></div></body></html>');
+  annotate(document);
+  const html = serialize(document);
+  assert.equal(serialize(parse(html)), html);
+  assert.match(html, /<table class="scope-report">\s*<thead>/);
+});
+
 // ---- Round-trip rules ------------------------------------------------
 // The property itself is in the roundtrip-*.test.mjs files; these are the rules, one example each.
 

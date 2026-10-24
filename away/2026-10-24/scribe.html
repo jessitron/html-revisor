@@ -18,8 +18,10 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
     <p>Wave 3. Fix the annotate tooling, then rerun it.</p>
     <section id="status" class="status">
       <h2>Status</h2>
-      <p class="status-value">planned</p>
-      <p class="status-why">Waits for Gatherer and Thead Rex to merge.</p>
+      <p class="status-value">working</p>
+      <p class="status-why">
+        Gatherer and Thead Rex are on main; the annotate fixes are under way.
+      </p>
     </section>
     <section id="plan" class="plan">
       <h2>Plan</h2>
@@ -46,6 +48,12 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
       <h2>Log</h2>
       <ul>
         <li>2026-10-24: page made by Herald.</li>
+        <li>
+          2026-10-24 15:00: started. Annotate writes tables without thead (parse sections them, annotate doesn't), and builds every report fresh, so the formatter numbers them anew.
+        </li>
+        <li>
+          2026-10-24 15:20: took <code>uytj</code> first: reconcile pairs rows by their layout, so the tables have to come out sectioned before IDs can carry. <code>annotate</code> now ends with <code>canonicalize</code>.
+        </li>
       </ul>
     </section>
     <section id="guesses" class="guesses">
