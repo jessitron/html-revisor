@@ -1,6 +1,6 @@
 // Scopes: what you can pick in a page, and the markdown you would edit for each. Tier II, pure
-// functions over a DOM: scopes, markdown both ways, and the report and annotation that
-// scopes.mjs, the CLI, writes.
+// functions over a DOM: scopes, markdown both ways, and the reports that scopes.mjs, the CLI,
+// prints and annotation.mjs writes under each example.
 //
 // A scope is any block element, plus links, images, and spans. You pick it to leave a directive or to
 // edit its whole content as markdown: a section, a list, one list item, a table, one cell (Jess,
@@ -9,7 +9,7 @@
 // module is the markdown language alone: element IDs and directives ride across a save in
 // identity.mjs (reconcile) and directives.mjs (carryDirectives), which scopeFromMarkdown in
 // markdown-edits.mjs puts together (SCOPES-DESIGN.html#identity). test/roundtrip-*.test.mjs.
-import { trimAscii, formatElement, VOID, canonicalize } from './canonical.mjs';
+import { trimAscii, formatElement, VOID } from './canonical.mjs';
 import { MarkdownIt } from '../vendor/markdown-it.mjs';
 
 // ---- Kinds of element ---------------------------------------------------
@@ -649,58 +649,26 @@ function reportRows(document, scope, depth = 0) {
   return [tr, ...scope.children.flatMap((c) => reportRows(document, c, depth + 1))];
 }
 
-// ---- Annotation ---------------------------------------------------------
+// The report on one .ex example, detached: a details holding its HTML, and a table of its
+// scopes. annotation.mjs puts it under the example.
+export function exampleReport(ex) {
+  const document = ex.ownerDocument;
+  const html = document.createElement('details');
+  html.setAttribute('class', 'scope-report');
+  const summary = document.createElement('summary');
+  summary.textContent = 'HTML';
+  const pre = document.createElement('pre');
+  pre.textContent = [...ex.children].map(rawHTML).join('\n');
+  html.append(summary, pre);
 
-// Under each .ex example: a details holding its HTML, and a table of its scopes. Annotating
-// again replaces the old ones, leaving everything else (directives included) where it was. The
-// page comes out in canonical form, its tables sectioned as parse sections them.
-export function annotate(document) {
-  clearAnnotations(document);
-  for (const ex of document.querySelectorAll('.ex')) {
-    const html = document.createElement('details');
-    html.setAttribute('class', 'scope-report');
-    const summary = document.createElement('summary');
-    summary.textContent = 'HTML';
-    const pre = document.createElement('pre');
-    pre.textContent = [...ex.children].map(rawHTML).join('\n');
-    html.append(summary, pre);
-
-    const table = document.createElement('table');
-    table.setAttribute('class', 'scope-report');
-    table.innerHTML = '<tr><th>element</th><th>what markdown can say</th><th>what you would edit</th></tr>';
-    for (const scope of scopesWithin(ex)) {
-      for (const row of reportRows(document, scope)) table.appendChild(row);
-    }
-    ex.after(html, table);
+  const table = document.createElement('table');
+  table.setAttribute('class', 'scope-report');
+  table.innerHTML = '<tr><th>element</th><th>what markdown can say</th><th>what you would edit</th></tr>';
+  for (const scope of scopesWithin(ex)) {
+    for (const row of reportRows(document, scope)) table.appendChild(row);
   }
-  const legend = document.createElement('p');
-  legend.setAttribute('class', 'scope-report');
-  legend.innerHTML = LEGEND;
-  document.querySelector('#scopes > p')?.after(legend);
-  const style = document.createElement('style');
-  style.setAttribute('id', 'scope-view');
-  style.textContent = SCOPE_VIEW_CSS;
-  document.querySelector('head').appendChild(style);
-  canonicalize(document);
+  return [html, table];
 }
-
-const LEGEND = `Under each example: its HTML (click to open), then a row for each element you could pick,
-  nested inside the element that holds it. The last column is the markdown you would edit if you
-  picked that element. ⟦svg⟧ marks something that isn't text riding inside the markdown.`;
-
-// Clears this tool's marks, and those of chunks.mjs, the earlier version of this tool.
-function clearAnnotations(document) {
-  document.querySelectorAll('.scope-report, #scope-view, .chunk-report, #chunk-view').forEach((el) => el.remove());
-  document.querySelectorAll('[data-chunk]').forEach((el) => el.removeAttribute('data-chunk'));
-}
-
-const SCOPE_VIEW_CSS = `
-  table.scope-report { font-size: 0.75rem; margin: 0.5rem 0; width: 100%; }
-  table.scope-report td, table.scope-report th { vertical-align: top; padding: 0.15rem 0.5rem; }
-  table.scope-report td:first-child { font-family: ui-monospace, monospace; white-space: pre; }
-  table.scope-report pre, details.scope-report pre { margin: 0; padding: 0.15rem 0.4rem; background: #f6f8fa; white-space: pre-wrap; }
-  details.scope-report { font-size: 0.75rem; margin: 0.5rem 0; }
-`;
 
 // ======================================================================
 // Tier III: interface

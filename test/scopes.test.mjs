@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { normalize } from '../domain/format.mjs';
 import { parse, serialize } from '../domain/canonical.mjs';
-import { scopeOf, scopesWithin, scopeMarkdown, roundTrips, canonicalHTML, annotate, editable, EDIT_LIMIT, scopeElements } from '../domain/scopes.mjs';
+import { scopeOf, scopesWithin, scopeMarkdown, roundTrips, canonicalHTML, editable, EDIT_LIMIT, scopeElements } from '../domain/scopes.mjs';
 import { scopeFromMarkdown } from '../domain/markdown-edits.mjs';
 
 const body = (html) => parse(`<html><body>${html}</body></html>`).querySelector('body');
@@ -74,25 +74,6 @@ test('a span that fills its parent is not a scope, so the parent stays pickable'
 test('svg text is a scope of its own', () => {
   const scopes = scopesWithin(body('<svg><text>Hi <tspan font-weight="700">there</tspan></text></svg>'));
   assert.deepEqual(scopes.map((s) => s.markdown), ['Hi <tspan font-weight="700">there</tspan>']);
-});
-
-test('annotating twice gives the same page', () => {
-  const document = parse('<html><head></head><body><div class="ex"><p>a</p></div></body></html>');
-  annotate(document);
-  const once = serialize(document);
-  annotate(document);
-  assert.equal(serialize(document), once);
-  assert.match(once, /<table class="scope-report">[\s\S]*all markdown/);
-  assert.match(once, /<details class="scope-report">/);
-  assert.equal(scopeOf(document.querySelector('.ex')).children.length, 1);
-});
-
-test('annotating writes the page in canonical form', () => {
-  const document = parse('<html><head></head><body><div class="ex"><p>a</p></div></body></html>');
-  annotate(document);
-  const html = serialize(document);
-  assert.equal(serialize(parse(html)), html);
-  assert.match(html, /<table class="scope-report">\s*<thead>/);
 });
 
 // ---- Round-trip rules ------------------------------------------------

@@ -41,7 +41,7 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
         Work: fix the two annotate bugs, one commit each, then run <code>node scopes.mjs --annotate SCOPES-DESIGN.html</code>, the formatter, and cleanup, and commit the regenerated page alone.
       </p>
       <p>
-        Files it may touch: <code>domain/scopes.mjs</code>, <code>scopes.mjs</code>, <code>SCOPES-DESIGN.html</code>, this page.
+        Files it may touch: <code>domain/scopes.mjs</code>, <code>scopes.mjs</code>, <code>SCOPES-DESIGN.html</code>, this page. Added: a new <code>domain/annotation.mjs</code> and <code>test/annotation.test.mjs</code>, since annotate needs <code>reconcile</code> and <code>scopes.mjs</code> sits below <code>identity.mjs</code>; and the docs that list modules (README, CLAUDE.md, OVERVIEW's architecture diagram).
       </p>
     </section>
     <section id="log" class="log">
@@ -52,13 +52,26 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
           2026-10-24 15:00: started. Annotate writes tables without thead (parse sections them, annotate doesn't), and builds every report fresh, so the formatter numbers them anew.
         </li>
         <li>
-          2026-10-24 15:20: took <code>uytj</code> first: reconcile pairs rows by their layout, so the tables have to come out sectioned before IDs can carry. <code>annotate</code> now ends with <code>canonicalize</code>.
+          2026-10-24 15:20: took <code>uytj</code> first: reconcile pairs rows by their layout, so the tables have to come out sectioned before IDs can carry. <code>annotate</code> now ends with <code>canonicalize</code>. Commit <code>933499b</code>.
+        </li>
+        <li>
+          2026-10-24 15:50: <code>qe5k</code>: <code>annotate</code> moved to a new <code>domain/annotation.mjs</code>, above <code>identity.mjs</code>. Each prior report reconciles with its new one; directives carry; a page with IDs gets <code>assignIds</code>, one without stays clean.
         </li>
       </ul>
     </section>
     <section id="guesses" class="guesses">
       <h2>Guesses</h2>
-      <p>None yet.</p>
+      <div id="guess-report-key" class="guess">
+        <p>
+          <strong>Guess:</strong> a prior report pairs with the new one by its example's element ID, or by the example's place among the <code>.ex</code> elements when the page has no IDs.
+        </p>
+        <p>
+          <strong>Why:</strong> examples carry no other name; on a page with IDs, an example added above keeps the others' reports paired.
+        </p>
+        <p>
+          <strong>If wrong:</strong> change <code>examples</code> in <code>domain/annotation.mjs</code>.
+        </p>
+      </div>
     </section>
     <section id="result" class="result">
       <h2>Result</h2>

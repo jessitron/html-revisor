@@ -236,6 +236,7 @@ The HTML parser is [linkedom](https://github.com/WebReflection/linkedom), bundle
   - **The formatter**: `format.mjs`. `normalize` (parse, assign IDs, serialize) and `validate`, the rules normalizing can't fix (none yet).
   - **Bases**: `bases.mjs`. `baseOf`, the hash of an element in canonical layout with directives and IDs stripped. A directive coming or going changes no base; a changed child changes its parent's. `threadBaseOf`, the hash of an element's thread, the base a reply starts from.
   - **Markdown edits**: `markdown-edits.mjs`. `markdownsOf`, `committedMarkdowns`, `scopeFromMarkdown` (the scope's markdown as HTML, with the IDs and directives of the elements you kept: `nodesFromMarkdown`, then `reconcile` and `carryDirectives`), `saveMarkdown`, `servedHTML`.
+  - **Annotation**: `annotation.mjs`. `annotate`: under each `.ex` example in SCOPES-DESIGN.html, the report `exampleReport` (in `scopes.mjs`) builds, in canonical form. A rerun keeps the IDs and directives of the report elements that came back (`reconcile`, `carryDirectives`), and a page without IDs gets none.
   - **Announcements**: `announcements.mjs`. `announcementOf`: what one box session changed, directive and revision, before and after, the turns a Resolve took, and the element's thread base.
   - **The served page**: `served-page.mjs`. `injectClient`: the client and its data, added to the served copy.
   - **Cleanup**: `cleanup.mjs`. Parse, remove directives and element IDs, serialize (see [Clean up](#clean-up)).
