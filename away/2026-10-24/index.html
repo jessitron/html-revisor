@@ -68,7 +68,7 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
             <td>Builds this report and <a href="FORMAT.md">FORMAT.md</a></td>
             <td>
               <!-- coordinator: status herald -->
-              merged-ready
+              merged: <code>0d49035</code>
             </td>
             <td><a href="FORMAT.md">FORMAT.md</a></td>
           </tr>
@@ -78,7 +78,7 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
             <td>Runs the waves, merges to main, writes the summary</td>
             <td>
               <!-- coordinator: status coordinator -->
-              planned
+              done: all six merged; this summary is the last commit
             </td>
             <td><a href="#summary">Summary</a></td>
           </tr>
@@ -90,7 +90,7 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
             </td>
             <td>
               <!-- coordinator: status thead-rex -->
-              planned
+              merged: <code>6e036d1</code>, <code>1908a7e</code>
             </td>
             <td><a href="thead-rex.html">thead-rex.html</a></td>
           </tr>
@@ -102,7 +102,7 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
             </td>
             <td>
               <!-- coordinator: status cleaver -->
-              planned
+              merged: <code>b956105</code>, <code>51eb1a8</code>, <code>b7f9a27</code>
             </td>
             <td><a href="cleaver.html">cleaver.html</a></td>
           </tr>
@@ -114,7 +114,7 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
             </td>
             <td>
               <!-- coordinator: status metronome -->
-              planned
+              merged: <code>527b2ab</code>
             </td>
             <td><a href="metronome.html">metronome.html</a></td>
           </tr>
@@ -126,7 +126,7 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
             </td>
             <td>
               <!-- coordinator: status archivist -->
-              planned
+              merged: <code>4e095f5</code>
             </td>
             <td><a href="archivist.html">archivist.html</a></td>
           </tr>
@@ -138,7 +138,7 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
             </td>
             <td>
               <!-- coordinator: status gatherer -->
-              planned
+              merged: <code>7145df9</code>
             </td>
             <td><a href="gatherer.html">gatherer.html</a></td>
           </tr>
@@ -150,7 +150,7 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
             </td>
             <td>
               <!-- coordinator: status scribe -->
-              planned
+              merged: <code>933499b</code>, <code>1a1a6e8</code>, <code>727e515</code>, <code>9d3d87a</code>, <code>55ea059</code>
             </td>
             <td><a href="scribe.html">scribe.html</a></td>
           </tr>
@@ -175,8 +175,58 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
       <h2>Summary</h2>
       <!-- coordinator: summary -->
       <p>
-        The coordinator writes this at the end of the run: what merged, what's blocked, what Jess needs to look at first.
+        All six agents merged to main. Nothing is blocked. The suite on main: <code># tests 219</code>, <code># pass 218</code>, <code># fail 0</code>, <code># skipped 1</code> (the Honeycomb test, no key in the shell). No push, no <code>yx sync</code>, no deploy, no release.
       </p>
+      <h3>Read first</h3>
+      <ol>
+        <li>
+          Every guess, by anchor:
+          <ul>
+            <li>
+              Thead Rex: <a href="thead-rex.html#guess-whitespace">whitespace</a>, <a href="thead-rex.html#guess-empty-p-is-the-sign">empty p is the sign</a>, <a href="thead-rex.html#guess-any-p-closer">any p closer</a>, <a href="thead-rex.html#guess-thead-rules">thead rules</a>
+            </li>
+            <li>
+              Cleaver: <a href="cleaver.html#guess-two-generated-files">two generated files</a>, <a href="cleaver.html#guess-mintlify-own-file">mintlify in its own file</a>, <a href="cleaver.html#guess-acceptance-numbers">acceptance numbers</a>
+            </li>
+            <li>
+              Metronome: <a href="metronome.html#guess-anchored-clock">anchored clock</a>, <a href="metronome.html#guess-explicit-times">explicit times</a>
+            </li>
+            <li>
+              Archivist: <a href="archivist.html#guess-keep-when-unsure">keep when unsure</a>, <a href="archivist.html#guess-scopes-design-unchanged">SCOPES-DESIGN unchanged</a>, <a href="archivist.html#guess-canonical-in-readme">Canonical form in README</a>, <a href="archivist.html#guess-what-was-dropped">what was dropped</a>, <a href="archivist.html#guess-frozen-test-page">frozen test page</a>
+            </li>
+            <li>
+              Gatherer: <a href="gatherer.html#guess-baseof-stays">baseOf stays</a>, <a href="gatherer.html#guess-scopefrommarkdown-home">scopeFromMarkdown's home</a>, <a href="gatherer.html#guess-assignidsto-private">assignIdsTo private</a>, <a href="gatherer.html#guess-id-attribute-module">id-attribute module</a>
+            </li>
+            <li>
+              Scribe: <a href="scribe.html#guess-report-key">report key</a>, <a href="scribe.html#guess-sample-layout">sample layout</a>
+            </li>
+          </ul>
+        </li>
+        <li>
+          <code>OVERVIEW.html</code> changed, and is public once pushed. Archivist added two Invariants ("Formatting changes how the file reads, never what it renders as." and "The tool never drops a directive on its own: the human clears it, or the agent addresses it.") and cut the spec line from the Tracker card (<code>4e095f5</code>). Scribe added <code>annotation</code> to the <code>domain/</code> box of the architecture diagram (<code>1a1a6e8</code>).
+        </li>
+        <li>
+          Decide whether <code>away/</code> stays before a push. GitHub Pages would publish these pages.
+        </li>
+      </ol>
+      <h3>Coordinator's notes</h3>
+      <ul>
+        <li>
+          The run hit a usage limit partway through wave 1. All four wave 1 agents (Thead Rex, Cleaver, Metronome, Archivist) resumed and finished. Cleaver's first worktree was gone after the pause, with no commits on it; it went on in a new one.
+        </li>
+        <li>
+          Two merges conflicted, and both were resolved by rebasing onto main: Cleaver's branch with Archivist's in <code>README.md</code>, and Gatherer's with Cleaver's split of the round-trip tests. After Gatherer's rebase, Thead Rex's canonical → identity import and Gatherer's identity → scopes → canonical made a cycle; Gatherer's <code>domain/id-attribute.mjs</code> breaks it.
+        </li>
+        <li>
+          Another session landed client and REPLY-DESIGN work on main during the run (<code>88686d3</code>, <code>19b08da</code>, <code>f111b99</code> through <code>56ca60f</code>). The agents rebased over it.
+        </li>
+        <li>
+          Hashes on the agent pages are from their branches, before the rebase. The Status column above has the hashes on main.
+        </li>
+        <li>
+          New yak: <code>annotate-still-clears-chunksmjs-marks-chunk-report-data-chunk-drop-the-old-tools-leftovers-s00n</code> (Scribe). The run's gotchas went into <code>CLAUDE.md</code> in the commit after this one.
+        </li>
+      </ul>
     </section>
   </body>
 </html>
