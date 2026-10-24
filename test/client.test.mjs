@@ -378,3 +378,29 @@ test('a reply stays new through opening the box and reloading, until you add a t
     assert.equal(again.marker('p'), null, 'Resolve ends the thread');
     again.close();
   }));
+
+// A literal <p> typed in a paragraph's Content box is raw HTML, and a paragraph can't hold one:
+// the file splits it into paragraphs. The box goes on editing all of them, so each later save
+// replaces them instead of adding a copy beside them.
+test('a <p> typed in the Content box splits the paragraph; the next saves replace the split, not copy it', () =>
+  withServer(async (s) => {
+    const tab = await openTab(s, 'page.html');
+    tab.open('p');
+    const content = () => tab.layer.querySelector('.hrv-box textarea.hrv-text');
+    const paragraphs = () => (s.read('page.html').match(/<p[ >]/g) ?? []).length;
+    const before = paragraphs();
+    const saves = ['I edited a <p>, with newlines', 'I edited a <p>, with newlines, and', 'I edited a <p>, with newlines, and got'];
+    for (const text of saves) {
+      tab.type(text, content());
+      await until(() => s.read('page.html').includes(text.split('<p>')[1] + '</p>'));
+    }
+    assert.equal(s.read('page.html').split(', with newlines').length - 1, 1, 'one copy of the text after the <p>');
+    assert.equal(paragraphs(), before + 2, 'the split made two more paragraphs, once');
+    assert.equal(tab.document.body.innerHTML.split(', with newlines').length - 1, 1, 'the tab shows one copy too');
+    tab.type('I edited a paragraph', content());
+    await until(() => s.read('page.html').includes('I edited a paragraph'));
+    assert.equal(paragraphs(), before, 'markdown without the <p> puts back one paragraph');
+    assert.equal(tab.document.body.innerHTML.split(', with newlines').length - 1, 0, 'and so does the tab');
+    assert.ok(tab.box(), 'the box stays open');
+    tab.close();
+  }));

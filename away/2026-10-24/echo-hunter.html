@@ -18,8 +18,8 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
     <p>Round 2, wave 1. A save that spills out of its scope stops making copies.</p>
     <section id="status" class="status">
       <h2>Status</h2>
-      <p class="status-value">planned</p>
-      <p class="status-why">Page made by Shepherd; not started.</p>
+      <p class="status-value">working</p>
+      <p class="status-why">The failing test is in; the fix is next.</p>
     </section>
     <section id="plan" class="plan">
       <h2>Plan</h2>
@@ -43,6 +43,9 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
       <h2>Log</h2>
       <ul>
         <li>2026-10-24: page made by Shepherd.</li>
+        <li>
+          2026-10-24 12:29: started. Reproduced: linkedom lets <code>saveMarkdown</code> nest a <code>p</code> in a <code>p</code>; the file, read back, splits it into three. A failing tab test in <code>test/client.test.mjs</code> types three saves and finds three copies.
+        </li>
       </ul>
     </section>
     <section id="guesses" class="guesses">
