@@ -1,0 +1,1 @@
+annotate still clears chunks.mjs marks (.chunk-report, data-chunk); drop the old tool's leftovers
