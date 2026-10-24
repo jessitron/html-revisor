@@ -216,6 +216,20 @@ html:not([data-hrv-review="off"]) [data-hrv]:not(html, body) { cursor: copy !imp
 :is(#hrv-layer, .hrv-layer) .hrv-docket.hrv-none .hrv-docket-main { color: var(--hrv-muted); }
 :is(#hrv-layer, .hrv-layer) .hrv-docket.hrv-off .hrv-docket-main { color: var(--hrv-muted); }
 :is(#hrv-layer, .hrv-layer) .hrv-docket.hrv-off .hrv-icon { background: var(--hrv-muted); }
+/* The second row: new replies, threads where the agent spoke last, with the bubble and its own
+   arrows. With none it hides, and the docket is one row. Stacked, the docket is a grid, so each
+   row's count takes the width the wider one needs. */
+:is(#hrv-layer, .hrv-layer) .hrv-docket .hrv-row2 { display: none; }
+:is(#hrv-layer, .hrv-layer) .hrv-docket.hrv-stacked { display: grid; grid-template-columns: auto 28px 28px; }
+:is(#hrv-layer, .hrv-layer) .hrv-docket.hrv-stacked .hrv-docket-msg { grid-column: 1 / -1; }
+:is(#hrv-layer, .hrv-layer) .hrv-docket.hrv-stacked .hrv-row2 { display: flex; border-top: 1px solid var(--hrv-line); }
+:is(#hrv-layer, .hrv-layer) .hrv-icon-reply {
+  display: inline-block; flex: none; width: 14px; height: 14px; vertical-align: -2px; background: var(--hrv-reply);
+  -webkit-mask: var(--hrv-bubble) center / contain no-repeat; mask: var(--hrv-bubble) center / contain no-repeat;
+}
+:is(#hrv-layer, .hrv-layer) .hrv-docket.hrv-off .hrv-icon-reply { background: var(--hrv-muted); }
+/* A reply just came: a green ring for 2 s, the way an error takes a red one. */
+:is(#hrv-layer, .hrv-layer) .hrv-docket.hrv-arrived { box-shadow: 0 0 0 1px var(--hrv-reply), 0 4px 16px rgba(0, 0, 0, 0.45); }
 :is(#hrv-layer, .hrv-layer) .hrv-docket.hrv-error { box-shadow: 0 0 0 1px var(--hrv-error), 0 4px 16px rgba(0, 0, 0, 0.45); }
 :is(#hrv-layer, .hrv-layer) .hrv-docket.hrv-error .hrv-docket-msg { display: block; }
 

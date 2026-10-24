@@ -481,26 +481,57 @@
   docket.appendChild(docketMain);
   docket.appendChild(stepButton('↑', 'Previous directive (⌥↑)', -1));
   docket.appendChild(stepButton('↓', 'Next directive (⌥↓)', 1));
+  // The second row counts new replies, threads where the agent spoke last, and steps through
+  // them. It shows only when there is one.
+  var repliesMain = document.createElement('div');
+  repliesMain.className = 'hrv-docket-main hrv-row2';
+  var replyIcon = document.createElement('span');
+  replyIcon.className = 'hrv-icon-reply';
+  var repliesCount = document.createElement('span');
+  repliesMain.appendChild(replyIcon);
+  repliesMain.appendChild(repliesCount);
+  repliesMain.addEventListener('click', function () { setReviewing(!reviewing); });
+  docket.appendChild(repliesMain);
+  docket.appendChild(stepButton('↑', 'Previous new reply', -1, isNewReply)).classList.add('hrv-row2');
+  docket.appendChild(stepButton('↓', 'Next new reply', 1, isNewReply)).classList.add('hrv-row2');
   layer.appendChild(docket);
 
-  function stepButton(arrow, title, dir) {
+  function stepButton(arrow, title, dir, only) {
     var b = document.createElement('div');
     b.className = 'hrv-step';
     b.textContent = arrow;
     b.title = title;
-    b.addEventListener('click', function () { step(dir); });
+    b.addEventListener('click', function () { step(dir, only); });
     return b;
   }
 
+  function newReplyCount() {
+    return Object.keys(markers).filter(isNewReply).length;
+  }
+
   function updateDocket() {
-    var n = directiveCount();
+    var n = directiveCount(), r = newReplyCount();
     docketCount.textContent = n + (n === 1 ? ' directive' : ' directives') + (reviewing ? '' : ' · review off');
+    repliesCount.textContent = r + (r === 1 ? ' new reply' : ' new replies');
     docketMsg.textContent = problem || '';
-    docketMain.title = reviewing
+    docketMain.title = repliesMain.title = reviewing
       ? 'Review mode: click to hide the marks and read the page'
       : 'Review mode is off: click to leave directives again';
-    docket.className = 'hrv-docket' + (n === 0 ? ' hrv-none' : '') + (reviewing ? '' : ' hrv-off') +
-      (problem ? ' hrv-error' : '');
+    docket.className = 'hrv-docket' + (n === 0 ? ' hrv-none' : '') + (r > 0 ? ' hrv-stacked' : '') +
+      (reviewing ? '' : ' hrv-off') + (problem ? ' hrv-error' : '') + (arrived ? ' hrv-arrived' : '');
+  }
+
+  // A reply just came: the docket takes a green ring for 2 s, since its element may be off screen.
+  var arrived = false;
+  var arrivedTimer = null;
+  function replyArrived() {
+    arrived = true;
+    clearTimeout(arrivedTimer);
+    arrivedTimer = setTimeout(function () {
+      arrived = false;
+      updateDocket();
+    }, 2000);
+    updateDocket();
   }
 
   var problemIsNotice = false;   // the docket shows a notice, not an error
@@ -525,12 +556,12 @@
     showProblem(notice(), true);
   }
 
-  // Elements with open threads, in document order.
-  function directiveElements() {
+  // Elements with open threads, in document order; only those that pass only(id), if given.
+  function directiveElements(only) {
     var els = [];
     for (var id in markers) {
       var el = elementFor(id);
-      if (el) els.push(el);
+      if (el && (!only || only(id))) els.push(el);
     }
     return els.sort(function (a, b) { return follows(a, b) ? -1 : 1; });
   }
@@ -542,8 +573,9 @@
   // Scroll the next (dir 1) or previous (dir -1) directive's element to the middle of the window
   // and show its crop marks for a moment. Its marker's tip shows what it says, until the next click,
   // so you can read through the directives without opening each one. Wraps around at the ends.
-  function step(dir) {
-    var els = directiveElements();
+  // only narrows the steps, to new replies for the docket's second row.
+  function step(dir, only) {
+    var els = directiveElements(only);
     if (!els.length) return;
     var from = current !== null && elementFor(current);
     var target = null;
@@ -942,7 +974,7 @@
   // so a save there is refused, and the docket says to reload. retry is a turn the server
   // refused because a reply came in first: {id, text}.
   function applyState(state, retry) {
-    var ids = {}, updated = 0, later = false;
+    var ids = {}, updated = 0, later = false, came = false;
     [directives, threads, state.directives, state.threads].forEach(function (m) {
       for (var k in m) ids[k] = true;
     });
@@ -951,6 +983,7 @@
       var directive = there ? state.directives[id] : undefined;
       var thread = there ? state.threads[id] : undefined;
       var threadNow = JSON.stringify(thread || null) !== JSON.stringify(threads[id] || null);
+      if (thread && extendsThread(thread, threads[id] || []) && (id === boxId || !waiting(id))) came = true;
       if (id === boxId) {
         if (threadNow) {
           turnInBox(thread, directive || '');
@@ -978,6 +1011,7 @@
     if (changed) changedOnDisk = true;
     version = state.version;
     if (later) addRefresh(null);
+    if (came) replyArrived();
     updateDocket();
     showNotice();
     return { changed: changed, updated: updated };

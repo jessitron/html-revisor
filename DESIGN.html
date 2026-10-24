@@ -715,6 +715,51 @@ Three mountains: fidelity, ergonomics, performance.</textarea>
         <p class="note">Stale file: no more saves until reload.</p>
       </div>
     </div>
+    <p class="note">
+      A second row, <code>.hrv-row2</code>, counts new replies: threads where the agent spoke last, with the green bubble (<code>.hrv-icon-reply</code>). Its own ↑ and ↓ step through them the same way. Adding a turn takes one off it, and Resolve takes it off both rows; opening the box changes nothing. With no new replies the row hides and the docket is one row; with some, it's <code>.hrv-stacked</code>, a grid, so both counts take the width the wider needs. When a reply comes, the docket wears a green ring for 2 s (<code>.hrv-arrived</code>), since its element may be off screen.
+    </p>
+    <div class="row">
+      <div>
+        <div class="stage" style="height: 100px;">
+          <div class="hrv-layer">
+            <div class="hrv-docket hrv-stacked" style="position: absolute; right: auto; left: 24px; bottom: auto; top: 24px;">
+              <div class="hrv-docket-msg"></div>
+              <div class="hrv-docket-main" title="Review mode: click to hide the marks and read the page">
+                <span class="hrv-icon"></span><span>5 directives</span>
+              </div>
+              <div class="hrv-step" title="Previous directive (⌥↑)">↑</div>
+              <div class="hrv-step" title="Next directive (⌥↓)">↓</div>
+              <div class="hrv-docket-main hrv-row2">
+                <span class="hrv-icon-reply"></span><span>2 new replies</span>
+              </div>
+              <div class="hrv-step hrv-row2" title="Previous new reply">↑</div>
+              <div class="hrv-step hrv-row2" title="Next new reply">↓</div>
+            </div>
+          </div>
+        </div>
+        <p class="note">Two new replies, among five open threads.</p>
+      </div>
+      <div>
+        <div class="stage" style="height: 100px;">
+          <div class="hrv-layer">
+            <div class="hrv-docket hrv-stacked hrv-arrived" style="position: absolute; right: auto; left: 24px; bottom: auto; top: 24px;">
+              <div class="hrv-docket-msg"></div>
+              <div class="hrv-docket-main">
+                <span class="hrv-icon"></span><span>5 directives</span>
+              </div>
+              <div class="hrv-step">↑</div>
+              <div class="hrv-step">↓</div>
+              <div class="hrv-docket-main hrv-row2">
+                <span class="hrv-icon-reply"></span><span>3 new replies</span>
+              </div>
+              <div class="hrv-step hrv-row2">↑</div>
+              <div class="hrv-step hrv-row2">↓</div>
+            </div>
+          </div>
+        </div>
+        <p class="note">A reply just came: the green ring, for 2 s.</p>
+      </div>
+    </div>
     <h2>Type</h2>
     <p class="note">
       One size, 13px at line height 1.4, everywhere in the layer. <code>--hrv-font</code> is system-ui. The directive field is <code>--hrv-mono</code>, monospace, since a directive is an instruction headed into an HTML comment. Labels and the hint differ by color alone: muted; the save status that replaces the hint takes the text color. The Content field: the element's own font.

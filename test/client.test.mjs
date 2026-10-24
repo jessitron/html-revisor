@@ -73,10 +73,12 @@ async function openTab(s, name, { storage = new Map() } = {}) {
   const { document } = window;
   // What linkedom leaves out, that the client calls.
   const proto = window.HTMLElement.prototype;
-  proto.scrollIntoView ??= function () {};
+  const scrolled = [];
+  proto.scrollIntoView = function () { scrolled.push(this); };
   proto.setSelectionRange ??= function () {};
   proto.select ??= function () {};
   document.execCommand = () => false;
+  Object.assign(window.Node, { DOCUMENT_POSITION_PRECEDING: 2, DOCUMENT_POSITION_FOLLOWING: 4 });
   const streams = [];
   const timers = new Set();
   const context = {
@@ -103,6 +105,8 @@ async function openTab(s, name, { storage = new Map() } = {}) {
   const el = (selector) => document.querySelector(selector);
   const tab = {
     window, document, layer, el,
+    // The element the docket last stepped to: its tag. No layout, so no tip shows.
+    steppedTo: () => scrolled.at(-1)?.localName,
     idOf: (selector) => el(selector).getAttribute('data-hrv'),
     box: () => layer.querySelector('.hrv-box'),
     field: () => layer.querySelector('.hrv-box textarea.hrv-directive'),
@@ -285,6 +289,41 @@ test('working: your turn is last and its box closed; the box shows the agent wor
     tab.open('p');
     assert.deepEqual(tab.turns(), [['you', 'add a diagram\nand a caption'], ['agent', 'Added both.']]);
     assert.ok(!tab.layer.querySelector('.hrv-box .hrv-head .hrv-icon').classList.contains('hrv-icon-working'));
+    tab.close();
+  }));
+
+test('the docket counts new replies in a second row, steps through them, and rings green when one comes', () =>
+  withServer(async (s) => {
+    const tab = await openTab(s, 'page.html');
+    const row2 = () => tab.layer.querySelector('.hrv-docket-main.hrv-row2').textContent;
+    const stacked = () => tab.docket().classList.contains('hrv-stacked');
+    for (const selector of ['h1', 'p', 'li']) {
+      tab.open(selector);
+      tab.type('look here');
+      tab.done();
+    }
+    await until(() => s.announcements().length === 3);
+    assert.ok(!stacked(), 'no new replies: one row');
+    await reply(s, 'page.html', tab.idOf('li'), 'Looked.');
+    await until(stacked);
+    assert.equal(row2(), '1 new reply');
+    assert.ok(tab.docket().classList.contains('hrv-arrived'), 'a green ring');
+    await reply(s, 'page.html', tab.idOf('h1'), 'Seen.');
+    await until(() => row2() === '2 new replies');
+    const [up, down] = [...tab.layer.querySelectorAll('.hrv-step.hrv-row2')];
+    assert.equal(down.title, 'Next new reply');
+    tab.click(down);
+    assert.equal(tab.steppedTo(), 'h1', 'the first new reply in the page');
+    tab.click(down);
+    assert.equal(tab.steppedTo(), 'li', 'the paragraph, with no reply, is skipped');
+    tab.click(down);
+    assert.equal(tab.steppedTo(), 'h1', 'wraps around');
+    tab.click(up);
+    assert.equal(tab.steppedTo(), 'li');
+    await until(() => !tab.docket().classList.contains('hrv-arrived'), 3000);
+    tab.open('li');
+    tab.type('thanks');
+    assert.equal(row2(), '1 new reply', 'a turn takes it off the second row');
     tab.close();
   }));
 
