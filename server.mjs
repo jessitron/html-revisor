@@ -15,9 +15,10 @@ import { fingerprint, baseOf, basesOf, threadBaseOf, around } from './domain/bas
 import { markdownsOf, committedMarkdowns, saveMarkdown, servedHTML, holderOf } from './domain/markdown-edits.mjs';
 import { announcementOf } from './domain/announcements.mjs';
 import { injectClient } from './domain/served-page.mjs';
-import { readText, readBytes, writeText, listDirectory, isDirectory, readCommitted, readClientAssets } from './interface/files.mjs';
+import { readText, readBytes, writeText, listDirectory, isDirectory, readCommitted, readClientAssets, watchFile } from './interface/files.mjs';
 import {
   HttpError, decodeRequestPath, resolveUnderRoot, readJson, sendFile, sendHtml, sendJson, sendNoContent, redirect, sendError, directoryListing,
+  wants, openEventStream,
 } from './interface/http.mjs';
 import { announce } from './interface/stdout.mjs';
 import { trace, inSpan, requestSpan, startTelemetry, recordBrowserSpans } from './interface/telemetry.mjs';
@@ -35,11 +36,15 @@ export function parseArgs(argv) {
 }
 
 // telemetry: the server sends spans, so the page's client records its own and posts them here.
+// Closing the server ends every tab's event stream and stops watching files, so close() returns.
 export function createServer({ root, author, telemetry = false }) {
-  const config = { root: path.resolve(root), author, telemetry, inTurn: oneAtATime(), resolved: resolvedTurns() };
-  return http.createServer((req, res) => {
+  const inTurn = oneAtATime();
+  const config = { root: path.resolve(root), author, telemetry, inTurn, resolved: resolvedTurns(), live: liveNotices(inTurn) };
+  const server = http.createServer((req, res) => {
     // Spans from the browser get no span of their own: one per batch would be noise.
     if (req.url === SPANS_PATH) return receiveSpans(req, res).catch((err) => sendError(res, err));
+    // An event stream stays open as long as the tab does: no span, it would never end.
+    if (req.method === 'GET' && wants(req) === 'events') return streamEvents(req, res, config).catch((err) => sendError(res, err));
     requestSpan(req, res, (span) =>
       route(req, res, config).catch((err) => {
         span.recordException(err);
@@ -47,6 +52,12 @@ export function createServer({ root, author, telemetry = false }) {
       }),
     );
   });
+  const close = server.close.bind(server);
+  server.close = (callback) => {
+    config.live.close();
+    return close(callback);
+  };
+  return server;
 }
 
 // The server is the only writer of a live file, and it writes one change at a time: each read,
@@ -81,6 +92,76 @@ function resolvedTurns() {
   };
 }
 
+// Live notice: each open tab keeps an event stream to its page and hears of every change to
+// the file, so it catches up without saving first. A change the server makes (a save from any
+// tab, a reply, GET's format) goes out as the server writes it, with what it was and the
+// element. A write that goes around the server, such as an agent's edit, the server finds by
+// watching the file. Every notice carries the file's version after the change, its fingerprint,
+// so a tab that already holds that version, the one whose save it was, ignores it.
+//   event: change
+//   data: {"version": "<fingerprint>", "cause": "directive"|"markdown"|"resolve"|"reply"|"format"|"disk"|"connect", "id"?: "<id>"}
+// "connect" is the first event on each stream: the version now, for a tab that loaded an
+// older one or reconnects after a restart.
+function liveNotices(inTurn) {
+  const pages = new Map();  // file -> {streams, known: the version the server last wrote or told, stop}
+  const tell = (page, notice) => page.streams.forEach((stream) => stream.send('change', notice));
+
+  // The watcher reads in turn, so it never sees a write of the server's half done. A version the
+  // server already told is its own write, not news.
+  function watch(file, page) {
+    return watchFile(file, () => inTurn(file, async () => {
+      const text = await readText(file).catch(() => null);
+      if (text === null) return;  // gone for now: an editor's rename comes back as a second event
+      const version = fingerprint(text);
+      if (version === page.known) return;
+      page.known = version;
+      tell(page, { version, cause: 'disk' });
+    }));
+  }
+
+  return {
+    async subscribe(file, res) {
+      let page = pages.get(file);
+      const text = await inTurn(file, () => readText(file));
+      if (!page) {
+        page = { streams: new Set(), known: fingerprint(text) };
+        page.stop = watch(file, page);
+        pages.set(file, page);
+      }
+      const stream = openEventStream(res, () => {
+        page.streams.delete(stream);
+        if (page.streams.size || pages.get(file) !== page) return;
+        page.stop();
+        pages.delete(file);
+      });
+      page.streams.add(stream);
+      stream.send('change', { version: fingerprint(text), cause: 'connect' });
+    },
+    // The server wrote text to the file, for cause, on element id.
+    wrote(file, text, cause, id) {
+      const page = pages.get(file);
+      if (!page) return;
+      page.known = fingerprint(text);
+      tell(page, { version: page.known, cause, ...(id ? { id } : {}) });
+    },
+    close() {
+      for (const page of pages.values()) {
+        page.stop();
+        page.streams.forEach((stream) => stream.end());
+      }
+      pages.clear();
+    },
+  };
+}
+
+// GET with Accept: text/event-stream, from the tab's EventSource: the page's live notices.
+async function streamEvents(req, res, { root, live }) {
+  const urlPath = decodeRequestPath(req.url);
+  const file = resolveUnderRoot(root, urlPath);
+  if (!/\.html?$/i.test(urlPath)) throw new HttpError(404, 'not found');
+  await live.subscribe(file, res);
+}
+
 // Where the page's client posts its spans. A dot path: no file under the root can be served there.
 const SPANS_PATH = '/.hrv/spans';
 
@@ -105,6 +186,7 @@ async function route(req, res, config) {
     named('listing');
     return sendHtml(res, directoryListing(urlPath, await listDirectory(file)));
   }
+  if (isHtml && wants(req) === 'json') return named('state'), getState(res, file, urlPath, config);
   if (isHtml) return named('page'), getPage(res, file, urlPath, config);
   named('asset');
   sendFile(res, file, await readBytes(file));
@@ -115,7 +197,7 @@ async function route(req, res, config) {
 // that has a reply. Also the base of every element so the tab can send it back with a change,
 // the markdown of every scope for the box to edit, and each scope's markdown at the last
 // commit, for Revert.
-async function getPage(res, file, urlPath, { author, telemetry, inTurn }) {
+async function getPage(res, file, urlPath, { author, telemetry, inTurn, live }) {
   const span = trace.getActiveSpan();
   const formatted = await inTurn(file, async () => {
     const onDisk = await inSpan('read file', {}, () => readText(file));
@@ -123,17 +205,13 @@ async function getPage(res, file, urlPath, { author, telemetry, inTurn }) {
     span?.setAttributes({ 'hrv.page': urlPath, 'hrv.page.bytes': onDisk.length, 'hrv.normalized': normalized !== onDisk });
     if (normalized !== onDisk) {
       await inSpan('write file', {}, () => writeText(file, normalized));
+      live.wrote(file, normalized, 'format');
       console.log(`${urlPath} (normalized)`);
     }
     return normalized;
   });
   const document = inSpan('parse', {}, () => parse(formatted));
-  const { directives, threads } = inSpan('directives', {}, () => {
-    const found = { directives: collectDirectives(document, author), threads: threadsOf(document, author) };
-    removeThreads(document, author);
-    return found;
-  });
-  const bases = inSpan('bases', {}, () => basesOf(document.querySelectorAll(`[${ID}]`), author));
+  const { directives, threads, bases } = stateOf(document, author);
   const markdowns = inSpan('markdowns', {}, () => markdownsOf(scopeElements(document)));
   const committed = await inSpan('committed', {}, async (child) => {
     const found = committedMarkdowns(await readCommitted(file), author);
@@ -153,6 +231,36 @@ async function getPage(res, file, urlPath, { author, telemetry, inTurn }) {
     'hrv.answer.bytes': html.length,
   });
   sendHtml(res, html);
+}
+
+// What a tab keeps of the page besides its HTML: each element's directive, the settled turns of
+// each thread, and every element's base. Lifts the threads out of the document.
+function stateOf(document, author) {
+  const { directives, threads } = inSpan('directives', {}, () => {
+    const found = { directives: collectDirectives(document, author), threads: threadsOf(document, author) };
+    removeThreads(document, author);
+    return found;
+  });
+  const bases = inSpan('bases', {}, () => basesOf(document.querySelectorAll(`[${ID}]`), author));
+  return { directives, threads, bases };
+}
+
+// GET with Accept: application/json, from a tab that heard the file changed: the page's state
+// now, {"version", "directives", "threads", "bases"}, as GET would serve it. It writes nothing,
+// so a file an agent is still writing isn't written back: the IDs it numbers are the ones the
+// next write gives. version is the file on disk, the one the next PUT's "before" names.
+async function getState(res, file, urlPath, { author, inTurn }) {
+  const span = trace.getActiveSpan();
+  const onDisk = await inTurn(file, () => inSpan('read file', {}, () => readText(file)));
+  span?.setAttributes({ 'hrv.page': urlPath, 'hrv.page.bytes': onDisk.length });
+  const document = inSpan('parse', {}, () => {
+    const doc = parse(onDisk);
+    assignIds(doc);
+    return doc;
+  });
+  const body = JSON.stringify({ version: fingerprint(onDisk), ...stateOf(document, author) });
+  span?.setAttribute('hrv.answer.bytes', body.length);
+  sendJson(res, 200, body);
 }
 
 // PUT: the body is one change to one element, with the base the tab started from:
@@ -191,7 +299,7 @@ async function putChange(req, res, file, urlPath, config) {
 // Announcement carried; a turn added or resolved since makes it stale, and the answer is 412
 // with the thread's directive and base now, so the agent can read the new turn and reply again.
 // The answer to a reply that lands carries the new base, for a reply after it.
-async function putReply(res, file, urlPath, { id, thread, reply }, { author }) {
+async function putReply(res, file, urlPath, { id, thread, reply }, { author, live }) {
   const span = trace.getActiveSpan();
   span?.updateName('PUT reply');
   span?.setAttributes({ 'hrv.page': urlPath, 'hrv.change.kind': 'reply', 'hrv.scope.id': id, 'hrv.change.bytes': reply.length });
@@ -215,13 +323,14 @@ async function putReply(res, file, urlPath, { id, thread, reply }, { author }) {
   inSpan('place reply', {}, () => placeReply(el, reply, author));
   const written = inSpan('serialize', {}, () => serialize(document));
   await inSpan('write file', {}, () => writeText(file, written));
+  live.wrote(file, written, 'reply', id);
   const reread = elementById(parse(written), id);
   const count = Object.keys(collectDirectives(document, author)).length;
   span?.setAttribute('hrv.directive.count', count);
   sendJson(res, 200, { ok: true, count, thread: threadBaseOf(reread, author), before: fingerprint(onDisk), after: fingerprint(written) });
 }
 
-async function applyChange(res, file, urlPath, { id, base, directive, markdown }, kind, { author, resolved }) {
+async function applyChange(res, file, urlPath, { id, base, directive, markdown }, kind, { author, resolved, live }) {
   const span = trace.getActiveSpan();
   span?.setAttributes({ 'hrv.page': urlPath, 'hrv.change.kind': kind, 'hrv.scope.id': id, 'hrv.change.bytes': (directive ?? markdown ?? '').length });
   const onDisk = await inSpan('read file', {}, () => readText(file));
@@ -252,7 +361,10 @@ async function applyChange(res, file, urlPath, { id, base, directive, markdown }
     answer = inSpan('served html', {}, () => ({ html: servedHTML(nodes, author), id: holderOf(nodes, id, new Set(scopeElements(document))) }));
   }
   const written = inSpan('serialize', {}, () => serialize(document));
-  if (written !== onDisk) await inSpan('write file', {}, () => writeText(file, written));
+  if (written !== onDisk) {
+    await inSpan('write file', {}, () => writeText(file, written));
+    live.wrote(file, written, kind, id);
+  }
   resolved.note(file, id, ended);
   const count = Object.keys(collectDirectives(document, author)).length;
   // Bases and markdown as a reload would serve them: from the file in canonical layout.
