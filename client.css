@@ -29,6 +29,7 @@
   --hrv-halo-filter: drop-shadow(1px 0 0 var(--hrv-halo)) drop-shadow(-1px 0 0 var(--hrv-halo))
     drop-shadow(0 1px 0 var(--hrv-halo)) drop-shadow(0 -1px 0 var(--hrv-halo)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
   --hrv-reply: #51cf66;
+  --hrv-dots: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect x='0' y='5.75' width='4.5' height='4.5'/><rect x='5.75' y='5.75' width='4.5' height='4.5'/><rect x='11.5' y='5.75' width='4.5' height='4.5'/></svg>");
   --hrv-bubble: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M1 2h14v9h-3l1.5 3.5L8.5 11H1z'/></svg>");
   --hrv-pencil: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><g transform='rotate(40 8 8)'><rect x='0' y='5.6' width='2.6' height='4.8'/><rect x='3.6' y='5.6' width='7.4' height='4.8'/><path d='M12 5.6L16 8l-4 2.4z'/></g></svg>");
 }
@@ -76,6 +77,17 @@ html:not([data-hrv-review="off"]) [data-hrv]:not(html, body) { cursor: copy !imp
    turn or Resolve puts the pencil back; opening the box doesn't. Nothing moves. */
 :is(#hrv-layer, .hrv-layer) .hrv-marker.hrv-answered::before {
   background: var(--hrv-reply); -webkit-mask-image: var(--hrv-bubble); mask-image: var(--hrv-bubble);
+}
+/* Working: your turn is the last, and its box is closed, so the agent has it. Three green
+   squares, still, between the pencil and the bubble. The box's icon takes them too, and so
+   does the agent's turn in the thread (.hrv-dots), beside the word "working". */
+:is(#hrv-layer, .hrv-layer) .hrv-marker.hrv-working::before,
+:is(#hrv-layer, .hrv-layer) .hrv-icon.hrv-icon-working {
+  background: var(--hrv-reply); -webkit-mask-image: var(--hrv-dots); mask-image: var(--hrv-dots);
+}
+:is(#hrv-layer, .hrv-layer) .hrv-dots {
+  display: inline-block; width: 14px; height: 14px; vertical-align: -3px; margin-right: 4px; background: var(--hrv-reply);
+  -webkit-mask: var(--hrv-dots) center / contain no-repeat; mask: var(--hrv-dots) center / contain no-repeat;
 }
 
 /* The marker's tooltip: whatever was said last in the thread, in the material, in prose type.

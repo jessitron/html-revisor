@@ -14,6 +14,7 @@
   var box = null;           // the open directive box, if any
   var boxId = null;         // id of the element the open box is for
   var boxOpened = null;     // what the open box opened with: {session, directive, markdown}; markdown only for a scope
+  var boxSent = '';         // the open turn the box opened on: sent, so it shows in the thread, and the field adds to it
   var saveTimer = null;
   var saving = false;       // a PUT is in flight
   var unsent = [];          // changes not yet sent, oldest first: {kind: 'directive'|'markdown'|'done', id}
@@ -66,6 +67,17 @@
   function isNewReply(id) {
     var said = lastSaid(id);
     return !!said && said.reply;
+  }
+
+  // Working: your turn is the last one, and its box is closed, so the agent has it. Every page
+  // has an agent today. The file says it; the agent's reply ends it.
+  function isWorking(id) {
+    return hasText(id) && id !== boxId;
+  }
+
+  // Your open turn as the file will hold it: the turn the box opened on, then what the field adds.
+  function joinTurn(sent, added) {
+    return sent.trim() && added.trim() ? sent + '\n' + added : sent.trim() ? sent : added;
   }
 
   function elementFor(id) {
@@ -432,9 +444,10 @@
         layer.appendChild(marker);
         markers[id] = marker;
       }
-      var fresh = isNewReply(id);
+      var fresh = isNewReply(id), working = isWorking(id);
       marker.classList.toggle('hrv-answered', fresh);
-      marker.setAttribute('aria-label', (fresh ? 'New reply: ' : '') + lastSaid(id).text);
+      marker.classList.toggle('hrv-working', working);
+      marker.setAttribute('aria-label', (fresh ? 'New reply: ' : working ? 'Agent working on: ' : '') + lastSaid(id).text);
     } else if (markers[id]) {
       markers[id].remove();
       delete markers[id];
@@ -979,15 +992,16 @@
     if (thread) threads[boxId] = thread;
     else delete threads[boxId];
     if (grew) {
-      var left = pastSent(ta.value, savedDirectives[boxId] || '');
+      var left = pastSent(joinTurn(boxSent, ta.value), savedDirectives[boxId] || '');
       savedDirectives[boxId] = directive;
       boxOpened.directive = directive;
+      boxSent = directive;
       if (left !== ta.value) {
         ta.value = left;
         fit(ta);
       }
-      setDirective(boxId, left);
-      if (left.trim() && left.trim() !== directive.trim()) scheduleSave('directive', boxId);
+      setDirective(boxId, joinTurn(boxSent, left));
+      if (left.trim()) scheduleSave('directive', boxId);
     }
     box.hrvSyncActions();
     box.hrvShowThread();
@@ -1076,12 +1090,13 @@
     if (!box) return;
     var id = boxId;
     var ta = box.querySelector('textarea.hrv-directive');
-    setDirective(boxId, ta.value);
+    setDirective(boxId, joinTurn(boxSent, ta.value));
     var span = startSpan('done', null, {
       'hrv.box.session': boxOpened.session, 'hrv.scope.id': id, 'hrv.close.by': by, 'hrv.queued': unsent.length
     }, 'client');
     unsent.push({ kind: 'done', id: id, opened: boxOpened, span: span });
     dropBox();
+    syncMarker(id);   // closed, a turn of yours is the agent's to work on
     // The file changed this directive while the box was open: catch up, after the box's saves.
     if (boxBehind) {
       boxBehind = false;
@@ -1098,6 +1113,7 @@
     box = null;
     boxId = null;
     boxOpened = null;
+    boxSent = '';
     positionCrop(selectedCrop, null);
     positionHover();
   }
@@ -1123,12 +1139,13 @@
     typeOver(textArea, committed[id]);
   }
 
-  // The settled turns, one block each: who said it, then what.
+  // The turns, one block each: who said it, then what. A turn {working: true} is the agent's
+  // while it works: three green squares and the word.
   function threadView(turns) {
     var view = document.createElement('div');
     view.className = 'hrv-thread';
     turns.forEach(function (turn) {
-      var agent = turn.prefix === REPLY;
+      var agent = turn.working || turn.prefix === REPLY;
       var div = document.createElement('div');
       div.className = 'hrv-turn' + (agent ? ' hrv-agent' : '');
       var who = document.createElement('span');
@@ -1136,7 +1153,12 @@
       who.textContent = agent ? 'agent' : 'you';
       var says = document.createElement('span');
       says.className = 'hrv-says';
-      says.textContent = turn.text;
+      if (turn.working) {
+        var dots = document.createElement('span');
+        dots.className = 'hrv-dots';
+        says.appendChild(dots);
+        says.appendChild(document.createTextNode('working'));
+      } else says.textContent = turn.text;
       div.appendChild(who);
       div.appendChild(says);
       view.appendChild(div);
@@ -1149,6 +1171,7 @@
   function resolveThread(ta) {
     var id = boxId;
     ta.value = '';
+    boxSent = '';
     delete threads[id];
     addUnsent('resolve', id, boxOpened.session);
     closeBox('resolve');
@@ -1163,7 +1186,8 @@
     var el = elementFor(id);
     if (!el) return;
     boxId = id;
-    boxOpened = { session: randomHex(8), directive: directives[id] || '' };
+    boxSent = directives[id] || '';
+    boxOpened = { session: randomHex(8), directive: boxSent };
     if (isScope(id)) boxOpened.markdown = markdowns[id];
     box = document.createElement('div');
     box.className = 'hrv-box';
@@ -1176,7 +1200,8 @@
     var what = document.createElement('span');
     what.className = 'hrv-what';
     what.textContent = describe(el);
-    head.appendChild(icon());
+    var headIcon = icon();
+    head.appendChild(headIcon);
     head.appendChild(what);
     box.appendChild(head);
 
@@ -1210,15 +1235,16 @@
     // Once the agent has replied, the thread shows above your field, and what you type is your
     // next turn. The turns before it stay as written. Until then, the field is the directive.
     // A reply that comes in while the box is open joins the thread here (showThread).
+    // A turn of yours the box opens on was sent when its box closed: it shows in the thread, the
+    // agent's working on it, and the field adds a turn after it.
     var thread = null;
     var ta = document.createElement('textarea');
     ta.className = 'hrv-directive';
-    ta.value = directives[id] || '';
     ta.addEventListener('input', function () {
       fit(ta);
       schedulePosition();
       syncActions();
-      setDirective(boxId, ta.value);
+      setDirective(boxId, joinTurn(boxSent, ta.value));
       scheduleSave('directive', boxId);
     });
     var clearButton = fieldAction('Clear', '', function () {
@@ -1265,11 +1291,14 @@
     resolve.addEventListener('click', function () { resolveThread(ta); });
     row.appendChild(done);
 
-    // The thread as the tab holds it now: its turns above your field, the field's words, and
-    // Resolve beside Done. Scrolled to the end, where the newest turn is.
+    // The thread as the tab holds it now: its turns above your field, your sent turn and the
+    // agent working on it, the field's words, and Resolve beside Done. Scrolled to the end,
+    // where the newest turn is. While the agent works, the box's icon is its three squares.
     function showThread() {
-      var turns = threads[boxId];
-      var view = turns ? threadView(turns) : null;
+      var turns = (threads[boxId] || []).slice();
+      if (boxSent.trim()) turns.push({ prefix: 'you', text: boxSent }, { working: true });
+      var view = turns.length ? threadView(turns) : null;
+      headIcon.classList.toggle('hrv-icon-working', !!boxSent.trim());
       if (thread) thread.remove();
       thread = view;
       if (view) box.insertBefore(view, fieldLabel);
@@ -1295,6 +1324,7 @@
     layer.appendChild(box);
     applyBoxSize();
     if (thread) thread.scrollTop = thread.scrollHeight;
+    syncMarker(id);   // open, the marker is the pencil: you're writing
     // The box's height changes as its fields grow; placement measures it each time.
     if (window.ResizeObserver) new ResizeObserver(schedulePosition).observe(box);
     positionBox();

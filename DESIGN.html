@@ -333,6 +333,22 @@
           <code>.hrv-answered</code>: a new reply, the agent spoke last. A green speech bubble takes the pencil's place, until you add a turn or Resolve; opening the box doesn't change it. The file says it, so a reload keeps it. Nothing moves. Its tip is the reply, with <code>.hrv-tip-reply</code>'s green rule.
         </p>
       </div>
+      <div>
+        <div class="stage" style="height: 150px;">
+          <div style="margin: 40px 0 0 26px;">
+            <p data-mark="hover">You closed the box, and the agent has your turn.</p>
+          </div>
+          <div class="hrv-layer">
+            <div class="hrv-marker hrv-working" style="left: 30px; top: 64px;"></div>
+            <div class="hrv-tip" style="left: 30px; top: 32px;">
+              Add a diagram of the PUT flow here
+            </div>
+          </div>
+        </div>
+        <p class="note">
+          <code>.hrv-working</code>: your turn is the last in the thread and its box is closed, so the agent has it. Three green squares, still, between the pencil and the bubble; the agent's reply ends it. While the box is open it's the pencil: you're still writing. Its tip is your last turn.
+        </p>
+      </div>
     </div>
     <h2>Directive box</h2>
     <p class="note">
@@ -422,6 +438,38 @@
           </div>
         </div>
         <p class="note">Answered, and you're typing the next turn.</p>
+      </div>
+      <div>
+        <div class="stage" style="height: 280px;">
+          <p data-mark="selected">Where it's headed</p>
+          <div class="hrv-layer">
+            <div class="hrv-box" data-side="below" style="left: 24px; top: 62px; --hrv-notch: 60px;">
+              <div class="hrv-head">
+                <span class="hrv-icon hrv-icon-working"></span> <span class="hrv-what">p · Where it's headed</span>
+              </div>
+              <div class="hrv-thread">
+                <div class="hrv-turn">
+                  <span class="hrv-who">you</span> <span class="hrv-says">Add a diagram of the PUT flow here</span>
+                </div>
+                <div class="hrv-turn hrv-agent">
+                  <span class="hrv-who">agent</span> <span class="hrv-says"><span class="hrv-dots"></span>working</span>
+                </div>
+              </div>
+              <div class="hrv-label">
+                You <button type="button" class="hrv-btn hrv-quiet hrv-field-action" title="Empty the turn you haven't sent (⌥⌘⌫)" hidden> Clear </button>
+              </div>
+              <textarea class="hrv-directive" placeholder="Add to the thread"></textarea>
+              <div class="hrv-row">
+                <div class="hrv-hint">⌘↵ or esc to close</div>
+                <button type="button" class="hrv-btn" title="End the thread: remove the directive and its replies">Resolve</button> <button type="button" class="hrv-btn hrv-done">Done</button>
+              </div>
+              <span class="hrv-grip" title="Drag to resize the box. Double-click for the usual size."></span>
+            </div>
+          </div>
+        </div>
+        <p class="note">
+          Working. You reopened a box whose turn you'd sent: it shows in the thread as you wrote it, and the agent's turn and the box's icon show <code>.hrv-dots</code>. The field adds your next turn, which joins the one you sent and makes the reply the agent is writing stale.
+        </p>
       </div>
     </div>
     <h2 id="revert">Revert and Clear</h2>

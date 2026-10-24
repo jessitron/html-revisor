@@ -210,7 +210,7 @@ test('Done after a reply came into the open box, with nothing added, announces n
     await until(() => s.announcements().length === 1);
     tab.open('p');
     await reply(s, 'page.html', tab.idOf('p'), 'Added one.');
-    await until(() => tab.turns().length === 2);
+    await until(() => tab.turns().at(-1)[1] === 'Added one.');
     tab.done();
     await new Promise((r) => setTimeout(r, 200));
     assert.equal(s.announcements().length, 1);
@@ -248,6 +248,43 @@ test('a closed box whose last turn was refused for a reply sends what is left, t
     assert.deepEqual(turnsInFile(s.read('page.html')), [['@AI', 'add a diagram'], ['@Human', 'Added one.'], ['@AI', 'with arrows']]);
     assert.deepEqual(s.announcements()[0].directive, { before: '', after: 'with arrows' });
     assert.equal(tab.message(), '');
+    tab.close();
+  }));
+
+test('working: your turn is last and its box closed; the box shows the agent working, and the field adds a turn', () =>
+  withServer(async (s) => {
+    const tab = await openTab(s, 'page.html');
+    tab.open('p');
+    tab.type('add a diagram');
+    assert.ok(!tab.marker('p').classList.contains('hrv-working'), 'the pencil while you write');
+    tab.done();
+    const working = () => tab.marker('p').classList.contains('hrv-working');
+    assert.ok(working(), 'closed, the agent has it');
+    assert.equal(tab.marker('p').getAttribute('aria-label'), 'Agent working on: add a diagram');
+    await until(() => s.announcements().length === 1);
+
+    tab.open('p');
+    assert.deepEqual(tab.turns(), [['you', 'add a diagram'], ['agent', 'working']]);
+    assert.ok(tab.layer.querySelector('.hrv-box .hrv-turn.hrv-agent .hrv-dots'), 'the agent\'s turn shows the squares');
+    assert.ok(tab.layer.querySelector('.hrv-box .hrv-head .hrv-icon').classList.contains('hrv-icon-working'));
+    assert.equal(tab.field().value, '', 'what you sent stays as you wrote it; the field is your next turn');
+    assert.equal(tab.label(), 'You');
+    assert.ok(tab.button('Resolve'));
+    assert.ok(!working(), 'open, it is the pencil again');
+    tab.type('and a caption');
+    await until(() => s.read('page.html').includes('and a caption'));
+    assert.match(s.read('page.html'), /<!-- @AI: add a diagram\nand a caption -->/);
+    tab.done();
+    await until(() => s.announcements().length === 2);
+    assert.deepEqual(s.announcements()[1].directive, { before: 'add a diagram', after: 'add a diagram\nand a caption' });
+    assert.ok(working());
+
+    await reply(s, 'page.html', tab.idOf('p'), 'Added both.');
+    await until(() => tab.marker('p').classList.contains('hrv-answered'));
+    assert.ok(!working(), 'the reply ends it');
+    tab.open('p');
+    assert.deepEqual(tab.turns(), [['you', 'add a diagram\nand a caption'], ['agent', 'Added both.']]);
+    assert.ok(!tab.layer.querySelector('.hrv-box .hrv-head .hrv-icon').classList.contains('hrv-icon-working'));
     tab.close();
   }));
 
