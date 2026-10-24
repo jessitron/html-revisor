@@ -100,6 +100,15 @@ test('text beside a list with no broken paragraph stays bare, and so does an emp
   assert.match(mixed, /<\/ul>\s*after\s*<\/div>\s*<p><\/p>/);
 });
 
+// With no stray </p>, an unclosed p before a block parses to the DOM of a p closed on purpose
+// before it, so the text after the block stays bare either way (C10).
+test('a block after an unclosed p leaves the text after it bare, as after a closed p', () => {
+  const unclosed = layout(page('<p>a<ul><li>1</li></ul>b'));
+  const closed = layout(page('<p>a</p><ul><li>1</li></ul>b'));
+  assert.equal(unclosed, closed);
+  assert.match(unclosed, /<\/ul>\s*b\s*<\/body>/);
+});
+
 test('only ASCII whitespace collapses; nbsp survives', () => {
   const out = layout('<body><p>a \n\t  b&nbsp;&nbsp;c &nbsp;</p></body>');
   assert.match(out, /<p>a b&nbsp;&nbsp;c &nbsp;<\/p>/);

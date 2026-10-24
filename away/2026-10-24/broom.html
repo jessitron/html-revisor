@@ -51,19 +51,34 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
         <li>
           2026-10-24 12:27: started. s00n: no page or module carries <code>chunk</code> marks; dropped them from <code>takeAnnotations</code> and <code>IGNORED_ATTRS</code>. Suite: 218 pass, 0 fail.
         </li>
+        <li>2026-10-24 12:27: commit <code>b495880</code>, s00n done.</li>
+        <li>
+          2026-10-24 12:28: hpte: an unclosed p before a block parses to the DOM of a closed one, so the text stays bare. Test added in <code>test/normalize.test.mjs</code>; see the guess. Suite: 219 pass, 0 fail.
+        </li>
       </ul>
     </section>
     <section id="guesses" class="guesses">
       <h2>Guesses</h2>
-      <p>None yet. Starting guesses from Shepherd, to confirm or replace:</p>
-      <ul>
-        <li>
-          s00n: no page carries the chunks.mjs marks, so the code goes with no replacement; CLAUDE.md rules out backwards compatibility.
-        </li>
-        <li>
-          hpte: leave it bare. With no stray <code>&lt;/p&gt;</code>, <code>&lt;p&gt;a&lt;ul&gt;…&lt;/ul&gt;b</code> parses to the same DOM as a writer who meant bare text beside blocks (C10), so the formatter can't tell them apart. If that holds, close the yak with a test that pins the shape and a line in the yak saying why. If the source text is there to read before parsing, that's a different call: say so.
-        </li>
-      </ul>
+      <div id="guess-chunk-marks-go" class="guess">
+        <p><strong>Guess:</strong> the chunks.mjs marks go with no replacement.</p>
+        <p>
+          <strong>Why:</strong> no page, module, or stylesheet carries <code>chunk-report</code>, <code>chunk-view</code>, or <code>data-chunk</code>, and CLAUDE.md rules out backwards compatibility.
+        </p>
+        <p>
+          <strong>If wrong:</strong> restore the two lines in <code>takeAnnotations</code> in <code>domain/annotation.mjs</code> and <code>data-chunk</code> in <code>IGNORED_ATTRS</code> in <code>domain/scopes.mjs</code>.
+        </p>
+      </div>
+      <div id="guess-unclosed-p-stays-bare" class="guess">
+        <p>
+          <strong>Guess:</strong> text after a block that follows an unclosed p stays bare; the yak closes with a test that pins it.
+        </p>
+        <p>
+          <strong>Why:</strong> linkedom parses <code>&lt;p&gt;a&lt;ul&gt;…&lt;/ul&gt;b</code> and <code>&lt;p&gt;a&lt;/p&gt;&lt;ul&gt;…&lt;/ul&gt;b</code> to one DOM, and in the second the writer closed the p on purpose. A "p right before the block" rule would wrap b in both. The source string reaches <code>parse()</code>, but linkedom keeps no source positions, so telling them apart means a second tokenizer to match each p to its end tag: not clean.
+        </p>
+        <p>
+          <strong>If wrong:</strong> wrap the trailing run in <code>mendBrokenParagraph</code> in <code>domain/canonical.mjs</code> without the stray-p sign, flip the test "a block after an unclosed p…" in <code>test/normalize.test.mjs</code>, and rerun annotate on <code>SCOPES-DESIGN.html</code>.
+        </p>
+      </div>
     </section>
     <section id="result" class="result">
       <h2>Result</h2>
