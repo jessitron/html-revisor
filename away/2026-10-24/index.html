@@ -250,7 +250,7 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
             <td>Picks round 2's yaks, makes this section and the agent pages</td>
             <td>
               <!-- coordinator: status shepherd -->
-              planned
+              merged: <code>c49a247</code>
             </td>
             <td><a href="#round-2">this section</a></td>
           </tr>
@@ -262,7 +262,7 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
             </td>
             <td>
               <!-- coordinator: status echo-hunter -->
-              planned
+              merged: <code>1529335</code>, <code>755d326</code>, <code>e6a1688</code>
             </td>
             <td><a href="echo-hunter.html">echo-hunter.html</a></td>
           </tr>
@@ -274,7 +274,7 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
             </td>
             <td>
               <!-- coordinator: status decoder-ring -->
-              planned
+              merged: <code>717c152</code>, <code>3a3b127</code>
             </td>
             <td><a href="decoder-ring.html">decoder-ring.html</a></td>
           </tr>
@@ -286,7 +286,7 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
             </td>
             <td>
               <!-- coordinator: status stopwatch -->
-              planned
+              merged: <code>46193a1</code>, <code>9d55136</code>, <code>f4d2475</code>
             </td>
             <td><a href="stopwatch.html">stopwatch.html</a></td>
           </tr>
@@ -298,7 +298,7 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
             </td>
             <td>
               <!-- coordinator: status broom -->
-              planned
+              merged: <code>b495880</code>, <code>8bc9c58</code>, <code>88b1259</code>
             </td>
             <td><a href="broom.html">broom.html</a></td>
           </tr>
@@ -310,7 +310,7 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
             </td>
             <td>
               <!-- coordinator: status homing-pigeon -->
-              planned
+              merged: <code>aa76fde</code>, <code>3341470</code>, <code>64fb916</code>
             </td>
             <td><a href="homing-pigeon.html">homing-pigeon.html</a></td>
           </tr>
@@ -318,7 +318,50 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
       </table>
       <h3>Summary</h3>
       <!-- coordinator: summary round 2 -->
-      <p>Not yet.</p>
+      <p>
+        All five agents merged to main. Nothing is blocked. The suite on main: <code># tests 232</code>, <code># pass 231</code>, <code># fail 0</code>, <code># skipped 1</code> (the Honeycomb test, no key in the shell). No push, no <code>yx sync</code>, no deploy, no release.
+      </p>
+      <h3>Read first</h3>
+      <ol>
+        <li>
+          Every round 2 guess, by anchor:
+          <ul>
+            <li>
+              Broom: <a href="broom.html#guess-chunk-marks-go">chunk marks go</a>, <a href="broom.html#guess-unclosed-p-stays-bare">unclosed p stays bare</a>
+            </li>
+            <li>
+              Decoder Ring: <a href="decoder-ring.html#guess-drop-the-gt-escape">drop the &gt; escape</a>, <a href="decoder-ring.html#guess-dashes-stay">dashes stay</a>
+            </li>
+            <li>
+              Echo Hunter: <a href="echo-hunter.html#guess-raw-html-stays">raw HTML stays</a>, <a href="echo-hunter.html#guess-spill-per-box">spill per box</a>, <a href="echo-hunter.html#guess-spill-check">spill check</a>, <a href="echo-hunter.html#guess-no-decided-row">no Decided row</a>
+            </li>
+            <li>
+              Stopwatch: <a href="stopwatch.html#guess-which-spawn">which tests spawn</a>, <a href="stopwatch.html#guess-split-live">split the live notice tests</a>, <a href="stopwatch.html#guess-client-out">client tests left out</a>
+            </li>
+            <li>
+              Homing Pigeon: <a href="homing-pigeon.html#guess-marker-sets-current">marker sets current</a>, <a href="homing-pigeon.html#guess-which-closes">which closes return focus</a>, <a href="homing-pigeon.html#guess-tabindex-on-blur">tabindex on blur</a>, <a href="homing-pigeon.html#guess-replaced-element">replaced element</a>
+            </li>
+          </ul>
+        </li>
+        <li>
+          Echo Hunter changed the save protocol (<code>755d326</code>): a markdown save's answer carries <code>spill</code>, the IDs of the other elements a save made when it split its scope, and the box's next save sends it back. <code>client.js</code> and <code>server.mjs</code> change together. Try a save in the browser before a deploy.
+        </li>
+        <li>
+          Stopwatch cut <code>acceptance.test.mjs</code> from 9.4 s to 2.3 s, with the live notice tests split into <code>live-notice.test.mjs</code> (3.8 s). Suite wall time stays near 10 s: <code>client.test.mjs</code> takes 10.2 s, and it is the long bar now (<code>clienttestmjs-is-the-long-bar-yg3n</code>).
+        </li>
+        <li>
+          <code>REPLY-DESIGN.html</code> on main holds element IDs (556 <code>data-hrv</code>) and 5 directives. They look like Jess's live iterate loop, so the agents left the page alone. Its item 612 still names the <code>&amp;gt;</code> problem, which Decoder Ring fixed (<code>717c152</code>).
+        </li>
+        <li>
+          New yaks: <code>a-typed-in-a-directive-reads-back-as-k58f</code> (Decoder Ring); <code>decide-html-a-scope-cant-hold-typed-in-its-content-box-reads-as-text-6drc</code> (Echo Hunter), a decision for Jess; <code>clienttestmjs-is-the-long-bar-yg3n</code> (Stopwatch); <code>look-at-the-focus-ring-a-paragraph-shows-after-the-box-closes-hpyi</code> (Homing Pigeon), 👩🏽‍🦱 a look at the focus ring.
+        </li>
+      </ol>
+      <h3>Coordinator's notes</h3>
+      <ul>
+        <li>
+          Hashes on the agent pages are from their branches, before the rebase. The Status column above has the hashes on main. The round's gotchas went into <code>CLAUDE.md</code> in the commit after this one.
+        </li>
+      </ul>
     </section>
   </body>
 </html>
