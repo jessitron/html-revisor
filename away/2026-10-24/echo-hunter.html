@@ -18,8 +18,8 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
     <p>Round 2, wave 1. A save that spills out of its scope stops making copies.</p>
     <section id="status" class="status">
       <h2>Status</h2>
-      <p class="status-value">working</p>
-      <p class="status-why">The failing test is in; the fix is next.</p>
+      <p class="status-value">merged-ready</p>
+      <p class="status-why">The split no longer copies; full suite green.</p>
     </section>
     <section id="plan" class="plan">
       <h2>Plan</h2>
@@ -44,33 +44,93 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
       <ul>
         <li>2026-10-24: page made by Shepherd.</li>
         <li>
-          2026-10-24 12:29: started. Reproduced: linkedom lets <code>saveMarkdown</code> nest a <code>p</code> in a <code>p</code>; the file, read back, splits it into three. A failing tab test in <code>test/client.test.mjs</code> types three saves and finds three copies.
+          2026-10-24 12:29: started. Reproduced: linkedom lets <code>saveMarkdown</code> nest a <code>p</code> in a <code>p</code>; the file, read back, splits it into three. A failing tab test in <code>test/client.test.mjs</code> types three saves and finds three copies (<code>7aa0943</code>).
+        </li>
+        <li>
+          2026-10-24 12:33: <code>f67b03b</code>, the fix: <code>settle</code> reads a save back as the file will, the answer carries the spill, and the box's next save replaces it. New <code>test/spill.test.mjs</code>. Suite green. Added yak <code>6drc</code> for problem (1).
         </li>
       </ul>
     </section>
     <section id="guesses" class="guesses">
       <h2>Guesses</h2>
-      <p>None yet. Starting guesses from Shepherd, to confirm or replace:</p>
-      <ul>
-        <li>
-          Markdown typed in the box keeps raw HTML on; a typed <code>&lt;p&gt;</code> stays HTML. Escaping it changes what users can type, and SCOPES-DESIGN's Decided table has no row that asks for that. Fix problem (2) only.
-        </li>
-        <li>
-          The fix lives on the server where it can: the save answers with every ID it made, and the next save from the same box replaces all of them. The PUT protocol then spans <code>client.js</code> and <code>server.mjs</code>, as CLAUDE.md warns.
-        </li>
-      </ul>
+      <div id="guess-raw-html-stays" class="guess">
+        <p>
+          <strong>Guess:</strong> a typed <code>&lt;p&gt;</code> stays raw HTML; the page still splits while you type it. Only problem (2) is fixed.
+        </p>
+        <p>
+          <strong>Why:</strong> escaping changes what users can type as HTML, and SCOPES-DESIGN's Decided table has no row that asks for it; <code>domain/scopes.mjs</code> was Broom's this round.
+        </p>
+        <p>
+          <strong>If wrong:</strong> take yak <code>decide-html-a-scope-cant-hold-typed-in-its-content-box-reads-as-text-6drc</code>; the change goes in <code>nodesFromMarkdown</code> in <code>domain/scopes.mjs</code>.
+        </p>
+      </div>
+      <div id="guess-spill-per-box" class="guess">
+        <p>
+          <strong>Guess:</strong> the spill belongs to the box session that made it. A box reopened on the paragraph edits that paragraph alone, and its saves leave the split's other paragraphs be.
+        </p>
+        <p>
+          <strong>Why:</strong> a reopened box shows only the first paragraph's markdown; sending the spill with it would delete the other paragraphs.
+        </p>
+        <p>
+          <strong>If wrong:</strong> <code>spills</code> and <code>bodyFor</code> in <code>client.js</code>.
+        </p>
+      </div>
+      <div id="guess-spill-check" class="guess">
+        <p>
+          <strong>Guess:</strong> the server checks the scope's base only. Each spill ID must name a sibling of the scope, else 412; the spill's own bases go unchecked.
+        </p>
+        <p>
+          <strong>Why:</strong> the spill is what this box made a moment ago; a full base check would mean a new field per element in the PUT.
+        </p>
+        <p>
+          <strong>If wrong:</strong> <code>spillOf</code> in <code>domain/markdown-edits.mjs</code> and the spill check in <code>applyChange</code>, <code>server.mjs</code>.
+        </p>
+      </div>
+      <div id="guess-no-decided-row" class="guess">
+        <p>
+          <strong>Guess:</strong> no new row in SCOPES-DESIGN's Decided table. The spill is how a save follows the file, not a rule about what a scope is.
+        </p>
+        <p><strong>Why:</strong> no scope rule changed in <code>domain/scopes.mjs</code>.</p>
+        <p>
+          <strong>If wrong:</strong> add a row in <code>SCOPES-DESIGN.html</code>, then formatter and cleanup.
+        </p>
+      </div>
     </section>
     <section id="result" class="result">
       <h2>Result</h2>
-      <p>Not yet.</p>
+      <ul>
+        <li>
+          <code>7aa0943</code> Failing test: a &lt;p&gt; typed in the Content box copies the split on each save
+        </li>
+        <li>
+          <code>f67b03b</code> A save that splits its scope leaves the box editing the whole split
+        </li>
+      </ul>
+      <p>
+        Tests: <code>node --test --test-reporter=tap</code>: <code># tests 225</code>, <code># pass 224</code>, <code># fail 0</code>, one skipped (Honeycomb, needs a key).
+      </p>
+      <p>
+        For a user: typing <code>&lt;p&gt;</code> in a paragraph's Content box still splits the paragraph on the page, but each keystroke after it replaces the split instead of adding a copy. Fixing the markdown puts back one paragraph. The PUT for a markdown save takes an optional <code>spill</code>, and its answer carries one; both are inside html-revisor, not in the Contract.
+      </p>
     </section>
     <section id="gotchas" class="gotchas">
       <h2>Gotchas</h2>
-      <p>None yet.</p>
+      <ul>
+        <li>
+          A Bash command with a heredoc appended to a test file was refused as too complex in the worktree. The Edit tool would have saved the round trip, as CLAUDE.md says.
+        </li>
+        <li>
+          In a tab test, the file can change before the tab applies the answer. Wait on the tab's DOM too, not only the file.
+        </li>
+      </ul>
     </section>
     <section id="new-yaks" class="new-yaks">
       <h2>New yaks</h2>
-      <p>None yet.</p>
+      <ul>
+        <li>
+          <code>decide-html-a-scope-cant-hold-typed-in-its-content-box-reads-as-text-6drc</code>: Decide: HTML a scope can't hold, typed in its Content box, reads as text?
+        </li>
+      </ul>
     </section>
   </body>
 </html>
