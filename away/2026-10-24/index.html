@@ -21,6 +21,38 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
     <p>
       Jess is away for some hours. A coordinator runs yak agents in parallel worktrees and merges each to main. This page shows who works on what and where each one stands. Each agent writes its own page; this page links them.
     </p>
+    <section id="tally">
+      <h2>The whole run</h2>
+      <p>
+        Three rounds, fifteen yak agents, all merged to main. The suite on main: 239 tests, 238 pass, 1 skipped (Honeycomb, no key in the shell). No push, no <code>yx sync</code>, no deploy, no release.
+      </p>
+      <ul>
+        <li>
+          Yaks done: 21 (round 1: 9, <a href="#summary">summary</a>; round 2: 7, <a href="#round-2">summary</a>; round 3: 5, <a href="#round-3">summary</a>). One measured and left open for you: <code>remove-server-step-spans-that-stay-under-1-ms-on-a-big-page-r0sf</code>.
+        </li>
+        <li>
+          Open yaks the run added:
+          <ul>
+            <li>
+              For you: <code>decide-html-a-scope-cant-hold-typed-in-its-content-box-reads-as-text-6drc</code>, a decision; <code>look-at-the-focus-ring-a-paragraph-shows-after-the-box-closes-hpyi</code>, 👩🏽‍🦱 a look in the browser.
+            </li>
+            <li>
+              For agents: <code>a-typed-in-a-directive-reads-back-as-k58f</code>, <code>roundtrip-generated-editstestmjs-is-the-long-bar-8rd0</code>, <code>live-noticetestmjs-close-the-servers-sockets-and-wait-on-conditions-uj0i</code>, <code>a-link-whose-href-and-text-both-change-loses-its-class-and-target-pair-by-place-as-a-last-resort-n6a7</code>.
+            </li>
+          </ul>
+        </li>
+      </ul>
+      <h3>Decide before push</h3>
+      <ol>
+        <li>Whether <code>away/</code> stays. GitHub Pages would publish these pages.</li>
+        <li>
+          The <code>OVERVIEW.html</code> changes, public once pushed: Archivist's two Invariants and the cut spec line (<code>4e095f5</code>), Scribe's <code>annotation</code> in the <code>domain/</code> box (<code>1a1a6e8</code>), Porter's fidelity trail (<code>6fad2ed</code>).
+        </li>
+        <li>
+          Echo Hunter's save protocol change (<code>755d326</code>, the <code>spill</code> a markdown save sends back) wants a save in the browser before a deploy.
+        </li>
+      </ol>
+    </section>
     <section id="rules">
       <h2>Process rules</h2>
       <ul>
@@ -387,7 +419,7 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
             </td>
             <td>
               <!-- coordinator: status tally -->
-              planned
+              merged: <code>96ab9b8</code>, <code>64986a0</code>, <code>6992655</code>
             </td>
             <td><a href="#round-3">this section</a></td>
           </tr>
@@ -397,7 +429,7 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
             <td><code>clienttestmjs-is-the-long-bar-yg3n</code>: client.test.mjs is the long bar</td>
             <td>
               <!-- coordinator: status roadrunner -->
-              planned
+              merged: <code>4e93e4d</code>, <code>c3fb17d</code>, <code>83aac20</code>
             </td>
             <td><a href="roadrunner.html">roadrunner.html</a></td>
           </tr>
@@ -409,7 +441,7 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
             </td>
             <td>
               <!-- coordinator: status matchmaker -->
-              planned
+              merged: <code>6598854</code>, <code>953529a</code>, <code>033db14</code>, <code>72be3e6</code>
             </td>
             <td><a href="matchmaker.html">matchmaker.html</a></td>
           </tr>
@@ -421,7 +453,7 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
             </td>
             <td>
               <!-- coordinator: status pruner -->
-              planned
+              merged: <code>67b9982</code>, <code>e244592</code>
             </td>
             <td><a href="pruner.html">pruner.html</a></td>
           </tr>
@@ -433,7 +465,7 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
             </td>
             <td>
               <!-- coordinator: status porter -->
-              planned
+              merged: <code>90812ca</code>, <code>ebb45d7</code>, <code>f40be09</code>, <code>6fad2ed</code>
             </td>
             <td><a href="porter.html">porter.html</a></td>
           </tr>
@@ -441,7 +473,59 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
       </table>
       <h3>Summary</h3>
       <!-- coordinator: summary round 3 -->
-      <p>Not yet.</p>
+      <p>
+        All four agents merged to main. Nothing is blocked. The suite on main: <code># tests 239</code>, <code># pass 238</code>, <code># fail 0</code>, <code># skipped 1</code> (the Honeycomb test, no key in the shell). No push, no <code>yx sync</code>, no deploy, no release.
+      </p>
+      <h3>Read first</h3>
+      <ol>
+        <li>
+          Every round 3 guess, by anchor:
+          <ul>
+            <li>
+              Roadrunner: <a href="roadrunner.html#guess-fast-clock">fast clock</a>, <a href="roadrunner.html#guess-keep-200ms-sleep">keep the 200 ms sleep</a>, <a href="roadrunner.html#guess-no-split">no split</a>
+            </li>
+            <li>
+              Matchmaker: <a href="matchmaker.html#guess-token-surroundings">token surroundings</a>, <a href="matchmaker.html#guess-one-fix">one fix</a>
+            </li>
+            <li>
+              Pruner: <a href="pruner.html#guess-trailing-space">trailing space</a>, <a href="pruner.html#guess-exceptions">exceptions</a>, <a href="pruner.html#guess-set-directive">set directive</a>
+            </li>
+            <li>
+              Porter: <a href="porter.html#guess-pairing-rules">pairing rules</a>, <a href="porter.html#guess-markdown-wins">markdown wins</a>, <a href="porter.html#guess-html-says-all">HTML says all</a>
+            </li>
+          </ul>
+        </li>
+        <li>
+          Matchmaker made a decision you hadn't made: a stand-in token goes back to the original whose surroundings are most like its own (<code>6598854</code>). It has a Decided row and case D8 in <code>SCOPES-DESIGN.html</code> (<code>953529a</code>, <code>033db14</code>). <code>likeness()</code> moved from <code>domain/identity.mjs</code> to the new <code>domain/likeness.mjs</code>, so <code>scopes.mjs</code> can use it without a cycle.
+        </li>
+        <li>
+          Porter: links edit as markdown and carry their class, target, and rel back (<code>90812ca</code>, new Decided row in <code>ebb45d7</code>). A link or image written as HTML keeps exactly what it says. This changes images: an HTML image given a new width no longer gets the old width back. Porter also changed OVERVIEW's fidelity trail (<code>6fad2ed</code>), public once pushed.
+        </li>
+        <li>
+          Pruner left <code>remove-server-step-spans-that-stay-under-1-ms-on-a-big-page-r0sf</code> open with a recommendation: remove <code>check base</code>, keep <code>read file</code>, and <code>set directive</code> is your call. The coordinator held it to measuring, because you said "keep them for now".
+        </li>
+      </ol>
+      <h3>Coordinator's notes</h3>
+      <ul>
+        <li>
+          The run hit a second usage limit. Roadrunner, Matchmaker, and Pruner resumed and finished. Pruner's first worktree was auto-deleted during the pause, with nothing committed, and it restarted from main.
+        </li>
+        <li>
+          Roadrunner: <code>client.test.mjs</code> went from 12.4 s to 2.4 s, and the suite from about 10 s to 7.8 s. The long bar is <code>roundtrip-generated-edits.test.mjs</code> now. New yaks: <code>roundtrip-generated-editstestmjs-is-the-long-bar-8rd0</code>, <code>live-noticetestmjs-close-the-servers-sockets-and-wait-on-conditions-uj0i</code>.
+        </li>
+        <li>
+          Pruner: the PUTs with no <code>write file</code> were trailing-space saves (Honeycomb query <code>3KdGBkgp85z</code>, trace <code>3110be49523653dde9aed4aebf2f6808</code>). PUT change now carries <code>hrv.wrote</code> (<code>67b9982</code>).
+        </li>
+        <li>
+          Porter: new yak <code>a-link-whose-href-and-text-both-change-loses-its-class-and-target-pair-by-place-as-a-last-resort-n6a7</code>.
+        </li>
+        <li>
+          Another session landed <code>b81b442</code> on <code>REPLY-DESIGN.html</code> during the round. No round 3 agent touched that page.
+        </li>
+        <li>
+          Hashes on the agent pages are from their branches, before the rebase. The Status column above has the hashes on main. The round's gotchas went into <code>CLAUDE.md</code> in the commit after this one.
+        </li>
+      </ul>
     </section>
   </body>
 </html>
