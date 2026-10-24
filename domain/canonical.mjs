@@ -1,6 +1,7 @@
 // Canonical form: parse an HTML document, add a missing skeleton, rewrite into canonical
 // forms, and serialize in canonical layout. Tier II, pure functions over a DOM.
 import { parseHTML } from '../vendor/linkedom.mjs';
+import { ID } from './identity.mjs';
 
 // ---- Parse, skeleton, layout, serialize ---------------------------------
 
@@ -28,7 +29,44 @@ export function canonicalize(document) {
     for (const el of document.querySelectorAll(from)) rename(el, to);
   }
   for (const table of document.querySelectorAll('table')) sectionRows(table);
+  for (const p of document.querySelectorAll('p')) mendBrokenParagraph(p);
   return document;
+}
+
+// A block inside a p, as in <p>a<ul>…</ul>b</p>, closes the p where it starts; the parser
+// leaves b bare and makes the stray </p> an empty p. The file says what its writer meant: the
+// text after each block goes in its own p, and the empty p goes. The sign is the run itself:
+// a p, then blocks that close a p with text between, then an empty p. Bare text with no such
+// run (C10) and an empty p alone (F1) stay as they are.
+const CLOSES_P = new Set(
+  `address article aside blockquote details dialog div dl fieldset figcaption figure footer form
+   h1 h2 h3 h4 h5 h6 header hgroup hr main menu nav ol pre search section table ul`.split(/\s+/),
+);
+
+function mendBrokenParagraph(stray) {
+  // The tool's own ID is no sign of the writer: a page formatted once has one on the stray p.
+  if ([...stray.attributes].some((a) => a.name !== ID) || stray.childNodes.length > 0) return;
+  const runs = [[]]; // inline runs after each block, last run first
+  let blocks = 0;
+  let node = stray.previousSibling;
+  for (; node; node = node.previousSibling) {
+    if (node.nodeType === 1 && node.localName === 'p') break;
+    if (node.nodeType === 1 && CLOSES_P.has(node.localName)) { blocks++; runs.unshift([]); continue; }
+    if (node.nodeType === 1 && BLOCK.has(node.localName)) return;
+    if (node.nodeType !== 1 && node.nodeType !== 3 && node.nodeType !== 8) return;
+    runs[0].unshift(node);
+  }
+  if (!node || blocks === 0) return;
+  const holdsContent = (run) => run.some((n) => n.nodeType === 1 || (n.nodeType === 3 && trimAscii(n.data)));
+  // runs[0] sits between the opening p and the first block; a parser puts nothing there.
+  if (holdsContent(runs[0])) return;
+  for (const run of runs.slice(1)) {
+    if (!holdsContent(run)) continue;
+    const p = stray.ownerDocument.createElement('p');
+    run[0].before(p);
+    p.append(...run);
+  }
+  stray.remove();
 }
 
 function rename(el, name) {

@@ -81,6 +81,25 @@ test('a tbody that leads with a row of th gives that row to a new thead', () => 
   assert.ok(!mixed.includes('<thead>'));
 });
 
+test('a list that breaks a paragraph: the text after it goes in a p, and the empty p goes', () => {
+  const out = layout(page('<p>Before the list<ul><li>inside</li></ul>after <em>the</em> list</p><p>next</p>'));
+  assert.match(out, /<p>Before the list<\/p>\s*<ul>\s*<li>inside<\/li>\s*<\/ul>\s*<p>after <em>the<\/em> list<\/p>\s*<p>next<\/p>/);
+  assert.ok(!out.includes('<p></p>'), out);
+  const two = layout(page('<p>a<ul><li>1</li></ul>b<ol><li>2</li></ol>c</p>'));
+  assert.match(two, /<p>a<\/p>\s*<ul>[\s\S]*<\/ul>\s*<p>b<\/p>\s*<ol>[\s\S]*<\/ol>\s*<p>c<\/p>\s*<\/body>/);
+  const nothingAfter = layout(page('<p>a<ul><li>1</li></ul></p>'));
+  assert.match(nothingAfter, /<\/ul>\s*<\/body>/);
+  const withIds = layout(page('<p data-hrv="1">a</p><ul data-hrv="2"><li data-hrv="3">1</li></ul>b<p data-hrv="4"></p>'));
+  assert.match(withIds, /<\/ul>\s*<p>b<\/p>\s*<\/body>/);
+  const kept = layout(page('<p>a</p><ul><li>1</li></ul>b<p class="x"></p>'));
+  assert.match(kept, /<\/ul>\s*b\s*<p class="x"><\/p>/);
+});
+
+test('text beside a list with no broken paragraph stays bare, and so does an empty p', () => {
+  const mixed = layout(page('<div>before<ul><li>1</li></ul>after</div><p></p><p>x</p>'));
+  assert.match(mixed, /<\/ul>\s*after\s*<\/div>\s*<p><\/p>/);
+});
+
 test('only ASCII whitespace collapses; nbsp survives', () => {
   const out = layout('<body><p>a \n\t  b&nbsp;&nbsp;c &nbsp;</p></body>');
   assert.match(out, /<p>a b&nbsp;&nbsp;c &nbsp;<\/p>/);

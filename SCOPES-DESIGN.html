@@ -103,7 +103,7 @@
           <tr>
             <td>Text beside blocks</td>
             <td>
-              Paragraphs in the enclosing scope's markdown: text, list, text edits as one. Text saved unchanged stays bare.
+              Paragraphs in the enclosing scope's markdown: text, list, text edits as one. Text saved unchanged stays bare. Where a block broke a <code>p</code>, the formatter puts the text after it in a <code>p</code> and drops the empty one the stray <code>&lt;/p&gt;</code> left.
             </td>
             <td><a href="#c9">C9</a>, <a href="#c10">C10</a>, <a href="#f3">F3</a></td>
           </tr>
@@ -2253,15 +2253,14 @@ After a rule.</pre>
       <div id="f3" class="case">
         <h4>F3. A list inside a paragraph</h4>
         <p class="ask">
-          Written as <code>&lt;p&gt;Before the list&lt;ul&gt;…&lt;/ul&gt;after the list&lt;/p&gt;</code>. The formatter does what a browser does: it closes the <code>p</code> at the <code>ul</code>, leaves the trailing text bare (C10), and turns the stray <code>&lt;/p&gt;</code> into an empty <code>p</code> (F1). Leave it, or should the formatter wrap the bare text?
+          Written as <code>&lt;p&gt;Before the list&lt;ul&gt;…&lt;/ul&gt;after the list&lt;/p&gt;</code>. A browser closes the <code>p</code> at the <code>ul</code>, leaves the trailing text bare (C10), and turns the stray <code>&lt;/p&gt;</code> into an empty <code>p</code> (F1). The formatter goes on to say what the writer meant: the trailing text goes in its own <code>p</code>, and the empty <code>p</code> goes.
         </p>
         <div class="ex">
           <p>Before the list</p>
           <ul>
             <li>inside</li>
           </ul>
-          after the list
-          <p></p>
+          <p>after the list</p>
         </div>
         <details class="scope-report">
           <summary>HTML</summary>
@@ -2269,7 +2268,7 @@ After a rule.</pre>
 &lt;ul&gt;
   &lt;li&gt;inside&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;&lt;/p&gt;</pre>
+&lt;p&gt;after the list&lt;/p&gt;</pre>
         </details>
         <table class="scope-report">
           <thead>
@@ -2303,8 +2302,10 @@ After a rule.</pre>
             </tr>
             <tr>
               <td>&lt;p&gt;</td>
-              <td>nothing to edit</td>
-              <td></td>
+              <td>all markdown</td>
+              <td>
+                <pre>after the list</pre>
+              </td>
             </tr>
           </tbody>
         </table>
