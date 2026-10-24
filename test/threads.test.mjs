@@ -72,7 +72,32 @@ test('a reply with no directive goes where a directive would', () => {
 test('reply text that would end the comment is escaped', () => {
   const document = page('<p><!-- @AI: arrows? -->text</p>');
   placeReply(document.querySelector('p'), 'a --> b', '@AI');
-  assert.deepEqual(threadOf(parse(serialize(document)).querySelector('p'), '@AI').at(-1), { prefix: '@Human', text: 'a - -&gt; b' });
+  assert.deepEqual(threadOf(parse(serialize(document)).querySelector('p'), '@AI').at(-1), { prefix: '@Human', text: 'a - -> b' });
+});
+
+test('a > typed in a directive or reply reads back as >, in the box, the thread, and the announcement', () => {
+  const typed = 'Done -> working; a > b; &gt; stays';
+  const document = page('<h1>Title</h1><p>text</p>');
+  const p = document.querySelector('p');
+  const id = idOf(document, 'p');
+  setDirective(p, typed, '@AI');
+  let reread = parse(serialize(document));
+  assert.equal(collectDirectives(reread, '@AI')[id], typed, 'the box');
+  placeReply(elementById(reread, id), `re: ${typed}`, '@AI');
+  reread = parse(serialize(reread));
+  assert.deepEqual(threadsOf(reread, '@AI')[id], turns(['@AI', typed], ['@Human', `re: ${typed}`]), 'the thread');
+  setDirective(elementById(reread, id), `again ${typed}`, '@AI');
+  reread = parse(serialize(reread));
+  const announcement = announcementOf(reread, id, { directive: '' }, '@AI');
+  assert.deepEqual(announcement.directive, { before: '', after: `again ${typed}` }, 'the announcement');
+});
+
+test('an unchanged directive holding > and -- announces nothing', () => {
+  const document = page('<p>text</p>');
+  const id = idOf(document, 'p');
+  setDirective(document.querySelector('p'), 'a --> b', '@AI');
+  const reread = parse(serialize(document));
+  assert.equal(announcementOf(reread, id, { directive: 'a --> b' }, '@AI'), null);
 });
 
 test('the directive is the open turn: what comes after the last reply', () => {

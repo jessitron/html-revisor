@@ -211,9 +211,9 @@ test('7. escaping: -- and > cannot end the comment', () =>
     const elementsOnDisk = parseHTML(s.read('page.html')).document.querySelectorAll('*').length;
     await s.direct('page.html', idOf(before.document, 'p'), '-- really -->');
     const file = s.read('page.html');
-    assert.ok(file.includes('<!-- @AI: - - really - -&gt; -->'), file);
+    assert.ok(file.includes('<!-- @AI: - - really - -> -->'), file);
     assert.equal(parseHTML(file).document.querySelectorAll('*').length, elementsOnDisk);
-    assert.deepEqual(Object.values((await s.page('page.html')).directives), ['- - really - -&gt;']);
+    assert.deepEqual(Object.values((await s.page('page.html')).directives), ['- - really - ->']);
   }));
 
 test('8. non-directive comments are preserved', () =>
@@ -250,7 +250,7 @@ test('9b. injection: json script escapes <, client assets are last', () =>
     const jsonScript = html.match(/<script [^>]*id="hrv-directives"[^>]*>(.*?)<\/script>/s)[1];
     assert.ok(!jsonScript.includes('<'));
     assert.ok(jsonScript.includes('\\u003c'));
-    assert.equal(Object.values(directives)[0], '</script&gt;<b&gt;hi</b&gt;'); // > is escaped on write, not unescaped on read
+    assert.equal(Object.values(directives)[0], '</script><b>hi</b>'); // reads back as typed
     assert.ok(html.indexOf('<style>') < html.indexOf('</head>'));
     assert.ok(html.lastIndexOf('<script>') > html.indexOf('hrv-bases'));
     assert.match(html, /<\/script><\/body>\s*<\/html>\s*$/);

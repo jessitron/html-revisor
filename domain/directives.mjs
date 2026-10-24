@@ -23,11 +23,13 @@ export function directiveText(comment, author) {
   return comment.data.trimStart().slice(author.length + 1).trim();
 }
 
-// Escape so the text cannot end the comment early. Repeat for runs like "---".
+// Escape so the text cannot end the comment early. Repeat for runs like "---". Only "-->" and
+// "--!>" end a comment, so with no "--" left a ">" is safe and stays as typed; the "author: "
+// before and the space after keep the text off the comment's edges, where ">" and "<!-" can't go.
 export function escapeDirectiveText(text) {
   let out = text;
   while (out.includes('--')) out = out.replaceAll('--', '- -');
-  return out.replaceAll('>', '&gt;');
+  return out;
 }
 
 export function allComments(node, found = []) {
