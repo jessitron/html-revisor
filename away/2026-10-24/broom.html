@@ -20,8 +20,8 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
     </p>
     <section id="status" class="status">
       <h2>Status</h2>
-      <p class="status-value">working</p>
-      <p class="status-why">s00n done; on hpte.</p>
+      <p class="status-value">merged-ready</p>
+      <p class="status-why">Both yaks done; suite green.</p>
     </section>
     <section id="plan" class="plan">
       <h2>Plan</h2>
@@ -82,15 +82,30 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
     </section>
     <section id="result" class="result">
       <h2>Result</h2>
-      <p>Not yet.</p>
+      <ul>
+        <li>
+          <code>b495880</code> Drop chunks.mjs leftovers: .chunk-report, #chunk-view, data-chunk
+        </li>
+        <li>
+          <code>8bc9c58</code> Pin it: text after a block that follows an unclosed p stays bare
+        </li>
+        <li><code>node --test --test-reporter=tap</code>: # pass 219, # fail 0.</li>
+        <li>
+          For a user: nothing changes. The annotate tool no longer clears the old tool's marks, and a new test pins how the formatter treats an unclosed p before a block. <code>SCOPES-DESIGN.html</code> needed no rerun: no scope rule or layout changed.
+        </li>
+      </ul>
     </section>
     <section id="gotchas" class="gotchas">
       <h2>Gotchas</h2>
-      <p>None yet.</p>
+      <ul>
+        <li>
+          <code>REPLY-DESIGN.html</code> on main carries element IDs (556 <code>data-hrv</code>) and 5 directives, though CLAUDE.md says doc pages are committed with none. Left alone: not my page, and it may be a loop in progress.
+        </li>
+      </ul>
     </section>
     <section id="new-yaks" class="new-yaks">
       <h2>New yaks</h2>
-      <p>None yet.</p>
+      <p>None.</p>
     </section>
   </body>
 </html>
