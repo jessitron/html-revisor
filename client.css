@@ -72,8 +72,8 @@ html:not([data-hrv-review="off"]) [data-hrv]:not(html, body) { cursor: copy !imp
   -webkit-mask: var(--hrv-pencil) center / contain no-repeat; mask: var(--hrv-pencil) center / contain no-repeat;
 }
 :is(#hrv-layer, .hrv-layer) .hrv-marker:hover { box-shadow: 0 0 0 1px var(--hrv-accent), 0 4px 16px rgba(0, 0, 0, 0.45); }
-/* A reply you haven't opened: a green speech bubble in place of the pencil. Opening the box
-   puts the pencil back. Nothing moves. */
+/* A new reply, the agent spoke last: a green speech bubble in place of the pencil. Adding a
+   turn or Resolve puts the pencil back; opening the box doesn't. Nothing moves. */
 :is(#hrv-layer, .hrv-layer) .hrv-marker.hrv-answered::before {
   background: var(--hrv-reply); -webkit-mask-image: var(--hrv-bubble); mask-image: var(--hrv-bubble);
 }

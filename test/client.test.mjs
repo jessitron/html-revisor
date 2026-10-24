@@ -250,3 +250,31 @@ test('a closed box whose last turn was refused for a reply sends what is left, t
     assert.equal(tab.message(), '');
     tab.close();
   }));
+
+test('a reply stays new through opening the box and reloading, until you add a turn or Resolve', () =>
+  withServer(async (s) => {
+    const storage = new Map();
+    const tab = await openTab(s, 'page.html', { storage });
+    tab.open('p');
+    tab.type('add a diagram');
+    tab.done();
+    await until(() => s.announcements().length === 1);
+    await reply(s, 'page.html', tab.idOf('p'), 'Added one.');
+    const isNew = (t) => t.marker('p').classList.contains('hrv-answered');
+    await until(() => isNew(tab));
+    tab.open('p');
+    tab.done();
+    assert.ok(isNew(tab), 'opening the box leaves it new');
+    tab.close();
+    const again = await openTab(s, 'page.html', { storage });
+    assert.ok(isNew(again), 'a reload too');
+    assert.equal(storage.size, 0, 'the browser keeps nothing');
+    again.open('p');
+    again.type('and a caption');
+    assert.ok(!isNew(again), 'a turn of yours makes it yours to wait on');
+    again.type('');
+    assert.ok(isNew(again), 'emptying the turn brings it back');
+    again.click(again.button('Resolve'));
+    assert.equal(again.marker('p'), null, 'Resolve ends the thread');
+    again.close();
+  }));

@@ -243,7 +243,7 @@
       </div>
       <div class="swatch" data-var="--hrv-reply">
         <div class="chip"></div>
-        <div>reply: the agent's voice, its turns and the unread bubble</div>
+        <div>reply: the agent's voice, its turns and the new-reply bubble</div>
       </div>
       <div class="swatch" data-var="--hrv-error">
         <div class="chip"></div>
@@ -320,7 +320,7 @@
       <div>
         <div class="stage" style="height: 150px;">
           <div style="margin: 40px 0 0 26px;">
-            <p data-mark="hover">The agent replied here, and you haven't opened it.</p>
+            <p data-mark="hover">The agent replied here, and it's your turn.</p>
           </div>
           <div class="hrv-layer">
             <div class="hrv-marker hrv-answered" style="left: 30px; top: 64px;"></div>
@@ -330,7 +330,7 @@
           </div>
         </div>
         <p class="note">
-          <code>.hrv-answered</code>: a reply you haven't opened. A green speech bubble takes the pencil's place; opening the box puts the pencil back, and the browser remembers it across reloads. Nothing moves. Its tip is the reply, with <code>.hrv-tip-reply</code>'s green rule.
+          <code>.hrv-answered</code>: a new reply, the agent spoke last. A green speech bubble takes the pencil's place, until you add a turn or Resolve; opening the box doesn't change it. The file says it, so a reload keeps it. Nothing moves. Its tip is the reply, with <code>.hrv-tip-reply</code>'s green rule.
         </p>
       </div>
     </div>

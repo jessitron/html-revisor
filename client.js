@@ -61,25 +61,11 @@
     return turn ? { text: turn.text, reply: turn.prefix === REPLY } : null;
   }
 
-  // A reply you haven't opened. This browser remembers the last reply you opened on each
-  // element, so a reload keeps it read.
-  function seenKey(id) {
-    return 'hrv-seen ' + location.pathname + ' ' + id;
-  }
-
-  var read = {};            // id -> the last reply opened in this tab
-
-  function isUnread(id) {
+  // A new reply: the agent spoke last, so it's your turn. It stays new until you add a turn or
+  // Resolve; opening the box changes nothing. The file says it, so a reload and every tab agree.
+  function isNewReply(id) {
     var said = lastSaid(id);
-    if (!said || !said.reply || read[id] === said.text) return false;
-    try { return localStorage.getItem(seenKey(id)) !== said.text; } catch (e) { return true; }
-  }
-
-  function markRead(id) {
-    var said = lastSaid(id);
-    if (!said || !said.reply) return;
-    read[id] = said.text;
-    try { localStorage.setItem(seenKey(id), said.text); } catch (e) { /* storage off: read for this tab only */ }
+    return !!said && said.reply;
   }
 
   function elementFor(id) {
@@ -426,7 +412,7 @@
     });
   }
 
-  // Make the marker match the thread: a pencil, or a bubble for a reply you haven't opened.
+  // Make the marker match the thread: a pencil, or a bubble for a new reply.
   // A marker added or removed can move the others.
   function syncMarker(id) {
     if (hasThread(id)) {
@@ -446,9 +432,9 @@
         layer.appendChild(marker);
         markers[id] = marker;
       }
-      var unread = isUnread(id);
-      marker.classList.toggle('hrv-answered', unread);
-      marker.setAttribute('aria-label', (unread ? 'New reply: ' : '') + lastSaid(id).text);
+      var fresh = isNewReply(id);
+      marker.classList.toggle('hrv-answered', fresh);
+      marker.setAttribute('aria-label', (fresh ? 'New reply: ' : '') + lastSaid(id).text);
     } else if (markers[id]) {
       markers[id].remove();
       delete markers[id];
@@ -1005,7 +991,6 @@
     }
     box.hrvSyncActions();
     box.hrvShowThread();
-    markRead(boxId);
     syncMarker(boxId);
   }
 
@@ -1310,8 +1295,6 @@
     layer.appendChild(box);
     applyBoxSize();
     if (thread) thread.scrollTop = thread.scrollHeight;
-    markRead(id);
-    syncMarker(id);
     // The box's height changes as its fields grow; placement measures it each time.
     if (window.ResizeObserver) new ResizeObserver(schedulePosition).observe(box);
     positionBox();
