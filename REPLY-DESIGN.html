@@ -160,13 +160,17 @@
     <p data-hrv="49" class="note">
       An agent replies today with <code>node reply.mjs &lt;page URL&gt; &lt;id&gt; &lt;thread&gt; &lt;text&gt;</code>, the id and thread from the Announcement. The marker turns to the bubble without a reload; an open box shows a notice until Thread arrives live lands. The “built” column in <a data-hrv="543" href="#decided">Decided</a> marks each decision the code has.
     </p>
-    <h2 data-hrv="554" id="for-jess">For you, when you're back</h2>
+    <h2 data-hrv="554" id="for-jess">
+      <!-- @AI: ok great. all of this looks fine. Go ahead and move a few things to "for later" (yaks we create) and anything super crucial to Decisions, but mostly, remove everything from here that I've seen. Then this section can have new stuff. -->
+      For you, when you're back
+    </h2>
     <p data-hrv="555" class="note">
       Work went on while you were out. Click an item to answer; I'll reply there.
     </p>
     <h3 data-hrv="556">Updates</h3>
     <ol data-hrv="557">
       <li data-hrv="558">
+        <!-- @AI: does the agent even see anything on Clear? I don't know why it would, it sees things on Done -->
         <strong>Announce Resolve is merged.</strong> A Resolve prints one Announcement with <code>resolved</code>: the turns that ended. A Clear never has them, so the agent can tell the two apart.
       </li>
       <li data-hrv="559">
@@ -188,33 +192,45 @@
     <h3 data-hrv="564">Questions: my guesses, to confirm</h3>
     <ol data-hrv="565">
       <li data-hrv="566">
+        <!-- @AI: great -->
         <strong>Resolve announces through Done, not on its PUT.</strong> The server keeps the ended turns until the box's Done, so one box session is one Announcement. OK?
       </li>
       <li data-hrv="567">
+        <!-- @AI: yep, that's later -->
         <strong>Content changed on disk still needs a reload.</strong> Swapping it in live is a yak of its own (“Disk edits, live” on the road). OK to leave it for later?
       </li>
       <li data-hrv="568">
+        <!-- @AI: is this for, like, when the directive box is open while a reply came it? -->
         <strong>Live notice added two docket messages:</strong> “a reply came in here; close the box to see it” and “this directive changed on disk; close the box to see it”. The first goes away when the thread arrives live in the box. Keep the second?
       </li>
       <li data-hrv="569">
+        <!-- @AI: seems accurate -->
         <strong><code>reply.mjs</code> finds the server by the page URL</strong> the server prints at startup, not by the file path. OK?
       </li>
       <li data-hrv="570">
+        <!-- @AI: hmm the deploy could happen without the release because I don't think anything we've done breaks anything - the agent just doesn't have the instructions to reply. It doesn't matter much though, I'm running it from here for initial testing -->
         <strong>Deploy and release wait for you.</strong> I'll deploy html-revisor and merge the iterate-on-docs branch together once you've tried the client work. Want me to deploy without you, and only hold the release?
       </li>
       <li data-hrv="571">
+        <!-- @AI: yes -->
         <strong>The skill's reply loop replaces the turn loop</strong> whenever the agent can watch the server's output (Monitor, in Claude Code). Markdown, and an agent that can't watch, keep the turn loop. You don't choose. OK?
       </li>
       <li data-hrv="572">
         <strong>The server's output goes to a log in TMPDIR, and Monitor tails it.</strong> Running the server under Monitor would kill it when the monitor expires (30 minutes at most).
       </li>
       <li data-hrv="573">
+        <!-- @AI: that seems like a lot of work for the agent. Make a yak for optimizing this -->
         <strong>The agent commits before it acts on an Announcement, and again after each reply,</strong> so your edits stay in commits of their own.
       </li>
       <li data-hrv="574">
+        <!-- @AI: wait why would it do that ... to format its own additions? This seems necessary if new HTML tags were added. However yeah, make a yak to have the server do that format.
+wait this is when the agent edits the file directly, right?
+I think we need the server to do those edits too, don't we? hrmm this is a larger problem. While we're not taking turns, the server and the agent will regularly be editing the same file. Make a yak to rethink this. Meanwhile it's ok for the agent to format. -->
         <strong>The agent runs the formatter on the live file before each commit.</strong> That writes around the server; Live notice catches it. My worry: if the formatter changes an element, your tab says to reload. I think it should skip the formatter in the reply loop, since the server keeps the file formatted. Agree?
       </li>
       <li data-hrv="575">
+        <!-- @AI: what how would that even happen
+No human is editing the HTML directly -->
         <strong>A directive written by hand in an editor</strong> has no Announcement and no thread base, so the agent carries it out and removes it, the old way.
       </li>
       <li data-hrv="576">
