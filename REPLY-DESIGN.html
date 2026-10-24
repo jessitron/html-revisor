@@ -22,6 +22,13 @@
   .flow .msg { stroke: var(--ink); stroke-width: 1.5; fill: none; }
   .flow .live { stroke: #d6336c; }
   .flow .busy { fill: var(--page); stroke: var(--line); }
+  .flow .sub { font-size: 12px; fill: var(--muted); }
+  .road rect { fill: var(--page); stroke-width: 2; }
+  .road .built { stroke: #51cf66; }
+  .road .ready { stroke: #d6336c; }
+  .road .waits { stroke: var(--muted); stroke-dasharray: 5 4; }
+  .road .later { stroke: var(--line); stroke-dasharray: 5 4; }
+  .road .later + text, .road .later + text + text { fill: var(--muted); }
   .stage { position: relative; background: var(--page); border: 1px solid var(--line); border-radius: 8px; padding: 24px; margin: 12px 0; }
   .stage .hrv-layer { position: absolute; inset: 0; pointer-events: none; }
   .stage .hrv-layer.rp-flow { position: static; }
@@ -95,12 +102,64 @@
     <p class="lede">
       The agent answers in the page. Each element carries its own small conversation, and many run at once while you keep reviewing.
     </p>
+    <h2 id="status">Where it stands</h2>
+    <svg class="flow road" viewBox="0 0 900 340" role="img" aria-label="Build road for replies: two pieces built, five ready, two waiting, two later">
+      <defs>
+        <marker id="road-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+          <path d="M0 0L10 5L0 10z" fill="context-stroke"></path>
+        </marker>
+      </defs>
+      <text class="lane" x="10" y="26">built</text>
+      <text class="lane" x="240" y="26">ready now</text>
+      <text class="lane" x="470" y="26">waits</text>
+      <text class="lane" x="700" y="26">later</text>
+      <rect class="built" x="10" y="44" width="190" height="46" rx="6"></rect>
+      <text x="20" y="63">✓ Reply format in the file</text>
+      <text class="sub" x="20" y="80">@Human after the last turn</text>
+      <rect class="built" x="10" y="102" width="190" height="46" rx="6"></rect>
+      <text x="20" y="121">✓ Thread in the box</text>
+      <text class="sub" x="20" y="138">on reload: Resolve, bubble</text>
+      <rect class="ready" x="240" y="44" width="190" height="46" rx="6" stroke-width="3"></rect>
+      <text x="250" y="63">Server writes replies</text>
+      <text class="sub" x="250" y="80">reply CLI; unblocks the rest</text>
+      <rect class="ready" x="240" y="102" width="190" height="46" rx="6"></rect>
+      <text x="250" y="121">Live notice</text>
+      <text class="sub" x="250" y="138">tab hears of agent writes</text>
+      <rect class="ready" x="240" y="160" width="190" height="46" rx="6"></rect>
+      <text x="250" y="179">Docket counts replies</text>
+      <text class="sub" x="250" y="196">a second row: new replies</text>
+      <rect class="ready" x="240" y="218" width="190" height="46" rx="6"></rect>
+      <text x="250" y="237">Announce Resolve</text>
+      <text class="sub" x="250" y="254">as resolved, not cleared</text>
+      <rect class="ready" x="240" y="276" width="190" height="46" rx="6"></rect>
+      <text x="250" y="295">Carry the Contract</text>
+      <text class="sub" x="250" y="312">into iterate-on-docs</text>
+      <line class="msg" x1="430" y1="67" x2="466" y2="88" marker-end="url(#road-arrow)"></line>
+      <line class="msg" x1="430" y1="125" x2="466" y2="104" marker-end="url(#road-arrow)"></line>
+      <rect class="waits" x="470" y="73" width="190" height="46" rx="6"></rect>
+      <text x="480" y="92">Thread arrives live</text>
+      <text class="sub" x="480" y="109">no reload needed</text>
+      <line class="msg" x1="565" y1="119" x2="565" y2="156" marker-end="url(#road-arrow)"></line>
+      <rect class="waits" x="470" y="160" width="190" height="46" rx="6"></rect>
+      <text x="480" y="179">iterate-on-docs replies</text>
+      <text class="sub" x="480" y="196">agent answers in the page</text>
+      <rect class="later" x="700" y="44" width="190" height="46" rx="6"></rect>
+      <text x="710" y="63">Working status</text>
+      <text class="sub" x="710" y="80">after Server writes replies</text>
+      <rect class="later" x="700" y="102" width="190" height="46" rx="6"></rect>
+      <text x="710" y="121">Replies on edits</text>
+      <text class="sub" x="710" y="138">after Server writes replies</text>
+    </svg>
+    <p class="note">
+      To see a reply today, write <code>&lt;!-- @Human: … --&gt;</code> after the thread's last turn by hand, and reload. Nothing writes replies yet. The “built” column below marks each decision the code has.
+    </p>
     <h2 id="decided">Decided</h2>
     <table>
       <thead>
         <tr>
           <th>question</th>
           <th>answer</th>
+          <th>built</th>
           <th>see</th>
         </tr>
       </thead>
@@ -110,6 +169,7 @@
           <td>
             In the page's HTML file, as HTML comments beside the directive, outside the element's content hash. A reply goes after the last turn in the thread, and the whole thread sits where a directive does: a run of turns before an image or a pre is that element's, so its parent's thread goes last. Cleanup removes them.
           </td>
+          <td>✓</td>
           <td></td>
         </tr>
         <tr>
@@ -117,6 +177,7 @@
           <td>
             The server, and it should be the only process that does. The agent hands it replies and status through a CLI that calls the running server, so the server orders the agent's writes with the browser's saves.
           </td>
+          <td></td>
           <td><a href="#flow">flow</a></td>
         </tr>
         <tr>
@@ -124,6 +185,7 @@
           <td>
             The agent, each time it adds a reply, in whatever way it commits. The server never commits. A commit may catch half an edit of yours; the next one picks up the rest. So every turn is in history before Resolve removes its thread.
           </td>
+          <td></td>
           <td><a href="#flow">flow</a></td>
         </tr>
         <tr>
@@ -132,6 +194,7 @@
             A point to diff from. The agent notes the commit at the last turn boundary, so a diff from it shows every edit and directive since. That's a backup: the agent already hears each one from the server's output.
           </td>
           <td></td>
+          <td></td>
         </tr>
         <tr>
           <td>What if the directive changes while the agent replies?</td>
@@ -139,27 +202,32 @@
             The server refuses the agent's write as stale, the same way it refuses a browser save on an element that changed.
           </td>
           <td></td>
+          <td></td>
         </tr>
         <tr>
           <td>How does the tab learn of a reply?</td>
           <td>
             The server pushes each change it makes to the open tab. It also watches the file, for a write that goes around it.
           </td>
+          <td></td>
           <td><a href="#flow">flow</a></td>
         </tr>
         <tr>
           <td>Where does a reply show?</td>
           <td>In the box, below the directive: a thread, one per element.</td>
+          <td>on reload</td>
           <td><a href="#box">box</a></td>
         </tr>
         <tr>
           <td>How do you answer a reply?</td>
           <td>Add a turn to the thread. The directive stays as you wrote it.</td>
+          <td>✓</td>
           <td><a href="#box">box</a></td>
         </tr>
         <tr>
           <td>Which type is monospace?</td>
           <td>Content alone. Directives, your turns, and replies are prose.</td>
+          <td>✓</td>
           <td><a href="#box">box</a></td>
         </tr>
         <tr>
@@ -167,11 +235,13 @@
           <td>
             When it replies. The marker cycles: magenta pencil, green bubble for an unread answer, and back to the pencil once you open it. A working state comes later.
           </td>
+          <td>on reload</td>
           <td><a href="#marker">marker</a></td>
         </tr>
         <tr>
           <td>Does anything move?</td>
           <td>No. Nothing blinks or pulses.</td>
+          <td>✓</td>
           <td><a href="#marker">marker</a></td>
         </tr>
         <tr>
@@ -179,11 +249,13 @@
           <td>
             Magenta is yours, green the agent's. The glyph's shape and the words “you” and “agent” say it too, so color is never the only cue. DESIGN.html's palette changes to match when this ships.
           </td>
+          <td>✓</td>
           <td><a href="#marker">marker</a></td>
         </tr>
         <tr>
           <td>What does a hover show?</td>
           <td>Whatever was said last in the thread.</td>
+          <td>✓</td>
           <td><a href="#marker">marker</a></td>
         </tr>
         <tr>
@@ -191,6 +263,7 @@
           <td>
             Two rows. Directives: every open thread. New replies: the ones you haven't opened. ⌥↑ and ⌥↓ step through directives.
           </td>
+          <td>top row</td>
           <td><a href="#docket">docket</a></td>
         </tr>
         <tr>
@@ -198,11 +271,13 @@
           <td>
             You end it, with Resolve beside Done. It removes the directive and its replies. Clear, on your field, empties the turn you haven't sent.
           </td>
+          <td>✓</td>
           <td><a href="#box">box</a></td>
         </tr>
         <tr>
           <td>Does the agent end a thread?</td>
           <td>No. When it has nothing more to say, it replies 👍.</td>
+          <td></td>
           <td></td>
         </tr>
         <tr>
@@ -210,6 +285,7 @@
           <td>
             The agent sees it the next time it reads the server's output. Its reply comes back stale; it reads your turn and replies again.
           </td>
+          <td></td>
           <td><a href="#flow">flow</a></td>
         </tr>
         <tr>
@@ -217,6 +293,7 @@
           <td>
             By the prefix, which names who the words are for. Your turns are <code>&lt;!-- @AI: … --&gt;</code>, as directives are today. The agent's replies are <code>&lt;!-- @Human: … --&gt;</code>. A thread is the run of them beside the element, in order.
           </td>
+          <td>✓</td>
           <td></td>
         </tr>
         <tr>
@@ -224,11 +301,13 @@
           <td>
             The <code>@Human</code> prefix, the CLI that writes a reply, and the words you see: reply, new replies, Resolve.
           </td>
+          <td>README only</td>
           <td></td>
         </tr>
         <tr>
           <td>What can get a reply?</td>
           <td>A directive. Replies on edits come later.</td>
+          <td>✓</td>
           <td><a href="#later">later</a></td>
         </tr>
       </tbody>
