@@ -55,7 +55,10 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
           2026-10-24 15:20: took <code>uytj</code> first: reconcile pairs rows by their layout, so the tables have to come out sectioned before IDs can carry. <code>annotate</code> now ends with <code>canonicalize</code>. Commit <code>933499b</code>.
         </li>
         <li>
-          2026-10-24 15:50: <code>qe5k</code>: <code>annotate</code> moved to a new <code>domain/annotation.mjs</code>, above <code>identity.mjs</code>. Each prior report reconciles with its new one; directives carry; a page with IDs gets <code>assignIds</code>, one without stays clean.
+          2026-10-24 15:50: <code>qe5k</code>: <code>annotate</code> moved to a new <code>domain/annotation.mjs</code>, above <code>identity.mjs</code>. Each prior report reconciles with its new one; directives carry; a page with IDs gets <code>assignIds</code>, one without stays clean. Commit <code>1a1a6e8</code>.
+        </li>
+        <li>
+          2026-10-24 16:10: found why <code>jfpr</code>'s samples drift: <code>rawHTML</code> showed linkedom's outerHTML in the file's layout, and an ID on an element lengthens its line past the width and splits it. It now writes <code>formatElement</code> of the stripped copy. See <a href="#guess-sample-layout">the guess</a>.
         </li>
       </ul>
     </section>
@@ -70,6 +73,17 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
         </p>
         <p>
           <strong>If wrong:</strong> change <code>examples</code> in <code>domain/annotation.mjs</code>.
+        </p>
+      </div>
+      <div id="guess-sample-layout" class="guess">
+        <p>
+          <strong>Guess:</strong> an example's HTML sample is the canonical layout of the element without IDs (<code>formatElement</code>), not the text the file holds at that depth.
+        </p>
+        <p>
+          <strong>Why:</strong> the old sample changed with whether the page carried IDs, so Jess loading the page and a rerun gave different samples. It also showed linkedom's spelling (<code>&amp;#160;</code>, <code>&lt;rect /&gt;</code>), not the file's (<code>&amp;nbsp;</code>, <code>&lt;rect&gt;&lt;/rect&gt;</code>).
+        </p>
+        <p>
+          <strong>If wrong:</strong> <code>rawHTML</code> in <code>domain/scopes.mjs</code>; the sample would then need IDs stripped and the element laid out again at its depth.
         </p>
       </div>
     </section>

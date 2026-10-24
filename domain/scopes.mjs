@@ -585,11 +585,13 @@ function bare(node, attrs) {
   return copy;
 }
 
-// The element's HTML as it sits in the file, minus directives and annotation, dedented.
+// The element's HTML minus directives and annotation, in the canonical layout the file has
+// without element IDs: an ID can push a short line past the width and split it, and
+// linkedom's outerHTML writes &#160; and <rect /> where the file says &nbsp; and <rect></rect>.
 export function rawHTML(el) {
   const copy = el.cloneNode(true);
   stripForDisplay(copy);
-  return dedent(copy.outerHTML);
+  return formatElement(copy);
 }
 
 function stripForDisplay(el, attrs = IGNORED_ATTRS) {
@@ -598,14 +600,6 @@ function stripForDisplay(el, attrs = IGNORED_ATTRS) {
     else if (n.nodeType === 1) stripForDisplay(n, attrs);
   }
   if (el.removeAttribute) for (const a of attrs) el.removeAttribute(a);
-}
-
-// Every line after the first carries the file's indentation; the last line (the closing tag)
-// shows how much belongs to the element's depth.
-function dedent(html) {
-  const lines = html.split('\n');
-  const depth = lines.length > 1 ? lines.at(-1).match(/^ */)[0].length : 0;
-  return lines.map((l, i) => (i === 0 ? l : l.slice(Math.min(depth, l.match(/^ */)[0].length)))).join('\n');
 }
 
 // ---- Report -------------------------------------------------------------

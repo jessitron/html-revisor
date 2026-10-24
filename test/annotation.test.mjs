@@ -47,6 +47,14 @@ test('a rerun keeps the IDs of the report elements that came back; only what cha
   assert.equal(normalize(after), after);
 });
 
+test('an example\'s HTML sample reads the same with element IDs or without, as the file has it', () => {
+  const example = page('<div class="ex"><p>A line that fits the width alone, but not with an ID on it, here.</p><svg><rect x="1"></rect></svg></div>');
+  const sample = (html) => parse(html).querySelector('details.scope-report pre').textContent;
+  const clean = sample(annotated(example));
+  assert.equal(sample(annotated(normalize(example))), clean);
+  assert.match(clean, /<rect x="1"><\/rect>/);
+});
+
 test('a directive on a report element stays with it', () => {
   const before = normalize(annotated(page('<div class="ex"><p>a</p></div>')));
   const details = /(<details[^>]*class="scope-report"[^>]*>)/;
