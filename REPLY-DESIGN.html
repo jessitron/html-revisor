@@ -119,18 +119,10 @@
       <rect data-hrv="16" class="built" x="10" y="102" width="190" height="46" rx="6"></rect>
       <text data-hrv="17" x="20" y="121">✓ Thread in the box</text>
       <text data-hrv="18" class="sub" x="20" y="138">on reload: Resolve, bubble</text>
-      <rect data-hrv="19" class="built" x="10" y="160" width="190" height="46" rx="6">
-        <!-- @AI: ok, does it work? can you write a reply? -->
-        <!-- @Human: It works: reply.mjs handed this to the server, and the server wrote it into the file. You're reading it after a reload; live arrival waits on Live notice. Resolve it when you've seen it. -->
-        <!-- @AI: great! is this gonna say working... -->
-        <!-- @Human: Not yet. Working isn't built, so the marker stays the magenta pencil until a reply turns it green. Once 'Directive status: working' lands, Done shows the green dots right away. -->
-      </rect>
+      <rect data-hrv="19" class="built" x="10" y="160" width="190" height="46" rx="6"></rect>
       <text data-hrv="20" x="20" y="179">✓ Server writes replies</text>
       <text data-hrv="21" class="sub" x="20" y="196">reply.mjs, refused when stale</text>
-      <rect data-hrv="22" class="ready" x="240" y="44" width="190" height="46" rx="6" stroke-width="3">
-        <!-- @AI: yaaah let's do this -->
-        <!-- @Human: On it: a subagent is building Live notice now. When it lands, a reply's green bubble shows up without a reload. -->
-      </rect>
+      <rect data-hrv="22" class="ready" x="240" y="44" width="190" height="46" rx="6" stroke-width="3"></rect>
       <text data-hrv="23" x="250" y="63">Live notice</text>
       <text data-hrv="24" class="sub" x="250" y="80">building now</text>
       <rect data-hrv="25" class="ready" x="240" y="102" width="190" height="46" rx="6"></rect>
@@ -279,6 +271,7 @@
             <!-- @AI: yeah, the tab just has to guess. someday we'll have modes for that.... oh does it already? perfec. The server should tell the client whether to expect Done- -&gt; working
 Yeah, the CLI for working goes away entirely -->
             <!-- @Human: Written into #working: Done starts working in the tab, and the reply ends it. No CLI call, nothing in the file. Modes are a yak for later; none exist yet (the server's only flags are port and author). One more thought: with an agent on every page, 'you spoke last' and 'working' mean the same thing, so working could come straight from the file and survive a reload. Want that? -->
+            <!-- @AI: this makes sense, sure -->
             Working
           </p>
           <p data-hrv="232">New reply</p>
@@ -630,8 +623,6 @@ Yeah, the CLI for working goes away entirely -->
               <div data-hrv="451" class="hrv-step">↑</div>
               <div data-hrv="452" class="hrv-step">↓</div>
               <div data-hrv="453" class="hrv-docket-main rp-row2">
-                <!-- @AI: OK I have another idea for 'new' too. They should stay 'new' until either I reply to them or mark them resolved. Let's not change status just because I viewed them. -->
-                <!-- @Human: Done. The design now says a reply stays new until you add a turn or Resolve, in #marker, #docket, and Decided. That makes new a fact of the file (the agent spoke last), so the client's seen-on-open localStorage goes away. Yak: 'A reply stays new until Jess adds a turn or resolves'. -->
                 <span data-hrv="454" class="rp-icon-reply"></span><span data-hrv="455">2 new replies</span>
               </div>
               <div data-hrv="456" class="hrv-step rp-row2">↑</div>
@@ -640,9 +631,6 @@ Yeah, the CLI for working goes away entirely -->
           </div>
         </div>
         <p data-hrv="458" class="note">
-          <!-- @AI: haha lol I didn't know that existed. 
-make a yak for this: when review is off, don't show the arrows! they don't work correctly and don't make sense. -->
-          <!-- @Human: Made a yak: 'Review off hides the docket's step arrows'. -->
           <strong>Review off.</strong> Clicking the docket turns review mode off, so you read the page as its readers will: markers and crop marks hide, and a click goes to the page instead of opening a box. The docket stays, says “review off”, and its glyphs go grey. Click it again to bring the marks back. This toggle exists today.
         </p>
       </div>
