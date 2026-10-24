@@ -351,6 +351,22 @@ test('review off: the docket hides its arrows, and ⌥↓ goes to the page', () 
     tab.close();
   }));
 
+test('a marker click sets where the docket steps from, as a click on its element does', () =>
+  withServer(async (s) => {
+    const tab = await openTab(s, 'page.html');
+    for (const selector of ['h1', 'p', 'li']) {
+      tab.open(selector);
+      tab.type('look here');
+      tab.done();
+    }
+    tab.click(tab.marker('h1'));
+    assert.ok(tab.box(), 'the marker opens a box');
+    const [, down] = [...tab.layer.querySelectorAll('.hrv-step:not(.hrv-row2)')];
+    tab.click(down);
+    assert.equal(tab.steppedTo(), 'p', 'the next directive after the heading');
+    tab.close();
+  }));
+
 test('a reply stays new through opening the box and reloading, until you add a turn or Resolve', () =>
   withServer(async (s) => {
     const storage = new Map();

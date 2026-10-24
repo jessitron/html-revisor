@@ -438,6 +438,7 @@
           e.preventDefault();
           e.stopPropagation();
           hideTip();
+          current = id;
           openBox(id);
         });
         marker.addEventListener('mouseenter', function () { showTip(id); });

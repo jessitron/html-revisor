@@ -20,10 +20,8 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
     </p>
     <section id="status" class="status">
       <h2>Status</h2>
-      <p class="status-value">planned</p>
-      <p class="status-why">
-        Page made by Shepherd; waits for Echo Hunter, which edits <code>client.js</code> too.
-      </p>
+      <p class="status-value">working</p>
+      <p class="status-why">cfqz done; gl83 next.</p>
     </section>
     <section id="plan" class="plan">
       <h2>Plan</h2>
@@ -51,11 +49,26 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
       <h2>Log</h2>
       <ul>
         <li>2026-10-24: page made by Shepherd.</li>
+        <li>2026-10-24 12:30: started from main at <code>e6a1688</code>, Echo Hunter merged.</li>
+        <li>
+          2026-10-24 12:36: cfqz. Test first: a marker click, then ↓, stepped to the heading itself. The marker's click handler now sets <code>current</code> before <code>openBox</code>, as the element click does. Guess <a href="#guess-marker-sets-current">marker-sets-current</a>.
+        </li>
       </ul>
     </section>
     <section id="guesses" class="guesses">
       <h2>Guesses</h2>
-      <p>None yet. Starting guesses from Shepherd, to confirm or replace:</p>
+      <div id="guess-marker-sets-current" class="guess">
+        <p>
+          <strong>Guess:</strong> a marker click sets the stepping position to the marker's element, the same assignment the element click makes.
+        </p>
+        <p>
+          <strong>Why:</strong> the marker stands for its element; the yak names the element click as the behavior to match.
+        </p>
+        <p>
+          <strong>If wrong:</strong> drop <code>current = id</code> from the marker's click handler in <code>syncMarker</code>, <code>client.js</code>, and the test "a marker click sets where the docket steps from" in <code>test/client.test.mjs</code>.
+        </p>
+      </div>
+      <p>Starting guesses from Shepherd, to confirm or replace:</p>
       <ul>
         <li>
           gl83: focus the element itself. A focusable one (a link, a button) takes focus as it is. Any other gets <code>tabindex="-1"</code>, the focus call, and the attribute removed on its next blur, so the page keeps no mark beyond <code>data-hrv-review</code>. Use <code>focus({ preventScroll: true })</code> so the page doesn't jump.
