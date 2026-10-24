@@ -20,8 +20,10 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
     </p>
     <section id="status" class="status">
       <h2>Status</h2>
-      <p class="status-value">working</p>
-      <p class="status-why">Fix in; writing the Decided row.</p>
+      <p class="status-value">merged-ready</p>
+      <p class="status-why">
+        Both yaks fixed by one change to <code>restore()</code>; suite green.
+      </p>
     </section>
     <section id="plan" class="plan">
       <h2>Plan</h2>
@@ -52,7 +54,10 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
           2026-10-24 16:20: both yaks reproduce. 1t8w on <code>test/pages/DESIGN.html</code> seed 173 with editable-only numbering; pxym on <code>DESIGN.html</code> from <code>124c901</code> at seed 172 ("remove" fails there too). Same cause: <code>restore()</code> pairs tokens by order.
         </li>
         <li>
-          2026-10-24 16:43: <code>restore()</code> now pairs each token with the original whose surroundings are most like its own. Both repros pass; suite green. Moved <code>likeness()</code> out of <code>domain/identity.mjs</code> into a new <code>domain/likeness.mjs</code>, so <code>scopes.mjs</code> can use it without a cycle.
+          2026-10-24 16:43: <code>restore()</code> now pairs each token with the original whose surroundings are most like its own. Both repros pass; suite green. Moved <code>likeness()</code> out of <code>domain/identity.mjs</code> into a new <code>domain/likeness.mjs</code>, so <code>scopes.mjs</code> can use it without a cycle. Commit <code>66c4c0f</code>.
+        </li>
+        <li>
+          2026-10-24 16:55: Decided row and case D8 in <code>SCOPES-DESIGN.html</code> (<code>0163a65</code>), annotated (<code>da4cd8e</code>): only D8's report is new. Both yaks done.
         </li>
       </ul>
     </section>
@@ -66,7 +71,7 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
           <strong>Why:</strong> it is Tally's starting guess (a block that came back takes its own originals) without running reconcile inside <code>restore()</code>, which runs on every round-trip check before IDs exist. A visible ID in the token, like <code>⟦textarea 3⟧</code>, would put noise in the markdown Jess edits.
         </p>
         <p>
-          <strong>If wrong:</strong> <code>closest()</code> and <code>surroundings()</code> in <code>domain/scopes.mjs</code>; the S9 row in <code>SCOPES-DESIGN.html</code>; the two card tests in <code>test/scopes.test.mjs</code>. To go back to order alone, have <code>closest()</code> return <code>candidates[0]</code>.
+          <strong>If wrong:</strong> <code>closest()</code> and <code>surroundings()</code> in <code>domain/scopes.mjs</code>; the "Stand-ins after a markdown save" row and case D8 in <code>SCOPES-DESIGN.html</code>; the two card tests in <code>test/scopes.test.mjs</code>. To go back to order alone, have <code>closest()</code> return <code>candidates[0]</code>.
         </p>
       </div>
       <div id="guess-one-fix" class="guess">
@@ -81,15 +86,38 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
     </section>
     <section id="result" class="result">
       <h2>Result</h2>
-      <p>Not yet.</p>
+      <ul>
+        <li>
+          <code>66c4c0f</code> A stand-in goes back to the original whose surroundings match
+        </li>
+        <li><code>0163a65</code> SCOPES-DESIGN: stand-ins after a markdown save, and case D8</li>
+        <li><code>da4cd8e</code> SCOPES-DESIGN: annotate D8</li>
+        <li>This page's last update rides in the commit after these.</li>
+      </ul>
+      <p>
+        Tests: <code>node --test --test-reporter=tap</code>: <code># pass 233</code>, <code># fail 0</code>, one skipped. Two new example tests in <code>test/scopes.test.mjs</code> (remove a card, swap two cards). The 1t8w repro (editable-only seed numbering on <code>test/pages/DESIGN.html</code>) and the pxym repro (<code>DESIGN.html</code> from <code>124c901</code>) both pass; neither repro is committed, and <code>test/roundtrip-lib.mjs</code> is unchanged.
+      </p>
+      <p>
+        Moved: <code>likeness()</code> from <code>domain/identity.mjs</code> to the new <code>domain/likeness.mjs</code>; <code>identity.mjs</code> and <code>scopes.mjs</code> import it. <code>test/architecture.test.mjs</code> passes.
+      </p>
+      <p>
+        For a user: delete or reorder a block that holds a textarea, svg, or other stand-in, and every other block keeps its own. Before, the ones after took the deleted block's contents.
+      </p>
     </section>
     <section id="gotchas" class="gotchas">
       <h2>Gotchas</h2>
-      <p>None yet.</p>
+      <ul>
+        <li>
+          The worktree guard refused a command that wrote a scratch file with sed and a heredoc and ran it. CLAUDE.md already says to split commands and use Write; I reached for the shell first anyway.
+        </li>
+        <li>
+          The round-trip page tests number seeds over all scopes, including those too big to edit, so a renumbering hid 1t8w. An example test guards it now; the numbering stays as it is.
+        </li>
+      </ul>
     </section>
     <section id="new-yaks" class="new-yaks">
       <h2>New yaks</h2>
-      <p>None yet.</p>
+      <p>None.</p>
     </section>
   </body>
 </html>

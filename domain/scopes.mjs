@@ -542,7 +542,7 @@ function proseText(n) {
 
 // Of the originals a token could take, the one whose surroundings are most like the token's,
 // level by level from the nearest; a tie goes to the first. A block that came back, edited or
-// moved, takes its own stand-ins; a token in a new block takes the next one left (S9).
+// moved, takes its own stand-ins; a token in a new block takes the next one left (SCOPES-DESIGN.html#d8).
 function closest(prior) {
   const edge = prior[0].parentNode;
   const known = new Map();
