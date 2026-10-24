@@ -45,7 +45,7 @@
   <body>
     <h1>How we test</h1>
     <p>
-      223 tests, all passing, in 10 seconds. They took 57 until scopes over 4 KB stopped editing as markdown, and 20 until the round-trip tests split into four files that run side by side.
+      232 tests, all passing but one skipped, in 8 seconds. They took 57 until scopes over 4 KB stopped editing as markdown, and 20 until the round-trip tests split into four files that run side by side.
     </p>
     <section id="suite">
       <h2>The suite</h2>
@@ -53,25 +53,25 @@
         <code>npm test</code> is <code>node --test</code>. It runs each file under <code>test/</code> in its own process, several at once, so the suite takes as long as its slowest file. No dependencies: deploy runs these tests inside iterate-on-docs, where <code>npm install</code> can't run.
       </p>
       <div class="bars" role="img" aria-label="Wall time per test file, run alone">
-        <div><code>client.test.mjs</code></div>
-        <div class="bar" title="client.test.mjs: 10 tests, 10.2 s">
-          <span style="width: 51%"></span>10.2 s
-        </div>
         <div><code>roundtrip-generated-edits.test.mjs</code></div>
         <div class="bar" title="roundtrip-generated-edits.test.mjs: 5 tests, 8.1 s">
           <span style="width: 40.5%"></span>8.1 s
         </div>
-        <div><code>roundtrip-pages.test.mjs</code></div>
-        <div class="bar" title="roundtrip-pages.test.mjs: 13 tests, 4.1 s">
-          <span style="width: 20.5%"></span>4.1 s
-        </div>
         <div><code>roundtrip-generated.test.mjs</code></div>
-        <div class="bar" title="roundtrip-generated.test.mjs: 3 tests, 4.1 s">
-          <span style="width: 20.5%"></span>4.1 s
+        <div class="bar" title="roundtrip-generated.test.mjs: 3 tests, 4.0 s">
+          <span style="width: 20%"></span>4.0 s
         </div>
         <div><code>live-notice.test.mjs</code></div>
         <div class="bar" title="live-notice.test.mjs: 7 tests, 3.8 s">
           <span style="width: 19%"></span>3.8 s
+        </div>
+        <div><code>roundtrip-pages.test.mjs</code></div>
+        <div class="bar" title="roundtrip-pages.test.mjs: 13 tests, 3.7 s">
+          <span style="width: 18.5%"></span>3.7 s
+        </div>
+        <div><code>client.test.mjs</code></div>
+        <div class="bar" title="client.test.mjs: 14 tests, 2.4 s, from 12.4 s">
+          <span style="width: 12%"></span>2.4 s
         </div>
         <div><code>acceptance.test.mjs</code></div>
         <div class="bar" title="acceptance.test.mjs: 46 tests, 2.3 s, from 9.4 s">
@@ -99,7 +99,7 @@
         </div>
       </div>
       <p class="note">
-        Each file run alone on a 14-core Mac, Node 25.6, startup included. The whole suite together: 10 s wall, measured 2026-10-24, from 20.5 s before the round-trip split. <code>client.test.mjs</code> is the long bar: the suite waits on it. Acceptance was the long bar at 9.4 s, about 100 ms a test in starting a server process; its tests now run the server in-process, from <code>createServer</code>, and the live notice tests, which spend 3.6 s waiting to hear that nothing comes, run beside them in their own file. The two share <code>acceptance-lib.mjs</code>. node --test runs every <code>.mjs</code> under <code>test/</code>, so each <code>-lib</code> file counts as one test.
+        Each file run alone on a 14-core Mac, Node 25.6, startup included. The whole suite together: 7.8 s wall, measured 2026-10-24, from 20.5 s before the round-trip split. <code>roundtrip-generated-edits.test.mjs</code> is the long bar: the suite waits on it. Client was the long bar at 12.4 s, almost all of it waiting: a 3 s server close held by a keep-alive socket, the 400 ms save debounce and the 2 s green ring at full length, and a 100 ms sleep for each tab to connect. Its server now closes its sockets, its tab's clock runs ten times fast, and a tab waits for the server's connect event. Acceptance was the long bar at 9.4 s, about 100 ms a test in starting a server process; its tests now run the server in-process, from <code>createServer</code>, and the live notice tests, which spend 3.6 s waiting to hear that nothing comes, run beside them in their own file. The two share <code>acceptance-lib.mjs</code>. node --test runs every <code>.mjs</code> under <code>test/</code>, so each <code>-lib</code> file counts as one test.
       </p>
       <table>
         <thead>
@@ -131,9 +131,9 @@
           </tr>
           <tr>
             <td><code>client.test.mjs</code></td>
-            <td class="n">10</td>
+            <td class="n">14</td>
             <td>
-              <code>client.js</code> in a tab made of linkedom, against a real server: what the box, the markers, and the docket say, and what reaches the file.
+              <code>client.js</code> in a tab made of linkedom, against a real server: what the box, the markers, and the docket say, and what reaches the file. The tab's timers run at a tenth of their length.
             </td>
           </tr>
           <tr>
@@ -295,7 +295,7 @@
       <h2>Recommendations</h2>
       <ol class="recs">
         <li>
-          <strong>Speed up <code>client.test.mjs</code>.</strong> It is the long bar at 10.2 s alone, and the suite waits on it. Two of its ten tests take 5.5 s of that. The longest round-trip file is 8.1 s, so client under that brings the suite to 8 s. Yak: "client.test.mjs is the long bar".
+          <strong>Speed up <code>roundtrip-generated-edits.test.mjs</code>.</strong> It is the long bar at 8.1 s alone, and the suite waits on it. The next file is 4.0 s, so splitting it in two brings the suite near 4 s.
         </li>
         <li>
           <strong>Run the suite once per ship.</strong> Deploy and release test the same commit back to back. Release could skip its run when the vendored commit hasn't changed since the deploy that tested it. That change lives in iterate-on-docs.
