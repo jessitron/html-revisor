@@ -7,7 +7,7 @@
 // 2026-10-12, F2 in SCOPES-DESIGN.html#scopes). Other inline elements, like strong, belong to their
 // block. scopeMarkdown writes a scope as markdown and scopeFromMarkdown reads it back; saving
 // it unchanged gives back the same HTML, element IDs included. Saving it
-// edited, each element keeps its ID and its directives (SCOPES-DESIGN.html#identity). test/roundtrip.test.mjs.
+// edited, each element keeps its ID and its directives (SCOPES-DESIGN.html#identity). test/roundtrip-*.test.mjs.
 import { trimAscii, formatElement, VOID } from './canonical.mjs';
 import { allComments, directiveOwner, attachComments } from './directives.mjs';
 import { MarkdownIt } from '../vendor/markdown-it.mjs';

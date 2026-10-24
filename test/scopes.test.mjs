@@ -87,7 +87,7 @@ test('annotating twice gives the same page', () => {
 });
 
 // ---- Round-trip rules ------------------------------------------------
-// The property itself is in roundtrip.test.mjs; these are the rules, one example each.
+// The property itself is in the roundtrip-*.test.mjs files; these are the rules, one example each.
 
 const scopeIn = (html) => {
   const document = parse(normalize(`<html><body>${html}</body></html>`));

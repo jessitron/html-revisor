@@ -18,8 +18,8 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
     <p>Wave 1. Split the round-trip tests.</p>
     <section id="status" class="status">
       <h2>Status</h2>
-      <p class="status-value">planned</p>
-      <p class="status-why">Waiting for the coordinator to start wave 1.</p>
+      <p class="status-value">working</p>
+      <p class="status-why">The split is in; TESTING.html is next.</p>
     </section>
     <section id="plan" class="plan">
       <h2>Plan</h2>
@@ -40,11 +40,41 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
       <h2>Log</h2>
       <ul>
         <li>2026-10-24: page made by Herald.</li>
+        <li>
+          2026-10-24 11:20: started. Before: the suite takes 20.5 s wall, 194 tests; <code>roundtrip.test.mjs</code> alone 17.9 s, <code>acceptance.test.mjs</code> alone 9.4 s.
+        </li>
+        <li>
+          2026-10-24 11:40: the first worktree was gone after the usage-limit pause, with no work lost (nothing was written yet). Went on in a new one, branch <code>worktree-cleaver</code> from main <code>fcf9978</code>.
+        </li>
+        <li>
+          2026-10-24 11:44: split into four test files and <code>test/roundtrip-lib.mjs</code>. The suite takes 9.9 s wall, 199 tests, 198 pass, 1 skipped. <code>acceptance.test.mjs</code> is now the long bar.
+        </li>
       </ul>
     </section>
     <section id="guesses" class="guesses">
       <h2>Guesses</h2>
-      <p>None yet.</p>
+      <div id="guess-two-generated-files" class="guess">
+        <p>
+          <strong>Guess:</strong> the property tests on generated pages sit in two files, not one: <code>roundtrip-generated.test.mjs</code> (round-trip, tidy markdown, 3.8 s) and <code>roundtrip-generated-edits.test.mjs</code> (reconcile, 6.9 s).
+        </p>
+        <p>
+          <strong>Why:</strong> in one file they take about 11 s, longer than <code>acceptance.test.mjs</code> (9.4 s), so the suite would wait on them. TESTING.html's recommendation says to split further if one file still runs long.
+        </p>
+        <p>
+          <strong>If wrong:</strong> move the tests of <code>test/roundtrip-generated-edits.test.mjs</code> into <code>test/roundtrip-generated.test.mjs</code> and delete it.
+        </p>
+      </div>
+      <div id="guess-mintlify-own-file" class="guess">
+        <p>
+          <strong>Guess:</strong> the mintlify page has its own file, <code>roundtrip-mintlify.test.mjs</code>, and its edit tests are named "edited, every scope in mintlify-animal-fables.html keeps its IDs: <em>kind</em>". The other pages' edit tests keep the name "this repo's pages". Each file's edits get the seeds they had, since the page seeds count per file.
+        </p>
+        <p>
+          <strong>Why:</strong> mintlify is 2.3 s of the 6.2 s on specific files. Apart, neither file runs past 4 s.
+        </p>
+        <p>
+          <strong>If wrong:</strong> in <code>test/roundtrip-pages.test.mjs</code>, pass all of <code>pages</code> to <code>fileTests</code>, and delete <code>test/roundtrip-mintlify.test.mjs</code>.
+        </p>
+      </div>
     </section>
     <section id="result" class="result">
       <h2>Result</h2>
