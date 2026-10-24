@@ -20,8 +20,10 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
     </p>
     <section id="status" class="status">
       <h2>Status</h2>
-      <p class="status-value">planned</p>
-      <p class="status-why">Page made by Tally.</p>
+      <p class="status-value">merged-ready</p>
+      <p class="status-why">
+        <code>client.test.mjs</code> went from 12.4 s to 2.4 s; the suite is green at 7.8 s.
+      </p>
     </section>
     <section id="plan" class="plan">
       <h2>Plan</h2>
@@ -43,31 +45,90 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
       <h2>Log</h2>
       <ul>
         <li>2026-10-24: page made by Tally.</li>
+        <li>
+          2026-10-24: measured. 12.4 s alone, 14 tests now. The CPU did 0.9 s of it; the rest was waiting. "Stays new" spent 3.0 s of its 3.3 s in <code>server.close()</code>; "docket counts" 2 s on the green ring; most others 400 ms per save debounce.
+        </li>
+        <li>
+          2026-10-24: <code>74331c1</code>: close the sockets, tab clock at a tenth, connect waits on the server's event. 2.4 s, 8 runs alone green, 3 full suites green.
+        </li>
+        <li>
+          2026-10-24: <code>3cb04aa</code>: re-measured every file, updated <code>TESTING.html</code>. Added two yaks.
+        </li>
       </ul>
     </section>
     <section id="guesses" class="guesses">
       <h2>Guesses</h2>
-      <p>None yet. Starting guesses from Tally, to confirm or replace:</p>
-      <ul>
-        <li>
-          Replace fixed sleeps with waits on a condition the test can see (the tab's DOM, a request answered), and leave every assertion as it is.
-        </li>
-        <li>
-          If the two slow tests wait out a timer in <code>client.js</code>, let the test tab set it short, the way it already supplies <code>setTimeout</code> and <code>requestAnimationFrame</code>. Splitting the file so its tests run side by side comes second, if cutting waits isn't enough.
-        </li>
-      </ul>
+      <div id="guess-fast-clock" class="guess">
+        <p>
+          <strong>Guess:</strong> the test tab's <code>setTimeout</code> divides every length by 10 (<code>FAST</code> in <code>test/client.test.mjs</code>), with no hook in <code>client.js</code>.
+        </p>
+        <p>
+          <strong>Why:</strong> the tab already supplies <code>setTimeout</code>, and no test checks a timer's length, only what happens after it. A hook in <code>client.js</code> would be code in real pages for the test's sake.
+        </p>
+        <p>
+          <strong>If wrong:</strong> if a test wants a real length, or the scaled timers flake under load, raise <code>FAST</code> toward 1 in <code>test/client.test.mjs</code>, or give that timer its own length there.
+        </p>
+      </div>
+      <div id="guess-keep-200ms-sleep" class="guess">
+        <p>
+          <strong>Guess:</strong> kept the 200 ms sleep in "Done after a reply ... announces nothing new".
+        </p>
+        <p>
+          <strong>Why:</strong> it waits to see that nothing comes, so there is no condition to wait on, and it is 200 ms of 2.4 s.
+        </p>
+        <p>
+          <strong>If wrong:</strong> wait for the tab's fetches and save timer to go idle, in <code>test/client.test.mjs</code>.
+        </p>
+      </div>
+      <div id="guess-no-split" class="guess">
+        <p><strong>Guess:</strong> did not split the file.</p>
+        <p>
+          <strong>Why:</strong> at 2.4 s it is fifth; splitting would not move the suite's wall time.
+        </p>
+        <p><strong>If wrong:</strong> split it when it grows past the long bar.</p>
+      </div>
     </section>
     <section id="result" class="result">
       <h2>Result</h2>
-      <p>Not yet.</p>
+      <ul>
+        <li>
+          <code>74331c1</code> client.test.mjs: 12.4 s to 2.4 s; fast tab clock, wait on the connect event, close sockets
+        </li>
+        <li>
+          <code>3cb04aa</code> TESTING.html: client is 2.4 s; roundtrip-generated-edits is the long bar
+        </li>
+        <li>
+          <code>test/client.test.mjs</code> alone: <code># pass 14</code>, <code># fail 0</code>, 2.4 s, from 12.4 s.
+        </li>
+        <li>
+          Full suite, <code>node --test --test-reporter=tap</code>: <code># tests 232</code>, <code># pass 231</code>, <code># fail 0</code>, one skip (the Honeycomb test, no <code>.be</code>). 7.8 s wall, from 10 s.
+        </li>
+        <li>
+          For a user: nothing changes; <code>client.js</code> is untouched. The suite now waits on <code>roundtrip-generated-edits.test.mjs</code> at 8.1 s.
+        </li>
+      </ul>
     </section>
     <section id="gotchas" class="gotchas">
       <h2>Gotchas</h2>
-      <p>None yet.</p>
+      <ul>
+        <li>
+          A test's <code>server.close(cb)</code> can wait 3 s on a keep-alive socket that a request used just before. Call <code>server.closeAllConnections()</code> beside it. A per-phase timing of one test (when <code>fn</code> ended, when close ended) found it in one run; summing test times would not have.
+        </li>
+        <li>
+          The worktree guard refuses <code>/usr/bin/time -p</code> in a loop. A node script in <code>/tmp</code> that times each test file with <code>execFileSync</code> works.
+        </li>
+      </ul>
     </section>
     <section id="new-yaks" class="new-yaks">
       <h2>New yaks</h2>
-      <p>None yet.</p>
+      <ul>
+        <li>
+          <code>roundtrip-generated-editstestmjs-is-the-long-bar-8rd0</code>: roundtrip-generated-edits.test.mjs is the long bar
+        </li>
+        <li>
+          <code>live-noticetestmjs-close-the-servers-sockets-and-wait-on-conditions-uj0i</code>: live-notice.test.mjs: close the server's sockets and wait on conditions
+        </li>
+      </ul>
     </section>
   </body>
 </html>
