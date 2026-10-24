@@ -13,6 +13,7 @@ import { createServer } from '../server.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const clientSource = fs.readFileSync(path.join(here, '..', 'client.js'), 'utf8');
+const FAST = 10;   // how much faster the tab's timers run than a browser's
 
 // A server on a fresh copy of the fixtures, in this process.
 async function withServer(fn) {
@@ -33,7 +34,8 @@ async function withServer(fn) {
     });
   } finally {
     console.log = log;
-    await new Promise((r) => server.close(r));
+    // Close the sockets too: one a PUT used just before the end otherwise holds close() for 3 s.
+    await new Promise((r) => { server.close(r); server.closeAllConnections(); });
     fs.rmSync(dir, { recursive: true, force: true });
   }
 }
@@ -55,6 +57,7 @@ function eventSourceFor(base, streams) {
             buffer = buffer.slice(end + 2);
             const event = block.match(/^event: (.*)$/m)?.[1];
             const data = block.match(/^data: (.*)$/m)?.[1];
+            if (event) this.heard = true;   // the server's first event says it has the stream
             (this.listeners[event] ?? []).forEach((f) => f({ data }));
           }
         }
@@ -106,7 +109,8 @@ async function openTab(s, name, { storage = new Map() } = {}) {
     requestAnimationFrame: (f) => setTimeout(f, 0),
     fetch: (url, options) => fetch(s.base + url, options),
     EventSource: eventSourceFor(s.base, streams),
-    setTimeout: (f, ms) => { const t = setTimeout(() => { timers.delete(t); f(); }, ms); timers.add(t); return t; },
+    // The tab's clock runs fast: its waits (the 400 ms save, the 2 s green ring) take a tenth.
+    setTimeout: (f, ms) => { const t = setTimeout(() => { timers.delete(t); f(); }, (ms ?? 0) / FAST); timers.add(t); return t; },
     clearTimeout: (t) => { timers.delete(t); clearTimeout(t); },
     crypto, performance, Blob, Uint8Array, JSON,
   };
@@ -136,7 +140,7 @@ async function openTab(s, name, { storage = new Map() } = {}) {
     },
     button(text) { return [...layer.querySelectorAll('.hrv-box button')].find((b) => b.textContent === text); },
     done() { tab.click(tab.button('Done')); },
-    connected: () => until(() => streams.length > 0).then(() => new Promise((r) => setTimeout(r, 100))),
+    connected: () => until(() => streams.some((e) => e.heard)),
     // The tab stops hearing live notices, as when one is on its way while the tab saves.
     deafen() { streams.forEach((e) => e.close()); },
     close() { streams.forEach((e) => e.close()); timers.forEach((t) => clearTimeout(t)); },
