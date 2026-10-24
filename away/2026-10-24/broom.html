@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Broom: away run, 2026-10-24</title>
+    <style>
+body { font: 16px/1.5 system-ui, sans-serif; color: #1d2330; background: #f3efe6; max-width: 900px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+section { background: #fff; border-radius: 12px; padding: 1rem 1.5rem; margin: 0 0 1rem; }
+code { font-family: ui-monospace, monospace; font-size: .85em; }
+.status-value { font-weight: 600; }
+.guess { border-left: 3px solid #bc4c00; padding: .25rem .9rem; margin: .75rem 0; }
+.log li, .result li { margin: .2rem 0; }
+</style>
+  </head>
+  <body>
+    <p><a href="index.html">Away run, 2026-10-24</a></p>
+    <h1>Broom</h1>
+    <p>
+      Round 2, wave 1. Sweep up round 1's leftovers: the old tool's marks, and one more broken paragraph.
+    </p>
+    <section id="status" class="status">
+      <h2>Status</h2>
+      <p class="status-value">planned</p>
+      <p class="status-why">Page made by Shepherd; not started.</p>
+    </section>
+    <section id="plan" class="plan">
+      <h2>Plan</h2>
+      <p>Yaks, in this order:</p>
+      <ul>
+        <li>
+          <code>annotate-still-clears-chunksmjs-marks-chunk-report-data-chunk-drop-the-old-tools-leftovers-s00n</code>: annotate still clears chunks.mjs marks (.chunk-report, data-chunk); drop the old tool's leftovers
+        </li>
+        <li>
+          <code>formatter-a-block-that-breaks-a-p-with-no-closing-p-leaves-its-trailing-text-bare-hpte</code>: Formatter: a block that breaks a p with no closing &lt;/p&gt; leaves its trailing text bare
+        </li>
+      </ul>
+      <p>
+        Work, s00n: grep <code>SCOPES-DESIGN.html</code> and the repo (not <code>vendor/</code>) for <code>chunk</code> first. Then drop <code>.chunk-report</code>, <code>#chunk-view</code>, and <code>data-chunk</code> from <code>takeAnnotations</code> in <code>domain/annotation.mjs</code> and <code>data-chunk</code> from <code>IGNORED_ATTRS</code> and the <code>bare</code> call in <code>domain/scopes.mjs</code>.
+      </p>
+      <p>
+        Work, hpte: <code>mendBrokenParagraph</code> in <code>domain/canonical.mjs</code> knows a broken p by the empty p a stray <code>&lt;/p&gt;</code> leaves. Decide whether a p right before the block is sign enough without it, write the guess below, and test it in <code>test/normalize.test.mjs</code> against SCOPES-DESIGN case C10 (text beside blocks, kept bare). If the scope rules or layout change, run <code>node scopes.mjs --annotate SCOPES-DESIGN.html</code>, then formatter and cleanup, in a commit of its own.
+      </p>
+      <p>
+        Files it may touch: <code>domain/annotation.mjs</code>, <code>domain/scopes.mjs</code> (the two <code>data-chunk</code> lines only), <code>domain/canonical.mjs</code>, <code>test/annotation.test.mjs</code>, <code>test/normalize.test.mjs</code>, <code>SCOPES-DESIGN.html</code>, this page. No import moves. README edits, if any: one or two lines.
+      </p>
+    </section>
+    <section id="log" class="log">
+      <h2>Log</h2>
+      <ul>
+        <li>2026-10-24: page made by Shepherd.</li>
+      </ul>
+    </section>
+    <section id="guesses" class="guesses">
+      <h2>Guesses</h2>
+      <p>None yet. Starting guesses from Shepherd, to confirm or replace:</p>
+      <ul>
+        <li>
+          s00n: no page carries the chunks.mjs marks, so the code goes with no replacement; CLAUDE.md rules out backwards compatibility.
+        </li>
+        <li>
+          hpte: leave it bare. With no stray <code>&lt;/p&gt;</code>, <code>&lt;p&gt;a&lt;ul&gt;…&lt;/ul&gt;b</code> parses to the same DOM as a writer who meant bare text beside blocks (C10), so the formatter can't tell them apart. If that holds, close the yak with a test that pins the shape and a line in the yak saying why. If the source text is there to read before parsing, that's a different call: say so.
+        </li>
+      </ul>
+    </section>
+    <section id="result" class="result">
+      <h2>Result</h2>
+      <p>Not yet.</p>
+    </section>
+    <section id="gotchas" class="gotchas">
+      <h2>Gotchas</h2>
+      <p>None yet.</p>
+    </section>
+    <section id="new-yaks" class="new-yaks">
+      <h2>New yaks</h2>
+      <p>None yet.</p>
+    </section>
+  </body>
+</html>

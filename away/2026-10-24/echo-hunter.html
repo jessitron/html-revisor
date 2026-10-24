@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Echo Hunter: away run, 2026-10-24</title>
+    <style>
+body { font: 16px/1.5 system-ui, sans-serif; color: #1d2330; background: #f3efe6; max-width: 900px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+section { background: #fff; border-radius: 12px; padding: 1rem 1.5rem; margin: 0 0 1rem; }
+code { font-family: ui-monospace, monospace; font-size: .85em; }
+.status-value { font-weight: 600; }
+.guess { border-left: 3px solid #bc4c00; padding: .25rem .9rem; margin: .75rem 0; }
+.log li, .result li { margin: .2rem 0; }
+</style>
+  </head>
+  <body>
+    <p><a href="index.html">Away run, 2026-10-24</a></p>
+    <h1>Echo Hunter</h1>
+    <p>Round 2, wave 1. A save that spills out of its scope stops making copies.</p>
+    <section id="status" class="status">
+      <h2>Status</h2>
+      <p class="status-value">planned</p>
+      <p class="status-why">Page made by Shepherd; not started.</p>
+    </section>
+    <section id="plan" class="plan">
+      <h2>Plan</h2>
+      <p>Yaks:</p>
+      <ul>
+        <li>
+          <code>literal-p-typed-in-the-content-box-splits-the-scope-and-each-later-save-adds-another-copy-93ba</code>: Literal &lt;p&gt; typed in the Content box splits the scope, and each later save adds another copy
+        </li>
+      </ul>
+      <p>
+        Work: start with the failing test the yak asks for: two saves in a row of markdown holding a literal <code>&lt;p&gt;</code> on one scope, then count the paragraphs. Then make a save whose result spills out of the scope's element leave the box editing all of what it made, so the next save replaces it instead of adding beside it. Look at <code>saveMarkdown</code> and <code>holderOf</code> in <code>domain/markdown-edits.mjs</code> and the markdown branch of <code>putChange</code> in <code>server.mjs</code>.
+      </p>
+      <p>
+        Files it may touch: <code>domain/markdown-edits.mjs</code>, <code>server.mjs</code>, <code>client.js</code> (if the box has to track more than one ID), <code>test/client.test.mjs</code>, a new test file such as <code>test/spill.test.mjs</code>, this page. Keep out of <code>test/acceptance.test.mjs</code> (Stopwatch has it) and <code>domain/scopes.mjs</code> (Broom edits it). README edits, if any: one or two lines.
+      </p>
+      <p>
+        Imports: don't move a function between domain modules. If you must, run <code>test/architecture.test.mjs</code> again after the coordinator's rebase, and say so in the Log.
+      </p>
+    </section>
+    <section id="log" class="log">
+      <h2>Log</h2>
+      <ul>
+        <li>2026-10-24: page made by Shepherd.</li>
+      </ul>
+    </section>
+    <section id="guesses" class="guesses">
+      <h2>Guesses</h2>
+      <p>None yet. Starting guesses from Shepherd, to confirm or replace:</p>
+      <ul>
+        <li>
+          Markdown typed in the box keeps raw HTML on; a typed <code>&lt;p&gt;</code> stays HTML. Escaping it changes what users can type, and SCOPES-DESIGN's Decided table has no row that asks for that. Fix problem (2) only.
+        </li>
+        <li>
+          The fix lives on the server where it can: the save answers with every ID it made, and the next save from the same box replaces all of them. The PUT protocol then spans <code>client.js</code> and <code>server.mjs</code>, as CLAUDE.md warns.
+        </li>
+      </ul>
+    </section>
+    <section id="result" class="result">
+      <h2>Result</h2>
+      <p>Not yet.</p>
+    </section>
+    <section id="gotchas" class="gotchas">
+      <h2>Gotchas</h2>
+      <p>None yet.</p>
+    </section>
+    <section id="new-yaks" class="new-yaks">
+      <h2>New yaks</h2>
+      <p>None yet.</p>
+    </section>
+  </body>
+</html>

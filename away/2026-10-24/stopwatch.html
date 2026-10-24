@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Stopwatch: away run, 2026-10-24</title>
+    <style>
+body { font: 16px/1.5 system-ui, sans-serif; color: #1d2330; background: #f3efe6; max-width: 900px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+section { background: #fff; border-radius: 12px; padding: 1rem 1.5rem; margin: 0 0 1rem; }
+code { font-family: ui-monospace, monospace; font-size: .85em; }
+.status-value { font-weight: 600; }
+.guess { border-left: 3px solid #bc4c00; padding: .25rem .9rem; margin: .75rem 0; }
+.log li, .result li { margin: .2rem 0; }
+</style>
+  </head>
+  <body>
+    <p><a href="index.html">Away run, 2026-10-24</a></p>
+    <h1>Stopwatch</h1>
+    <p>Round 2, wave 1. Cut the acceptance tests' wall time.</p>
+    <section id="status" class="status">
+      <h2>Status</h2>
+      <p class="status-value">planned</p>
+      <p class="status-why">Page made by Shepherd; not started.</p>
+    </section>
+    <section id="plan" class="plan">
+      <h2>Plan</h2>
+      <p>Yaks:</p>
+      <ul>
+        <li>
+          <code>acceptancetestmjs-is-the-long-bar-ueem</code>: acceptance.test.mjs is the long bar
+        </li>
+      </ul>
+      <p>
+        Work: measure first. <code>test/acceptance.test.mjs</code> takes about 9.2 s alone, 52 tests at about 180 ms each. Find where the time goes (a server process per test? a fixed wait? a fixture copy?) and cut it; split the file only if cutting isn't enough. Goal: the suite near 7 s, the longest round-trip file's time. Update <code>TESTING.html</code> <code>#suite</code> and <code>#recommendations</code> with the new numbers.
+      </p>
+      <p>
+        Files it may touch: <code>test/acceptance.test.mjs</code>, new files under <code>test/</code> if it splits, <code>TESTING.html</code>, <code>package.json</code> (only if a script names the file), this page. Keep out of <code>server.mjs</code>; if a server hook would save time, add a yak. README edits, if any: one or two lines.
+      </p>
+      <p>
+        Mind: other wave 1 agents add test files. Re-measure the whole suite after the coordinator's rebase if the numbers on <code>TESTING.html</code> moved.
+      </p>
+    </section>
+    <section id="log" class="log">
+      <h2>Log</h2>
+      <ul>
+        <li>2026-10-24: page made by Shepherd.</li>
+      </ul>
+    </section>
+    <section id="guesses" class="guesses">
+      <h2>Guesses</h2>
+      <p>None yet. Starting guesses from Shepherd, to confirm or replace:</p>
+      <ul>
+        <li>
+          The 180 ms per test is a spawned server process per test, or a sleep waiting for the file watcher. <code>test/client.test.mjs</code> runs <code>createServer</code> in-process; that pattern may serve acceptance too, for the tests that don't test the CLI itself.
+        </li>
+        <li>
+          Keep each test's fresh copy of the fixtures: tests that share a file are a worse cost than time.
+        </li>
+      </ul>
+    </section>
+    <section id="result" class="result">
+      <h2>Result</h2>
+      <p>Not yet.</p>
+    </section>
+    <section id="gotchas" class="gotchas">
+      <h2>Gotchas</h2>
+      <p>None yet.</p>
+    </section>
+    <section id="new-yaks" class="new-yaks">
+      <h2>New yaks</h2>
+      <p>None yet.</p>
+    </section>
+  </body>
+</html>
