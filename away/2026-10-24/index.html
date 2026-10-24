@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Away run, 2026-10-24</title>
+    <style>
+body { font: 16px/1.5 system-ui, sans-serif; color: #1d2330; background: #f3efe6; max-width: 960px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+section { background: #fff; border-radius: 12px; padding: 1.25rem 1.75rem; margin: 0 0 1.25rem; }
+.notice { background: #fff4d6; border: 1px solid #e0c470; border-radius: 8px; padding: .6rem 1rem; }
+table { border-collapse: collapse; width: 100%; font-size: .92rem; }
+th, td { text-align: left; padding: .35rem .5rem; border-bottom: 1px solid #e2ddd2; vertical-align: top; }
+th { color: #646b78; font-size: .8rem; }
+code { font-family: ui-monospace, monospace; font-size: .85em; }
+</style>
+  </head>
+  <body>
+    <p class="notice">
+      This page is a local report; decide before pushing whether it stays. GitHub Pages publishes main as it stands on GitHub.
+    </p>
+    <h1>Away run, 2026-10-24</h1>
+    <p>
+      Jess is away for some hours. A coordinator runs yak agents in parallel worktrees and merges each to main. This page shows who works on what and where each one stands. Each agent writes its own page; this page links them.
+    </p>
+    <section id="rules">
+      <h2>Process rules</h2>
+      <ul>
+        <li>
+          Each yak agent works in its own worktree. Only the coordinator merges to main: rebase onto main, then fast-forward. History stays linear.
+        </li>
+        <li>
+          The full test suite (<code>node --test --test-reporter=tap</code>, the TAP form of <code>npm test</code>) passes before a merge. On red, the agent stops and writes up why.
+        </li>
+        <li>No push, no <code>yx sync</code>, no <code>./deploy</code>, no release.</li>
+        <li>
+          Time limit: after a few real attempts, a stuck agent writes up what it learned, adds a yak for what's left, and stops.
+        </li>
+        <li>No Chrome. A check that needs a browser becomes a 👩🏽‍🦱 yak.</li>
+        <li>
+          Guesses use the Guess / Why / If wrong format in <a href="FORMAT.md">FORMAT.md</a>.
+        </li>
+        <li>
+          Agents <code>yx start</code> and <code>yx done</code> their yaks, and add yaks for what they find.
+        </li>
+        <li>
+          Don't touch <code>client.js</code>, <code>client.css</code>, or <code>REPLY-DESIGN.html</code>: another session has work in progress on them. A live locked worktree, <code>.claude/worktrees/agent-a31692b8a4709bae5</code> (client tests), may touch <code>test/</code>, <code>package.json</code>, and <code>TESTING.html</code>.
+        </li>
+        <li>
+          Each agent edits only its own page here. The coordinator edits this page, and only its status column and final summary.
+        </li>
+      </ul>
+    </section>
+    <section id="agents">
+      <h2>Waves, agents, yaks</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Wave</th>
+            <th>Agent</th>
+            <th>Yaks</th>
+            <th>Status</th>
+            <th>Page</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>0</td>
+            <td>Herald</td>
+            <td>Builds this report and <a href="FORMAT.md">FORMAT.md</a></td>
+            <td>
+              <!-- coordinator: status herald -->
+              merged-ready
+            </td>
+            <td><a href="FORMAT.md">FORMAT.md</a></td>
+          </tr>
+          <tr>
+            <td>0</td>
+            <td>Coordinator</td>
+            <td>Runs the waves, merges to main, writes the summary</td>
+            <td>
+              <!-- coordinator: status coordinator -->
+              planned
+            </td>
+            <td><a href="#summary">Summary</a></td>
+          </tr>
+          <tr>
+            <td>1</td>
+            <td>Thead Rex</td>
+            <td>
+              <code>formatter-moves-a-leading-row-of-th-into-a-thead-qve7</code>: formatter moves a leading row of th into a thead<br><code>formatter-a-list-that-breaks-a-paragraph-leaves-trailing-text-bare-wrap-it-in-a-p-97gw</code>: a list that breaks a paragraph leaves trailing text bare; wrap it in a p
+            </td>
+            <td>
+              <!-- coordinator: status thead-rex -->
+              planned
+            </td>
+            <td><a href="thead-rex.html">thead-rex.html</a></td>
+          </tr>
+          <tr>
+            <td>1</td>
+            <td>Cleaver</td>
+            <td>
+              <code>split-roundtriptestmjs-into-files-so-node-test-runs-them-side-by-side-hb8j</code>: split roundtrip.test.mjs into files so node --test runs them side by side
+            </td>
+            <td>
+              <!-- coordinator: status cleaver -->
+              planned
+            </td>
+            <td><a href="cleaver.html">cleaver.html</a></td>
+          </tr>
+          <tr>
+            <td>1</td>
+            <td>Metronome</td>
+            <td>
+              <code>server-span-start-times-land-on-whole-milliseconds-so-steps-in-one-put-claim-the-same-start-1i1q</code>: server span start times land on whole milliseconds, so steps in one PUT claim the same start
+            </td>
+            <td>
+              <!-- coordinator: status metronome -->
+              planned
+            </td>
+            <td><a href="metronome.html">metronome.html</a></td>
+          </tr>
+          <tr>
+            <td>1</td>
+            <td>Archivist</td>
+            <td>
+              <code>fold-html-revisor-specmd-into-the-living-docs-so-there-is-no-separate-spec-a6dz</code>: fold html-revisor-spec.md into the living docs, so there is no separate spec
+            </td>
+            <td>
+              <!-- coordinator: status archivist -->
+              planned
+            </td>
+            <td><a href="archivist.html">archivist.html</a></td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Gatherer</td>
+            <td>
+              <code>gather-element-identity-into-identitymjs-assignids-reconcile-elementbyid-baseof-carrydirectives-to-directivesmjs-4g6l</code>: Gather element identity into identity.mjs: assignIds, reconcile, elementById, baseOf; carryDirectives to directives.mjs. Waits for Archivist.
+            </td>
+            <td>
+              <!-- coordinator: status gatherer -->
+              planned
+            </td>
+            <td><a href="gatherer.html">gatherer.html</a></td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>Scribe</td>
+            <td>
+              <code>scopesmjs-annotate-keeps-report-element-ids-instead-of-minting-fresh-ones-qe5k</code>: scopes.mjs --annotate keeps report element IDs instead of minting fresh ones<br><code>scopesmjs-annotate-should-write-formatted-tables-uytj</code>: scopes.mjs annotate should write formatted tables<br><code>scopes-designs-annotated-html-samples-lag-the-formatters-layout-rerun-annotate-in-a-commit-of-its-own-jfpr</code>: SCOPES-DESIGN's annotated HTML samples lag the formatter's layout: rerun --annotate in a commit of its own. Waits for Gatherer and Thead Rex.
+            </td>
+            <td>
+              <!-- coordinator: status scribe -->
+              planned
+            </td>
+            <td><a href="scribe.html">scribe.html</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+    <section id="guesses">
+      <h2>Guesses for Jess</h2>
+      <p>
+        Each agent page lists its own guesses in its Guesses section, one block per guess with Guess, Why, and If wrong. Each block has its own anchor, so a link to <code>page.html#guess-name</code> lands on it. To review every guess, open each page's Guesses section:
+      </p>
+      <ul>
+        <li><a href="thead-rex.html#guesses">Thead Rex</a></li>
+        <li><a href="cleaver.html#guesses">Cleaver</a></li>
+        <li><a href="metronome.html#guesses">Metronome</a></li>
+        <li><a href="archivist.html#guesses">Archivist</a></li>
+        <li><a href="gatherer.html#guesses">Gatherer</a></li>
+        <li><a href="scribe.html#guesses">Scribe</a></li>
+      </ul>
+    </section>
+    <section id="summary">
+      <h2>Summary</h2>
+      <!-- coordinator: summary -->
+      <p>
+        The coordinator writes this at the end of the run: what merged, what's blocked, what Jess needs to look at first.
+      </p>
+    </section>
+  </body>
+</html>
