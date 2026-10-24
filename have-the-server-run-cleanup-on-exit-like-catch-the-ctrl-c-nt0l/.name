@@ -1,0 +1,1 @@
+Have the server run cleanup on exit, like catch the ctrl-c
