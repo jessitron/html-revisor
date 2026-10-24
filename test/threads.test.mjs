@@ -6,7 +6,8 @@ import assert from 'node:assert/strict';
 import { normalize } from '../domain/format.mjs';
 import { parse, serialize } from '../domain/canonical.mjs';
 import { elementById } from '../domain/identity.mjs';
-import { baseOf } from '../domain/bases.mjs';
+import { baseOf, threadBaseOf } from '../domain/bases.mjs';
+import { announcementOf } from '../domain/announcements.mjs';
 import { cleanup } from '../domain/cleanup.mjs';
 import { placeReply, threadOf, threadsOf, collectDirectives, removeThreads, removeThread, setDirective } from '../domain/directives.mjs';
 
@@ -117,6 +118,31 @@ test('a reply changes no base', () => {
   const reread = parse(serialize(document));
   const id = idOf(document, 'p');
   assert.deepEqual([baseOf(reread.querySelector('section'), '@AI'), baseOf(elementById(reread, id), '@AI')], before);
+});
+
+test('the thread base changes with a turn, and not with the content or another thread', () => {
+  const html = '<div><p><!-- @AI: one -->text</p><p><!-- @AI: other -->more</p></div>';
+  const base = (document) => threadBaseOf(document.querySelector('p'), '@AI');
+  const start = base(page(html));
+  assert.equal(base(page(html.replace('text', 'changed text'))), start);
+  assert.equal(base(page(html.replace('other', 'something else'))), start);
+  assert.notEqual(base(page(html.replace('one', 'one, edited'))), start);
+  const replied = page(html);
+  placeReply(replied.querySelector('p'), 'two', '@AI');
+  const afterReply = base(replied);
+  assert.notEqual(afterReply, start);
+  setDirective(replied.querySelector('p'), 'three', '@AI');
+  assert.notEqual(base(replied), afterReply, 'a turn added after the reply');
+});
+
+test('an Announcement carries the base of its thread; a revision with no thread carries none', () => {
+  const document = page('<h1>Title</h1><p><!-- @AI: say more -->text</p><p>plain</p>');
+  const [p, plain] = document.querySelectorAll('p');
+  const thread = threadBaseOf(p, '@AI');
+  assert.equal(announcementOf(document, idOf(document, 'p'), { directive: '' }, '@AI').thread, thread);
+  const again = page(serialize(document));
+  const plainId = plain.getAttribute('data-hrv');
+  assert.equal(announcementOf(again, plainId, { directive: '', markdown: 'before' }, '@AI').thread, undefined);
 });
 
 test('removeThreads takes out directives and replies, and leaves other comments', () => {

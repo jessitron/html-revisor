@@ -501,6 +501,8 @@ test('Done announces what the box changed: a revision and a directive, under its
     await s.put('page.html', { id: p, base: saved.bases[p], directive: 'say more -- here' });
     assert.deepEqual(await (await s.done('page.html', opened)).json(), { announced: true });
     await s.waitForLog('\n\{', 1);
+    const thread = announcements(s.stdout)[0]?.thread;
+    assert.match(thread, /^[0-9a-f]{12}$/, 'the base a reply sends back');
     assert.deepEqual(announcements(s.stdout), [{
       page: '/page.html',
       id: p,
@@ -508,6 +510,7 @@ test('Done announces what the box changed: a revision and a directive, under its
       heading: 'Title',
       directive: { before: '', after: 'say more - - here' },
       revision: { before: 'First paragraph', after: 'First *paragraph*' },
+      thread,
     }]);
     assert.doesNotMatch(s.stdout, /saved|pending/, 'saves print nothing');
   }));
@@ -522,9 +525,99 @@ test('Done with nothing changed announces nothing; a directive alone is no revis
     await s.put('page.html', { id: img, base: bases[img], directive: 'bigger' });
     await s.done('page.html', { id: img, directive: '' });
     await s.waitForLog('\n\{', 1);
+    const thread = announcements(s.stdout)[0]?.thread;
     assert.deepEqual(announcements(s.stdout), [{
-      page: '/page.html', id: img, element: 'img', heading: 'Title', directive: { before: '', after: 'bigger' },
+      page: '/page.html', id: img, element: 'img', heading: 'Title', directive: { before: '', after: 'bigger' }, thread,
     }]);
+  }));
+
+// The flow a reply answers: the tab saves a directive and closes the box, and the Announcement
+// carries the thread's base. Returns the element's ID and that Announcement.
+async function directAndAnnounce(s, name, selector, directive) {
+  const { document, bases } = await s.page(name);
+  const id = idOf(document, selector);
+  await s.put(name, { id, base: bases[id], directive });
+  await s.done(name, { id, directive: '' });
+  await s.waitForLog(`"id":"${id}"`);
+  return { id, announced: announcements(s.stdout).findLast((a) => a.id === id) };
+}
+
+test('a reply lands after the last turn, with the base the Announcement carried', () =>
+  withServer(async (s) => {
+    const { id, announced } = await directAndAnnounce(s, 'page.html', 'p', 'add a diagram');
+    assert.match(announced.thread, /^[0-9a-f]{12}$/);
+    const res = await s.put('page.html', { id, thread: announced.thread, reply: 'Added one -- below.' });
+    assert.equal(res.status, 200);
+    const answer = await res.json();
+    assert.equal(answer.ok, true);
+    assert.equal(answer.count, 0, 'the thread ends in a reply: no open directive');
+    assert.notEqual(answer.after, answer.before);
+    assert.match(s.read('page.html'), /<!-- @AI: add a diagram -->\s*<!-- @Human: Added one - - below. -->/);
+    const { threads, directives } = await s.page('page.html');
+    assert.deepEqual(threads[id], [{ prefix: '@AI', text: 'add a diagram' }, { prefix: '@Human', text: 'Added one - - below.' }]);
+    assert.deepEqual(directives, {});
+    const second = await s.put('page.html', { id, thread: answer.thread, reply: 'And a caption.' });
+    assert.equal(second.status, 200, 'the answer\'s base takes a second reply');
+    assert.match(s.read('page.html'), /<!-- @Human: Added one - - below. -->\s*<!-- @Human: And a caption. -->/);
+  }));
+
+test('a reply to a thread that changed since is stale: 412 with the turn to read, and nothing written', () =>
+  withServer(async (s) => {
+    const { id, announced } = await directAndAnnounce(s, 'page.html', 'p', 'add a diagram');
+    const { bases } = await s.page('page.html');
+    await s.put('page.html', { id, base: bases[id], directive: 'add a diagram\nand a caption' });
+    const before = s.read('page.html');
+    const res = await s.put('page.html', { id, thread: announced.thread, reply: 'Added one.' });
+    assert.equal(res.status, 412);
+    const answer = await res.json();
+    assert.deepEqual({ ...answer, thread: typeof answer.thread }, { ok: false, error: 'its thread changed since', directive: 'add a diagram\nand a caption', thread: 'string' });
+    assert.equal(s.read('page.html'), before);
+    assert.equal((await s.put('page.html', { id, thread: answer.thread, reply: 'Added both.' })).status, 200);
+    assert.match(s.read('page.html'), /and a caption -->\s*<!-- @Human: Added both. -->/);
+  }));
+
+test('a reply to an element with no thread, or one that is gone, is refused', () =>
+  withServer(async (s) => {
+    const { id, announced } = await directAndAnnounce(s, 'page.html', 'p', 'add a diagram');
+    const { bases } = await s.page('page.html');
+    await s.put('page.html', { id, base: bases[id], resolve: true });
+    const before = s.read('page.html');
+    const resolved = await s.put('page.html', { id, thread: announced.thread, reply: 'Done.' });
+    assert.equal(resolved.status, 412);
+    assert.deepEqual(await resolved.json(), { ok: false, error: 'that element has no directive to reply to' });
+    const gone = await s.put('page.html', { id: '999', thread: announced.thread, reply: 'Done.' });
+    assert.deepEqual(await gone.json(), { ok: false, error: 'that element is gone from the file' });
+    assert.equal(s.read('page.html'), before);
+  }));
+
+test('a reply body is an id, a thread base, and text', () =>
+  withServer(async (s) => {
+    for (const body of [{ id: '1', reply: 'a' }, { id: '1', thread: 'x', reply: ' ' }, { id: 1, thread: 'x', reply: 'a' }, { id: '1', thread: 'x', reply: 'a', base: 'y' }, { id: '1', thread: 'x', reply: 'a', directive: 'b' }]) {
+      assert.equal((await s.put('page.html', body)).status, 400, JSON.stringify(body));
+    }
+  }));
+
+test('replies and saves that arrive together all land: the server writes one at a time', () =>
+  withServer(async (s) => {
+    const { id, announced } = await directAndAnnounce(s, 'page.html', 'p', 'add a diagram');
+    const { document, bases } = await s.page('page.html');
+    const items = [...document.querySelectorAll('li')].map((li) => li.getAttribute('data-hrv'));
+    const h1 = idOf(document, 'h1');
+    let thread = announced.thread;
+    const replies = (async () => {
+      for (const n of [1, 2, 3, 4, 5]) {
+        const answer = await (await s.put('page.html', { id, thread, reply: `reply ${n}` })).json();
+        assert.equal(answer.ok, true, `reply ${n}`);
+        thread = answer.thread;
+      }
+    })();
+    const saves = [h1, ...items].map((e, n) => s.put('page.html', { id: e, base: bases[e], directive: `save ${n}` }));
+    const answers = await Promise.all(saves);
+    await replies;
+    assert.deepEqual(answers.map((r) => r.status), [200, 200, 200]);
+    const file = s.read('page.html');
+    for (const n of [1, 2, 3, 4, 5]) assert.match(file, new RegExp(`@Human: reply ${n} -->`));
+    for (const n of [0, 1, 2]) assert.match(file, new RegExp(`@AI: save ${n} -->`));
   }));
 
 test('a Done body must be an id, the directive, and for a scope the markdown', () =>

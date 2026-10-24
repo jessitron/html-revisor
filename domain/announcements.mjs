@@ -1,13 +1,15 @@
 // Announcements: what one box session changed on its element. Tier II, pure functions over a DOM.
 import { trimAscii } from './canonical.mjs';
 import { ID, elementById } from './identity.mjs';
-import { collectDirectives, removeThreads, escapeDirectiveText } from './directives.mjs';
+import { collectDirectives, removeThreads, escapeDirectiveText, threadOf } from './directives.mjs';
+import { threadBaseOf } from './bases.mjs';
 import { scopeElements, scopeMarkdown, editable } from './scopes.mjs';
 
 // What one box session changed on its element, from what the box opened with to the document
 // now: the directive, and for a scope its content, a revision. Each is {before, after}, and only
-// there if it changed. Null when nothing changed or the element is gone. Lifts the threads out
-// of the document.
+// there if it changed. Null when nothing changed or the element is gone. An element with a
+// thread adds the thread's base, which a reply to it sends back. Lifts the threads out of the
+// document.
 export function announcementOf(document, id, opened, author) {
   const el = elementById(document, id);
   if (!el) return null;
@@ -16,12 +18,15 @@ export function announcementOf(document, id, opened, author) {
   const directiveBefore = escapeDirectiveText(opened.directive.trim());
   const directiveAfter = collectDirectives(document, author)[id] ?? '';
   if (directiveAfter !== directiveBefore) announcement.directive = { before: directiveBefore, after: directiveAfter };
+  const thread = threadOf(el, author).length ? threadBaseOf(el, author) : null;
   removeThreads(document, author);
   if (typeof opened.markdown === 'string' && editable(el) && scopeElements(document).includes(el)) {
     const markdown = scopeMarkdown(el);
     if (markdown !== opened.markdown) announcement.revision = { before: opened.markdown, after: markdown };
   }
-  return announcement.directive || announcement.revision ? announcement : null;
+  if (!announcement.directive && !announcement.revision) return null;
+  if (thread) announcement.thread = thread;
+  return announcement;
 }
 
 // The text of the heading the element sits under: itself, or the last h1-h6 before it. Null

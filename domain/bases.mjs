@@ -3,7 +3,7 @@
 import crypto from 'node:crypto';
 import { formatElement } from './canonical.mjs';
 import { ID } from './identity.mjs';
-import { removeThreads } from './directives.mjs';
+import { removeThreads, threadOf } from './directives.mjs';
 
 // A short fingerprint. Of the file bytes, it lets the tab notice that the page changed on disk.
 export const fingerprint = (text) => crypto.createHash('sha1').update(text).digest('hex').slice(0, 12);
@@ -18,6 +18,10 @@ export function baseOf(el, author) {
   copy.querySelectorAll(`[${ID}]`).forEach((e) => e.removeAttribute(ID));
   return fingerprint(formatElement(copy));
 }
+
+// The base a reply starts from: the element's thread, every turn and who it's for. A turn added,
+// changed, or resolved away changes it; an edit to the element's content doesn't.
+export const threadBaseOf = (el, author) => fingerprint(JSON.stringify(threadOf(el, author)));
 
 export function basesOf(elements, author) {
   return Object.fromEntries([...elements].map((el) => [el.getAttribute(ID), baseOf(el, author)]));

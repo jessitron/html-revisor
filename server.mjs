@@ -9,9 +9,9 @@ import { formatFiles } from './formatter.mjs';
 import { parse, serialize } from './domain/canonical.mjs';
 import { ID, elementById } from './domain/identity.mjs';
 import { normalize, assignIds } from './domain/format.mjs';
-import { collectDirectives, threadsOf, removeThreads, removeThread, setDirective } from './domain/directives.mjs';
+import { collectDirectives, threadOf, threadsOf, removeThreads, removeThread, setDirective, placeReply } from './domain/directives.mjs';
 import { scopeElements, editable } from './domain/scopes.mjs';
-import { fingerprint, baseOf, basesOf, around } from './domain/bases.mjs';
+import { fingerprint, baseOf, basesOf, threadBaseOf, around } from './domain/bases.mjs';
 import { markdownsOf, committedMarkdowns, saveMarkdown, servedHTML, holderOf } from './domain/markdown-edits.mjs';
 import { announcementOf } from './domain/announcements.mjs';
 import { injectClient } from './domain/served-page.mjs';
@@ -36,7 +36,7 @@ export function parseArgs(argv) {
 
 // telemetry: the server sends spans, so the page's client records its own and posts them here.
 export function createServer({ root, author, telemetry = false }) {
-  const config = { root: path.resolve(root), author, telemetry };
+  const config = { root: path.resolve(root), author, telemetry, inTurn: oneAtATime() };
   return http.createServer((req, res) => {
     // Spans from the browser get no span of their own: one per batch would be noise.
     if (req.url === SPANS_PATH) return receiveSpans(req, res).catch((err) => sendError(res, err));
@@ -47,6 +47,21 @@ export function createServer({ root, author, telemetry = false }) {
       }),
     );
   });
+}
+
+// The server is the only writer of a live file, and it writes one change at a time: each read,
+// change, and write of a file waits for the one before it. So the agent's replies and the
+// browser's saves land in the order they came, and neither overwrites the other.
+// inTurn(file, fn) runs fn after the file's earlier turns settle, and returns what fn does.
+function oneAtATime() {
+  const tails = new Map();
+  return (file, fn) => {
+    const result = (tails.get(file) ?? Promise.resolve()).then(fn);
+    const tail = result.catch(() => {});
+    tails.set(file, tail);
+    tail.then(() => tails.get(file) === tail && tails.delete(file));
+    return result;
+  };
 }
 
 // Where the page's client posts its spans. A dot path: no file under the root can be served there.
@@ -83,15 +98,18 @@ async function route(req, res, config) {
 // that has a reply. Also the base of every element so the tab can send it back with a change,
 // the markdown of every scope for the box to edit, and each scope's markdown at the last
 // commit, for Revert.
-async function getPage(res, file, urlPath, { author, telemetry }) {
+async function getPage(res, file, urlPath, { author, telemetry, inTurn }) {
   const span = trace.getActiveSpan();
-  const onDisk = await inSpan('read file', {}, () => readText(file));
-  const formatted = inSpan('normalize', {}, () => normalize(onDisk));
-  span?.setAttributes({ 'hrv.page': urlPath, 'hrv.page.bytes': onDisk.length, 'hrv.normalized': formatted !== onDisk });
-  if (formatted !== onDisk) {
-    await inSpan('write file', {}, () => writeText(file, formatted));
-    console.log(`${urlPath} (normalized)`);
-  }
+  const formatted = await inTurn(file, async () => {
+    const onDisk = await inSpan('read file', {}, () => readText(file));
+    const normalized = inSpan('normalize', {}, () => normalize(onDisk));
+    span?.setAttributes({ 'hrv.page': urlPath, 'hrv.page.bytes': onDisk.length, 'hrv.normalized': normalized !== onDisk });
+    if (normalized !== onDisk) {
+      await inSpan('write file', {}, () => writeText(file, normalized));
+      console.log(`${urlPath} (normalized)`);
+    }
+    return normalized;
+  });
   const document = inSpan('parse', {}, () => parse(formatted));
   const { directives, threads } = inSpan('directives', {}, () => {
     const found = { directives: collectDirectives(document, author), threads: threadsOf(document, author) };
@@ -131,14 +149,62 @@ async function getPage(res, file, urlPath, { author, telemetry }) {
 // fingerprint before and after, so the tab can notice an outside change. A markdown save also
 // answers with the HTML that replaced the scope, as served, the ID now holding the scope, and
 // the new markdown of the scopes around it.
-async function putChange(req, res, file, urlPath, { author }) {
+//
+// The agent's reply is a PUT too, from reply.mjs, with the thread's base instead of the element's:
+//   {"id": "7", "thread": "…", "reply": "text"}      adds <!-- @Human: text --> to the thread
+// Every change to a file takes its turn, so a reply and a save never overwrite each other.
+async function putChange(req, res, file, urlPath, config) {
   const change = await readJson(req);
+  if (change && 'reply' in change) {
+    const { id, thread, reply } = change;
+    if (typeof id !== 'string' || typeof thread !== 'string' || typeof reply !== 'string' || !reply.trim() || Object.keys(change).length !== 3) {
+      throw new HttpError(400, 'a reply must look like {"id": "<id>", "thread": "<thread base>", "reply": "text"}, with text');
+    }
+    return config.inTurn(file, () => putReply(res, file, urlPath, change, config));
+  }
   const { id, base, directive, markdown, resolve } = change ?? {};
   const kinds = [typeof directive === 'string' && 'directive', typeof markdown === 'string' && 'markdown', resolve === true && 'resolve'].filter(Boolean);
   if (typeof id !== 'string' || typeof base !== 'string' || kinds.length !== 1) {
     throw new HttpError(400, 'body must look like {"id": "<id>", "base": "<base>", "directive": "text"}, or with "markdown": "…" or "resolve": true instead');
   }
-  const [kind] = kinds;
+  return config.inTurn(file, () => applyChange(res, file, urlPath, change, kinds[0], config));
+}
+
+// Reply: the agent answers the element's thread. The thread base is the one the agent's
+// Announcement carried; a turn added or resolved since makes it stale, and the answer is 412
+// with the thread's directive and base now, so the agent can read the new turn and reply again.
+// The answer to a reply that lands carries the new base, for a reply after it.
+async function putReply(res, file, urlPath, { id, thread, reply }, { author }) {
+  const span = trace.getActiveSpan();
+  span?.updateName('PUT reply');
+  span?.setAttributes({ 'hrv.page': urlPath, 'hrv.change.kind': 'reply', 'hrv.scope.id': id, 'hrv.change.bytes': reply.length });
+  const onDisk = await inSpan('read file', {}, () => readText(file));
+  span?.setAttribute('hrv.page.bytes', onDisk.length);
+  const document = inSpan('parse', {}, () => {
+    const doc = parse(onDisk);
+    assignIds(doc);
+    return doc;
+  });
+  const el = elementById(document, id);
+  const turns = el ? threadOf(el, author) : [];
+  const now = el && inSpan('check thread', {}, () => threadBaseOf(el, author));
+  if (!turns.length || now !== thread) {
+    const why = !el ? 'that element is gone from the file' : !turns.length ? 'that element has no directive to reply to' : 'its thread changed since';
+    span?.setAttribute('hrv.conflict', why);
+    console.log(`${urlPath} — stale reply on element ${id} (${why})`);
+    const current = turns.length ? { directive: collectDirectives(document, author)[id] ?? '', thread: now } : {};
+    return sendJson(res, 412, { ok: false, error: why, ...current });
+  }
+  inSpan('place reply', {}, () => placeReply(el, reply, author));
+  const written = inSpan('serialize', {}, () => serialize(document));
+  await inSpan('write file', {}, () => writeText(file, written));
+  const reread = elementById(parse(written), id);
+  const count = Object.keys(collectDirectives(document, author)).length;
+  span?.setAttribute('hrv.directive.count', count);
+  sendJson(res, 200, { ok: true, count, thread: threadBaseOf(reread, author), before: fingerprint(onDisk), after: fingerprint(written) });
+}
+
+async function applyChange(res, file, urlPath, { id, base, directive, markdown }, kind, { author }) {
   const span = trace.getActiveSpan();
   span?.setAttributes({ 'hrv.page': urlPath, 'hrv.change.kind': kind, 'hrv.scope.id': id, 'hrv.change.bytes': (directive ?? markdown ?? '').length });
   const onDisk = await inSpan('read file', {}, () => readText(file));
@@ -198,7 +264,7 @@ async function putChange(req, res, file, urlPath, { author }) {
 // The tab sends it after the box's last change, so the file holds what the box left. What
 // changed goes out as an Announcement; nothing changed announces nothing. The answer says which:
 // {"announced": true}, for the tab's telemetry.
-async function postDone(req, res, file, urlPath, { author }) {
+async function postDone(req, res, file, urlPath, { author, inTurn }) {
   const opened = await readJson(req);
   const { id, directive, markdown } = opened ?? {};
   if (typeof id !== 'string' || typeof directive !== 'string' || (markdown !== undefined && typeof markdown !== 'string')) {
@@ -206,7 +272,8 @@ async function postDone(req, res, file, urlPath, { author }) {
   }
   const span = trace.getActiveSpan();
   span?.setAttributes({ 'hrv.page': urlPath, 'hrv.scope.id': id });
-  const onDisk = await inSpan('read file', {}, () => readText(file));
+  // Read in turn, so the file holds every change that came in before Done.
+  const onDisk = await inTurn(file, () => inSpan('read file', {}, () => readText(file)));
   const document = inSpan('parse', {}, () => parse(onDisk));
   const announcement = inSpan('announcement', {}, () => announcementOf(document, id, { directive, markdown }, author));
   span?.setAttribute('hrv.announced', !!announcement);
