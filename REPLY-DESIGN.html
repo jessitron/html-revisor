@@ -183,25 +183,30 @@
     <ol data-hrv="582">
       <li data-hrv="558">
         <!-- @AI: does the agent even see anything on Clear? I don't know why it would, it sees things on Done -->
+        <!-- @Human: Right: nothing on Clear itself. The agent hears Done. A Done after a Clear shows the directive going empty (before: your text, after: nothing). A Done after Resolve adds resolved, the turns that ended, so the two differ. -->
         <strong>Announce Resolve is merged.</strong> A Resolve prints one Announcement with <code>resolved</code>: the turns that ended. A Clear never has them, so the agent can tell the two apart.
       </li>
       <li data-hrv="568">
         <!-- @AI: is this for, like, when the directive box is open while a reply came it? -->
+        <!-- @Human: Yes. The first shows when a reply arrives while that element's box is open; the client work replaces it by adding the reply to the open box. The second shows when the directive changes on disk while your box is open: another tab, or the agent editing the file. I'd keep it. -->
         <strong>Live notice added two docket messages:</strong> “a reply came in here; close the box to see it” and “this directive changed on disk; close the box to see it”. The first goes away when the thread arrives live in the box. Keep the second?
       </li>
       <li data-hrv="573">
         <!-- @AI: that seems like a lot of work for the agent. Make a yak for optimizing this -->
+        <!-- @Human: Yak made: 'Lighten the skill's reply loop'. One commit after each reply catches your edits too. -->
         <strong>The agent commits before it acts on an Announcement, and again after each reply,</strong> so your edits stay in commits of their own.
       </li>
       <li data-hrv="574">
         <!-- @AI: wait why would it do that ... to format its own additions? This seems necessary if new HTML tags were added. However yeah, make a yak to have the server do that format.
 wait this is when the agent edits the file directly, right?
 I think we need the server to do those edits too, don't we? hrmm this is a larger problem. While we're not taking turns, the server and the agent will regularly be editing the same file. Make a yak to rethink this. Meanwhile it's ok for the agent to format. -->
+        <!-- @Human: Yes, this is when the agent edits the file directly. Yak made: 'Rethink who edits the live file', with your options in it. Until then the agent formats. -->
         <strong>The agent runs the formatter on the live file before each commit.</strong> That writes around the server; Live notice catches it. My worry: if the formatter changes an element, your tab says to reload. I think it should skip the formatter in the reply loop, since the server keeps the file formatted. Agree?
       </li>
       <li data-hrv="575">
         <!-- @AI: what how would that even happen
 No human is editing the HTML directly -->
+        <!-- @Human: It wouldn't. Dropping that path is in the 'Lighten the skill's reply loop' yak. -->
         <strong>A directive written by hand in an editor</strong> has no Announcement and no thread base, so the agent carries it out and removes it, the old way.
       </li>
     </ol>
