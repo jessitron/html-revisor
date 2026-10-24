@@ -103,7 +103,7 @@
       The agent answers in the page. Each element carries its own small conversation, and many run at once while you keep reviewing.
     </p>
     <h2 data-hrv="4" id="status">Where it stands</h2>
-    <svg data-hrv="5" class="flow road" viewBox="0 0 900 340" role="img" aria-label="Build road for replies: two pieces built, five ready, two waiting, two later">
+    <svg data-hrv="5" class="flow road" viewBox="0 0 900 280" role="img" aria-label="Build road for replies: three pieces built, four ready, two waiting, two later">
       <defs data-hrv="6">
         <marker data-hrv="7" id="road-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
           <path data-hrv="8" d="M0 0L10 5L0 10z" fill="context-stroke"></path>
@@ -119,39 +119,38 @@
       <rect data-hrv="16" class="built" x="10" y="102" width="190" height="46" rx="6"></rect>
       <text data-hrv="17" x="20" y="121">✓ Thread in the box</text>
       <text data-hrv="18" class="sub" x="20" y="138">on reload: Resolve, bubble</text>
-      <rect data-hrv="19" class="ready" x="240" y="44" width="190" height="46" rx="6" stroke-width="3"></rect>
-      <text data-hrv="20" x="250" y="63">Server writes replies</text>
-      <text data-hrv="21" class="sub" x="250" y="80">building now; unblocks the rest</text>
-      <rect data-hrv="22" class="ready" x="240" y="102" width="190" height="46" rx="6"></rect>
-      <text data-hrv="23" x="250" y="121">Live notice</text>
-      <text data-hrv="24" class="sub" x="250" y="138">tab hears of agent writes</text>
-      <rect data-hrv="25" class="ready" x="240" y="160" width="190" height="46" rx="6"></rect>
-      <text data-hrv="26" x="250" y="179">Docket counts replies</text>
-      <text data-hrv="27" class="sub" x="250" y="196">a second row: new replies</text>
-      <rect data-hrv="28" class="ready" x="240" y="218" width="190" height="46" rx="6"></rect>
-      <text data-hrv="29" x="250" y="237">Announce Resolve</text>
-      <text data-hrv="30" class="sub" x="250" y="254">as resolved, not cleared</text>
-      <rect data-hrv="31" class="ready" x="240" y="276" width="190" height="46" rx="6"></rect>
-      <text data-hrv="32" x="250" y="295">Carry the Contract</text>
-      <text data-hrv="33" class="sub" x="250" y="312">into iterate-on-docs</text>
-      <line data-hrv="34" class="msg" x1="430" y1="67" x2="466" y2="88" marker-end="url(#road-arrow)"></line>
-      <line data-hrv="35" class="msg" x1="430" y1="125" x2="466" y2="104" marker-end="url(#road-arrow)"></line>
-      <rect data-hrv="36" class="waits" x="470" y="73" width="190" height="46" rx="6"></rect>
-      <text data-hrv="37" x="480" y="92">Thread arrives live</text>
-      <text data-hrv="38" class="sub" x="480" y="109">no reload needed</text>
-      <line data-hrv="39" class="msg" x1="565" y1="119" x2="565" y2="156" marker-end="url(#road-arrow)"></line>
-      <rect data-hrv="40" class="waits" x="470" y="160" width="190" height="46" rx="6"></rect>
-      <text data-hrv="41" x="480" y="179">iterate-on-docs replies</text>
-      <text data-hrv="42" class="sub" x="480" y="196">agent answers in the page</text>
+      <rect data-hrv="19" class="built" x="10" y="160" width="190" height="46" rx="6"></rect>
+      <text data-hrv="20" x="20" y="179">✓ Server writes replies</text>
+      <text data-hrv="21" class="sub" x="20" y="196">reply.mjs, refused when stale</text>
+      <rect data-hrv="22" class="ready" x="240" y="44" width="190" height="46" rx="6" stroke-width="3"></rect>
+      <text data-hrv="23" x="250" y="63">Live notice</text>
+      <text data-hrv="24" class="sub" x="250" y="80">tab hears of agent writes</text>
+      <rect data-hrv="25" class="ready" x="240" y="102" width="190" height="46" rx="6"></rect>
+      <text data-hrv="26" x="250" y="121">Docket counts replies</text>
+      <text data-hrv="27" class="sub" x="250" y="138">a second row: new replies</text>
+      <rect data-hrv="28" class="ready" x="240" y="160" width="190" height="46" rx="6"></rect>
+      <text data-hrv="29" x="250" y="179">Announce Resolve</text>
+      <text data-hrv="30" class="sub" x="250" y="196">as resolved, not cleared</text>
+      <rect data-hrv="31" class="ready" x="240" y="218" width="190" height="46" rx="6"></rect>
+      <text data-hrv="32" x="250" y="237">Carry the Contract</text>
+      <text data-hrv="33" class="sub" x="250" y="254">into iterate-on-docs</text>
+      <line data-hrv="35" class="msg" x1="430" y1="67" x2="466" y2="67" marker-end="url(#road-arrow)"></line>
+      <rect data-hrv="36" class="waits" x="470" y="44" width="190" height="46" rx="6"></rect>
+      <text data-hrv="37" x="480" y="63">Thread arrives live</text>
+      <text data-hrv="38" class="sub" x="480" y="80">no reload needed</text>
+      <line data-hrv="39" class="msg" x1="565" y1="90" x2="565" y2="112" marker-end="url(#road-arrow)"></line>
+      <rect data-hrv="40" class="waits" x="470" y="116" width="190" height="46" rx="6"></rect>
+      <text data-hrv="41" x="480" y="135">iterate-on-docs replies</text>
+      <text data-hrv="42" class="sub" x="480" y="152">agent answers in the page</text>
       <rect data-hrv="43" class="later" x="700" y="44" width="190" height="46" rx="6"></rect>
       <text data-hrv="44" x="710" y="63">Directive status</text>
       <text data-hrv="45" class="sub" x="710" y="80">working, before the reply</text>
       <rect data-hrv="46" class="later" x="700" y="102" width="190" height="46" rx="6"></rect>
       <text data-hrv="47" x="710" y="121">Replies on edits</text>
-      <text data-hrv="48" class="sub" x="710" y="138">after Server writes replies</text>
+      <text data-hrv="48" class="sub" x="710" y="138">a yak of its own now</text>
     </svg>
     <p data-hrv="49" class="note">
-      To see a reply today, write <code>&lt;!-- @Human: … --&gt;</code> after the thread's last turn by hand, and reload. Nothing writes replies yet. The “built” column in <a data-hrv="543" href="#decided">Decided</a> marks each decision the code has.
+      An agent replies today with <code>node reply.mjs &lt;page URL&gt; &lt;id&gt; &lt;thread&gt; &lt;text&gt;</code>, the id and thread from the Announcement. The reply shows after a reload. The “built” column in <a data-hrv="543" href="#decided">Decided</a> marks each decision the code has.
     </p>
     <h2 data-hrv="150" id="flow">Flow</h2>
     <p data-hrv="151">
@@ -790,7 +789,7 @@
           <td data-hrv="61">
             The server, and it should be the only process that does. The agent hands it replies and status through a CLI that calls the running server, so the server orders the agent's writes with the browser's saves.
           </td>
-          <td data-hrv="62"></td>
+          <td data-hrv="62">✓</td>
           <td data-hrv="63"><a data-hrv="64" href="#flow">flow</a></td>
         </tr>
         <tr>
@@ -814,7 +813,7 @@
           <td data-hrv="75">
             The server refuses the agent's write as stale, the same way it refuses a browser save on an element that changed.
           </td>
-          <td data-hrv="76"></td>
+          <td data-hrv="76">✓</td>
           <td data-hrv="77"></td>
         </tr>
         <tr>
