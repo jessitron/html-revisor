@@ -117,7 +117,7 @@
           <tr>
             <td>What markdown can't say</td>
             <td>
-              Stays as inline HTML (<code>kbd</code>, <code>span class</code>, <code>a target</code>). Inside a bigger scope, a block with attributes is HTML too, inner markup and all, since markdown isn't read inside an HTML block.
+              Stays as inline HTML (<code>kbd</code>, <code>span class</code>). Inside a bigger scope, a block with attributes is HTML too, inner markup and all, since markdown isn't read inside an HTML block.
             </td>
             <td>
               <a href="#b1">B1</a>, <a href="#b2">B2</a>, <a href="#b3">B3</a>, <a href="#c4">C4</a>, <a href="#c8">C8</a>
@@ -127,6 +127,13 @@
             <td>Images</td>
             <td><code>![alt](src)</code>; saving takes the other attributes from the original.</td>
             <td><a href="#d2">D2</a></td>
+          </tr>
+          <tr>
+            <td>Links</td>
+            <td>
+              <code>[text](href "title")</code>, whatever other attributes the link has. Saving pairs each link with an original: the same href and text, then the same href, then the same text, each a pass over all the links. Markdown wins for href, title, and text; the original gives back the rest, <code>class</code> and <code>target</code> among them. A link or image written as HTML keeps what it says.
+            </td>
+            <td><a href="#b2">B2</a>, <code>test/scopes.test.mjs</code></td>
           </tr>
           <tr>
             <td>What isn't text</td>
