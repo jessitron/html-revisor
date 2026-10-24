@@ -1,6 +1,7 @@
 // Acceptance tests from the spec. Each test copies the fixtures to a temp dir,
 // starts the server on a random port, and talks to it over HTTP. The server runs in this
 // process; the tests of the CLI itself (--author, a file argument) spawn server.mjs.
+// The harness is in acceptance-lib.mjs; the live notice tests are in live-notice.test.mjs.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn, execFileSync } from 'node:child_process';
@@ -8,123 +9,9 @@ import fs from 'node:fs';
 import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { format } from 'node:util';
 import { parseHTML } from '../vendor/linkedom.mjs';
 import { normalize } from '../domain/format.mjs';
-import { fingerprint } from '../domain/bases.mjs';
-import { createServer } from '../server.mjs';
-
-const here = path.dirname(fileURLToPath(import.meta.url));
-const serverFile = path.join(here, '..', 'server.mjs');
-
-// The environment without any telemetry settings this shell might carry. With them, the
-// server prints a telemetry line first and sends every test's spans out.
-const env = Object.fromEntries(Object.entries(process.env).filter(([k]) => !/^(OTEL_|HRV_TELEMETRY)/.test(k)));
-
-// Run fn with a live server whose root is a fresh copy of the fixtures. With no args the
-// server runs in this process, from createServer, and its console lines are the log. With
-// CLI args it runs as the CLI runs it: server.mjs in a child process, its stdout the log.
-async function withServer(fn, args) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'html-revisor-'));
-  fs.cpSync(path.join(here, 'fixtures'), dir, { recursive: true });
-  const run = args ? spawned(dir, args) : inProcess(dir);
-  const server = {
-    dir,
-    get stdout() { return run.stdout; },
-    get stderr() { return run.stderr; },
-    read: (name) => fs.readFileSync(path.join(dir, name), 'utf8'),
-    write: (name, text) => fs.writeFileSync(path.join(dir, name), text),
-    get: (p) => fetch(server.base + p),
-    // GET a page and return the parsed served document, its directives and bases, and its version.
-    async page(name) {
-      const res = await server.get(name);
-      const html = await res.text();
-      const { document } = parseHTML(html);
-      const json = document.querySelector('script#hrv-directives');
-      const bases = JSON.parse(document.querySelector('script#hrv-bases').textContent);
-      const markdowns = JSON.parse(document.querySelector('script#hrv-markdown').textContent);
-      const committed = JSON.parse(document.querySelector('script#hrv-committed').textContent);
-      const threads = JSON.parse(document.querySelector('script#hrv-threads').textContent);
-      return { res, html, document, bases, markdowns, committed, threads, version: json.getAttribute('data-version'), directives: JSON.parse(json.textContent) };
-    },
-    // PUT one change, as the tab sends it: {id, base, directive} or {id, base, markdown}.
-    put: (name, change) =>
-      fetch(server.base + name, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(change),
-      }),
-    // POST Done, as the tab sends it when the box closes: {id, directive, markdown} as the box opened.
-    done: (name, opened) =>
-      fetch(server.base + name, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(opened),
-      }),
-    // Load the page, then set one element's directive with the base the page gave.
-    async direct(name, selectorOrId, directive) {
-      const { document, bases } = await server.page(name);
-      const id = /^\d+$/.test(selectorOrId) ? selectorOrId : idOf(document, selectorOrId);
-      return server.put(name, { id, base: bases[id], directive });
-    },
-    // Wait until the log has a line matching re (stdout arrives slightly after the response).
-    async waitForLog(re, count = 1) {
-      for (let i = 0; i < 200; i++) {
-        if ((run.stdout.match(new RegExp(re, 'g')) ?? []).length >= count) return;
-        await new Promise((r) => setTimeout(r, 10));
-      }
-      assert.fail(`log never matched ${re}; got:\n${run.stdout}`);
-    },
-  };
-  try {
-    server.base = await run.started;
-    await fn(server);
-  } finally {
-    await run.stop();
-    fs.rmSync(dir, { recursive: true, force: true });
-  }
-}
-
-// The server from createServer, in this process. Tests in a file run one at a time,
-// so the console is this server's alone while it runs.
-function inProcess(dir) {
-  const run = { stdout: '', stderr: '' };
-  const { log, error } = console;
-  console.log = (...a) => (run.stdout += format(...a) + '\n');
-  console.error = (...a) => (run.stderr += format(...a) + '\n');
-  const server = createServer({ root: dir, author: '@AI' });
-  run.started = new Promise((r) => server.listen(0, '127.0.0.1', () => r(`http://localhost:${server.address().port}/`)));
-  run.stop = async () => {
-    await new Promise((r) => server.close(r));
-    Object.assign(console, { log, error });
-  };
-  return run;
-}
-
-// server.mjs as the CLI runs it, in a child process; started resolves to the URL its startup line names.
-function spawned(dir, args) {
-  const child = spawn(process.execPath, [serverFile, dir, '--port', '0', ...args], { env });
-  const run = { stdout: '', stderr: '' };
-  child.stdout.on('data', (d) => (run.stdout += d));
-  child.stderr.on('data', (d) => (run.stderr += d));
-  run.started = new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error(`no startup line; stderr: ${run.stderr}`)), 5000);
-    child.stdout.on('data', () => {
-      const m = run.stdout.match(/html-revisor: (http:\/\/localhost:\d+\/) serving/);
-      if (m) {
-        clearTimeout(timer);
-        resolve(m[1]);
-      }
-    });
-    child.on('exit', (code) => reject(new Error(`server exited ${code}; stderr: ${run.stderr}`)));
-  });
-  run.stop = () => child.kill();
-  return run;
-}
-
-const idOf = (document, selector) => document.querySelector(selector).getAttribute('data-hrv');
-const countOf = (text, needle) => text.split(needle).length - 1;
+import { here, serverFile, env, withServer, idOf, countOf, announcements, directAndAnnounce } from './acceptance-lib.mjs';
 
 test('1. normalize is idempotent', () =>
   withServer(async (s) => {
@@ -551,8 +438,6 @@ test('a PUT body must be one change: id, base, and a directive, a markdown, or r
     }
   }));
 
-// The JSON lines on stdout: the Announcements.
-const announcements = (stdout) => stdout.split('\n').filter((line) => line.startsWith('{')).map((line) => JSON.parse(line));
 
 test('Done announces what the box changed: a revision and a directive, under its heading', () =>
   withServer(async (s) => {
@@ -593,16 +478,6 @@ test('Done with nothing changed announces nothing; a directive alone is no revis
     }]);
   }));
 
-// The flow a reply answers: the tab saves a directive and closes the box, and the Announcement
-// carries the thread's base. Returns the element's ID and that Announcement.
-async function directAndAnnounce(s, name, selector, directive) {
-  const { document, bases } = await s.page(name);
-  const id = idOf(document, selector);
-  await s.put(name, { id, base: bases[id], directive });
-  await s.done(name, { id, directive: '' });
-  await s.waitForLog(`"id":"${id}"`);
-  return { id, announced: announcements(s.stdout).findLast((a) => a.id === id) };
-}
 
 test('a reply lands after the last turn, with the base the Announcement carried', () =>
   withServer(async (s) => {
@@ -736,165 +611,6 @@ test('reply CLI: usage, and a server that is not there', async () => {
   const away = await runReply(['http://localhost:1/x.html', '1', 'abc', 'text']);
   assert.equal(away.status, 1);
   assert.match(away.stderr, /no server answers at http:\/\/localhost:1: is it running\?/);
-});
-
-// ---- Live notice ----
-
-// Open a page's event stream, as the tab's EventSource does. next() resolves to the next
-// notice, the data of a change event; none(ms) checks that nothing comes for that long.
-async function listen(s, name) {
-  const abort = new AbortController();
-  const res = await fetch(s.base + name, { headers: { Accept: 'text/event-stream' }, signal: abort.signal });
-  assert.equal(res.status, 200);
-  assert.match(res.headers.get('content-type'), /^text\/event-stream/);
-  const notices = [];
-  let wake = () => {};
-  (async () => {
-    let buffer = '';
-    for await (const chunk of res.body.pipeThrough(new TextDecoderStream())) {
-      buffer += chunk;
-      let end;
-      while ((end = buffer.indexOf('\n\n')) >= 0) {
-        const block = buffer.slice(0, end);
-        buffer = buffer.slice(end + 2);
-        const event = block.match(/^event: (.*)$/m)?.[1];
-        const data = block.match(/^data: (.*)$/m)?.[1];
-        if (event) notices.push({ event, ...JSON.parse(data) });
-        wake();
-      }
-    }
-  })().catch(() => {});
-  let read = 0;
-  const stream = {
-    async next(ms = 2000) {
-      const until = Date.now() + ms;
-      while (read >= notices.length) {
-        if (Date.now() > until) assert.fail(`no notice in ${ms} ms; had ${JSON.stringify(notices)}`);
-        await new Promise((r) => { wake = r; setTimeout(r, 20); });
-      }
-      const { event, ...notice } = notices[read++];
-      assert.equal(event, 'change');
-      return notice;
-    },
-    async none(ms = 400) {
-      await new Promise((r) => setTimeout(r, ms));
-      assert.deepEqual(notices.slice(read), [], 'no more notices');
-    },
-    close: () => abort.abort(),
-  };
-  return stream;
-}
-
-// The page's state as the tab fetches it after a notice.
-const stateOf = async (s, name) => {
-  const res = await fetch(s.base + name, { headers: { Accept: 'application/json' } });
-  assert.equal(res.status, 200);
-  return res.json();
-};
-
-test('live notice: the stream opens with the version the page served', () =>
-  withServer(async (s) => {
-    const { version } = await s.page('page.html');
-    const tab = await listen(s, 'page.html');
-    assert.deepEqual(await tab.next(), { version, cause: 'connect' });
-    await tab.none();
-    tab.close();
-  }));
-
-test('live notice: a save goes to every open tab once, with the version its answer names', () =>
-  withServer(async (s) => {
-    const { document, bases } = await s.page('page.html');
-    const p = idOf(document, 'p');
-    const tabs = [await listen(s, 'page.html'), await listen(s, 'page.html')];
-    for (const tab of tabs) await tab.next();
-    const answer = await (await s.put('page.html', { id: p, base: bases[p], directive: 'shorter' })).json();
-    for (const tab of tabs) {
-      assert.deepEqual(await tab.next(), { version: answer.after, cause: 'directive', id: p });
-    }
-    // The server's own write is not news again when the watcher sees it.
-    for (const tab of tabs) await tab.none();
-    // A save that changes nothing writes nothing, and says nothing.
-    await s.put('page.html', { id: p, base: bases[p], directive: 'shorter' });
-    await tabs[0].none();
-    tabs.forEach((tab) => tab.close());
-  }));
-
-test('live notice: a reply goes to the tab, and the state it fetches holds the thread', () =>
-  withServer(async (s) => {
-    const { id, announced } = await directAndAnnounce(s, 'page.html', 'p', 'add a diagram');
-    const tab = await listen(s, 'page.html');
-    await tab.next();
-    const answer = await (await s.put('page.html', { id, thread: announced.thread, reply: 'Added one.' })).json();
-    assert.deepEqual(await tab.next(), { version: answer.after, cause: 'reply', id });
-    const state = await stateOf(s, 'page.html');
-    const page = await s.page('page.html');
-    assert.deepEqual(state, { version: page.version, directives: page.directives, threads: page.threads, bases: page.bases });
-    assert.deepEqual(state.threads[id], [{ prefix: '@AI', text: 'add a diagram' }, { prefix: '@Human', text: 'Added one.' }]);
-    await tab.none();
-    tab.close();
-  }));
-
-test('live notice: an edit that goes around the server is one notice, also when saved by rename', () =>
-  withServer(async (s) => {
-    await s.page('page.html');
-    const tab = await listen(s, 'page.html');
-    await tab.next();
-    const edited = s.read('page.html').replace('First paragraph', 'First paragraph, edited');
-    s.write('page.html', edited.slice(0, 100));   // a write in two parts, as an editor might
-    s.write('page.html', edited);
-    assert.deepEqual(await tab.next(), { version: fingerprint(edited), cause: 'disk' });
-    await tab.none();
-    // An editor's atomic save: write a new file beside it, rename it over the page.
-    const again = edited.replace('Second', 'The second');
-    fs.writeFileSync(path.join(s.dir, '.page.html.tmp'), again);
-    fs.renameSync(path.join(s.dir, '.page.html.tmp'), path.join(s.dir, 'page.html'));
-    assert.deepEqual(await tab.next(), { version: fingerprint(again), cause: 'disk' });
-    // Another file in the directory is not this page's news.
-    s.write('other.html', s.read('other.html') + '\n');
-    await tab.none();
-    tab.close();
-  }));
-
-test('live notice: the state is what GET would serve, and fetching it writes nothing', () =>
-  withServer(async (s) => {
-    const tab = await listen(s, 'messy.html');
-    const { version: before } = await tab.next();
-    const onDisk = s.read('messy.html');
-    const state = await stateOf(s, 'messy.html');
-    assert.equal(s.read('messy.html'), onDisk, 'the state GET leaves the file as it was');
-    assert.equal(state.version, before);
-    await tab.none();
-    // The page's GET formats the file, and that write is a notice too.
-    const page = await s.page('messy.html');
-    assert.notEqual(page.version, before);
-    assert.deepEqual(await tab.next(), { version: page.version, cause: 'format' });
-    assert.deepEqual(state.bases, page.bases, 'numbered as the format numbers them');
-    assert.deepEqual(state.directives, page.directives);
-    tab.close();
-  }));
-
-test('live notice: a stream needs an html page that is there', () =>
-  withServer(async (s) => {
-    for (const name of ['nope.html', 'pic.svg']) {
-      const res = await fetch(s.base + name, { headers: { Accept: 'text/event-stream' } });
-      assert.equal(res.status, 404, name);
-    }
-  }));
-
-test('live notice: closing the server ends the streams and the watchers', async () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'html-revisor-'));
-  fs.cpSync(path.join(here, 'fixtures'), dir, { recursive: true });
-  const server = createServer({ root: dir, author: '@AI' });
-  await new Promise((r) => server.listen(0, '127.0.0.1', r));
-  try {
-    const res = await fetch(`http://127.0.0.1:${server.address().port}/page.html`, { headers: { Accept: 'text/event-stream' } });
-    const reader = res.body.getReader();
-    await reader.read();
-    await new Promise((r) => server.close(r));
-    for (let chunk = await reader.read(); !chunk.done; chunk = await reader.read());
-  } finally {
-    fs.rmSync(dir, { recursive: true, force: true });
-  }
 });
 
 test('a Done body must be an id, the directive, and for a scope the markdown', () =>
