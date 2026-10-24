@@ -3,7 +3,8 @@
 (function () {
   'use strict';
 
-  var directives = {};      // id -> text, the full current set
+  var directives = {};      // id -> text, the full current set: each element's open turn
+  var threads = {};         // id -> [{prefix, text}], the settled turns of each thread with a reply
   var markdowns = {};       // id -> markdown of each scope, as the server last saw it
   var committed = {};       // id -> markdown of each scope at the file's last commit, for Revert
   var edits = {};           // id -> markdown typed for a scope in this tab, not yet answered
@@ -25,6 +26,7 @@
     directives = JSON.parse(data.textContent) || {};
     for (var d0 in directives) savedDirectives[d0] = directives[d0];
     version = data.getAttribute('data-version');
+    threads = JSON.parse(document.getElementById('hrv-threads').textContent) || {};
     bases = JSON.parse(document.getElementById('hrv-bases').textContent) || {};
     markdowns = JSON.parse(document.getElementById('hrv-markdown').textContent) || {};
     committed = JSON.parse(document.getElementById('hrv-committed').textContent) || {};
@@ -40,6 +42,42 @@
 
   function hasText(id) {
     return typeof directives[id] === 'string' && directives[id].trim() !== '';
+  }
+
+  // An open thread: a directive, or turns the agent has answered. Resolve ends it.
+  function hasThread(id) {
+    return hasText(id) || !!threads[id];
+  }
+
+  // A reply is the agent's turn; the prefix names who the words are for.
+  var REPLY = '@Human';
+
+  // What was said last on the element: your open turn, or the thread's last turn.
+  function lastSaid(id) {
+    if (hasText(id)) return { text: directives[id], reply: false };
+    var turn = threads[id] && threads[id][threads[id].length - 1];
+    return turn ? { text: turn.text, reply: turn.prefix === REPLY } : null;
+  }
+
+  // A reply you haven't opened. This browser remembers the last reply you opened on each
+  // element, so a reload keeps it read.
+  function seenKey(id) {
+    return 'hrv-seen ' + location.pathname + ' ' + id;
+  }
+
+  var read = {};            // id -> the last reply opened in this tab
+
+  function isUnread(id) {
+    var said = lastSaid(id);
+    if (!said || !said.reply || read[id] === said.text) return false;
+    try { return localStorage.getItem(seenKey(id)) !== said.text; } catch (e) { return true; }
+  }
+
+  function markRead(id) {
+    var said = lastSaid(id);
+    if (!said || !said.reply) return;
+    read[id] = said.text;
+    try { localStorage.setItem(seenKey(id), said.text); } catch (e) { /* storage off: read for this tab only */ }
   }
 
   function elementFor(id) {
@@ -197,7 +235,7 @@
     positionTip();
   }
 
-  // Our own tooltip, in the material: the directive text, beside the marker under the pointer.
+  // Our own tooltip, in the material: what was said last, beside the marker under the pointer.
   var tip = document.createElement('div');
   tip.className = 'hrv-tip';
   tip.style.display = 'none';
@@ -220,8 +258,10 @@
   // Above the marker, left edges aligned; below it with no room above. Kept inside the window.
   function positionTip() {
     var marker = tipId && markers[tipId];
-    if (!marker || marker.style.display === 'none' || !hasText(tipId)) { hideTip(); return; }
-    tip.textContent = directives[tipId];
+    var said = tipId && lastSaid(tipId);
+    if (!marker || marker.style.display === 'none' || !said) { hideTip(); return; }
+    tip.textContent = said.text;
+    tip.className = 'hrv-tip' + (said.reply ? ' hrv-tip-reply' : '');
     tip.style.display = 'block';
     var o = layerOrigin();
     var m = marker.getBoundingClientRect();
@@ -323,9 +363,10 @@
     });
   }
 
-  // Make the marker match the directive text. A marker added or removed can move the others.
+  // Make the marker match the thread: a pencil, or a bubble for a reply you haven't opened.
+  // A marker added or removed can move the others.
   function syncMarker(id) {
-    if (hasText(id)) {
+    if (hasThread(id)) {
       var marker = markers[id];
       if (!marker) {
         marker = document.createElement('div');
@@ -342,7 +383,9 @@
         layer.appendChild(marker);
         markers[id] = marker;
       }
-      marker.setAttribute('aria-label', directives[id]);
+      var unread = isUnread(id);
+      marker.classList.toggle('hrv-answered', unread);
+      marker.setAttribute('aria-label', (unread ? 'New reply: ' : '') + lastSaid(id).text);
     } else if (markers[id]) {
       markers[id].remove();
       delete markers[id];
@@ -403,11 +446,11 @@
     updateDocket();
   }
 
-  // Elements with directives, in document order.
+  // Elements with open threads, in document order.
   function directiveElements() {
     var els = [];
-    for (var id in directives) {
-      var el = hasText(id) && elementFor(id);
+    for (var id in markers) {
+      var el = elementFor(id);
       if (el) els.push(el);
     }
     return els.sort(function (a, b) { return follows(a, b) ? -1 : 1; });
@@ -529,10 +572,9 @@
 
   // ---- saving ----
 
+  // The docket counts open threads: a directive, or turns the agent answered.
   function directiveCount() {
-    var n = 0;
-    for (var id in directives) if (hasText(id)) n++;
-    return n;
+    return Object.keys(markers).length;
   }
 
   // Mark a change to send. A change already waiting sends the latest value, once. Each change
@@ -563,6 +605,7 @@
       a['hrv.html.before'] = capped(el.outerHTML);
       a['hrv.html.before.length'] = el.outerHTML.length;
     }
+    if (change.kind === 'resolve') return span;
     var markdown = change.kind === 'markdown';
     var before = (markdown ? markdowns[change.id] : savedDirectives[change.id]) || '';
     var after = (markdown ? edits[change.id] : directives[change.id]) || '';
@@ -577,7 +620,8 @@
 
   function bodyFor(change) {
     var body = { id: change.id, base: bases[change.id] || '' };
-    body[change.kind] = change.kind === 'markdown' ? edits[change.id] : (directives[change.id] || '');
+    if (change.kind === 'resolve') body.resolve = true;
+    else body[change.kind] = change.kind === 'markdown' ? edits[change.id] : (directives[change.id] || '');
     return body;
   }
 
@@ -590,9 +634,10 @@
     if (el) el.replaceWith(fragmentFor(el, data.html));
     for (var k in data.markdowns) markdowns[k] = data.markdowns[k];
     if (data.id && data.id !== id) moveId(id, data.id);
-    for (var d in directives) {
+    for (var d in markers) {
       if (!elementFor(d)) {
         delete directives[d];
+        delete threads[d];
         syncMarker(d);
       }
     }
@@ -622,7 +667,9 @@
 
   function moveId(from, to) {
     if (hasText(from) && !hasText(to)) directives[to] = directives[from];
+    if (threads[from] && !threads[to]) threads[to] = threads[from];
     delete directives[from];
+    delete threads[from];
     syncMarker(from);
     syncMarker(to);
     if (from in edits) edits[to] = edits[from];
@@ -669,7 +716,7 @@
         return;
       }
       for (var id in data.bases) bases[id] = data.bases[id];
-      if (change.kind === 'directive') savedDirectives[change.id] = directives[change.id] || '';
+      if (change.kind !== 'markdown') savedDirectives[change.id] = directives[change.id] || '';
       if (change.kind === 'markdown') applyScope(change.id, data);
       if (change.span && typeof data.html === 'string') {
         change.span.attributes['hrv.html.after'] = capped(data.html);
@@ -821,6 +868,37 @@
     typeOver(textArea, committed[id]);
   }
 
+  // The settled turns, one block each: who said it, then what.
+  function threadView(turns) {
+    var view = document.createElement('div');
+    view.className = 'hrv-thread';
+    turns.forEach(function (turn) {
+      var agent = turn.prefix === REPLY;
+      var div = document.createElement('div');
+      div.className = 'hrv-turn' + (agent ? ' hrv-agent' : '');
+      var who = document.createElement('span');
+      who.className = 'hrv-who';
+      who.textContent = agent ? 'agent' : 'you';
+      var says = document.createElement('span');
+      says.className = 'hrv-says';
+      says.textContent = turn.text;
+      div.appendChild(who);
+      div.appendChild(says);
+      view.appendChild(div);
+    });
+    return view;
+  }
+
+  // Resolve: the thread ends, directive and replies, and the box closes. It goes out after the
+  // box's other changes.
+  function resolveThread(ta) {
+    var id = boxId;
+    ta.value = '';
+    delete threads[id];
+    addUnsent('resolve', id, boxOpened.session);
+    closeBox('resolve');
+  }
+
   function openBox(id) {
     if (box && boxId === id) {
       box.querySelector('textarea.hrv-directive').focus();
@@ -874,11 +952,16 @@
       box.appendChild(textArea);
     }
 
+    // Once the agent has replied, the thread shows above your field, and what you type is your
+    // next turn. The turns before it stay as written. Until then, the field is the directive.
+    var thread = threads[id] ? threadView(threads[id]) : null;
+    if (thread) box.appendChild(thread);
+
     var ta = document.createElement('textarea');
     ta.className = 'hrv-directive';
-    ta.setAttribute('aria-label', 'Directive');
+    ta.setAttribute('aria-label', thread ? 'Your turn' : 'Directive');
     ta.value = directives[id] || '';
-    ta.placeholder = 'Directive for this element';
+    ta.placeholder = thread ? 'Add to the thread' : 'Directive for this element';
     ta.addEventListener('input', function () {
       fit(ta);
       schedulePosition();
@@ -886,10 +969,10 @@
       setDirective(boxId, ta.value);
       scheduleSave('directive', boxId);
     });
-    var clearButton = fieldAction('Clear', 'Clear the directive (' + CLEAR_KEY + ')', function () {
+    var clearButton = fieldAction('Clear', (thread ? "Empty the turn you haven't sent" : 'Clear the directive') + ' (' + CLEAR_KEY + ')', function () {
       clearDirective(ta);
     });
-    box.appendChild(label('Directive', clearButton));
+    box.appendChild(label(thread ? 'You' : 'Directive', clearButton));
     box.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' || (e.key === 'Enter' && (e.metaKey || e.ctrlKey))) {
         e.preventDefault();
@@ -922,6 +1005,14 @@
     var row = document.createElement('div');
     row.className = 'hrv-row';
     row.appendChild(hint);
+    if (thread) {
+      var resolve = button();
+      resolve.className = 'hrv-btn';
+      resolve.textContent = 'Resolve';
+      resolve.title = 'End the thread: remove the directive and its replies';
+      resolve.addEventListener('click', function () { resolveThread(ta); });
+      row.appendChild(resolve);
+    }
     row.appendChild(done);
 
     box.appendChild(ta);
@@ -933,6 +1024,9 @@
     layer.appendChild(box);
     if (textArea) fit(textArea);
     fit(ta);
+    if (thread) thread.scrollTop = thread.scrollHeight;
+    markRead(id);
+    syncMarker(id);
     // The box's height changes as its fields grow; placement measures it each time.
     if (window.ResizeObserver) new ResizeObserver(schedulePosition).observe(box);
     positionBox();
@@ -968,7 +1062,7 @@
   }
 
   // Tab and Shift-Tab go round the box's fields and buttons in order, Revert, Content, Clear,
-  // Directive, Done, and wrap at the ends. Esc is the way out. A hidden action takes no stop.
+  // Directive (You, in a thread), Resolve in a thread, Done, and wrap at the ends. Esc is the way out. A hidden action takes no stop.
   function wrapTab(e) {
     if (e.key !== 'Tab' || e.altKey || e.metaKey || e.ctrlKey) return;
     var stops = Array.prototype.filter.call(box.querySelectorAll('textarea, button'), function (s) {
@@ -1002,5 +1096,6 @@
   // ---- start ----
 
   for (var id in directives) syncMarker(id);
+  for (var t in threads) syncMarker(t);
   updateDocket();
 })();

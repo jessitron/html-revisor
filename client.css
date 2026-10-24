@@ -6,7 +6,9 @@
 
 /* One material for every component: near-black surface, 1px light ring, shadow, square corners,
    the same in light and dark mode. Agent-made pages round their corners; ours are square.
-   Color means one thing: the accent marks the icon, the crop marks, and the main action. */
+   Color means one thing: the accent is yours, and marks the icon, the crop marks, and the main
+   action. Green is the agent's voice: a reply. A glyph or a word backs each color, so color is
+   never the only cue. */
 :root {
   --hrv-accent: #d6336c;
   --hrv-on-accent: #fff;
@@ -26,6 +28,8 @@
   --hrv-crop-gap: 4px;
   --hrv-halo-filter: drop-shadow(1px 0 0 var(--hrv-halo)) drop-shadow(-1px 0 0 var(--hrv-halo))
     drop-shadow(0 1px 0 var(--hrv-halo)) drop-shadow(0 -1px 0 var(--hrv-halo)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
+  --hrv-reply: #51cf66;
+  --hrv-bubble: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M1 2h14v9h-3l1.5 3.5L8.5 11H1z'/></svg>");
   --hrv-pencil: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><g transform='rotate(40 8 8)'><rect x='0' y='5.6' width='2.6' height='4.8'/><rect x='3.6' y='5.6' width='7.4' height='4.8'/><path d='M12 5.6L16 8l-4 2.4z'/></g></svg>");
 }
 
@@ -68,13 +72,20 @@ html:not([data-hrv-review="off"]) [data-hrv]:not(html, body) { cursor: copy !imp
   -webkit-mask: var(--hrv-pencil) center / contain no-repeat; mask: var(--hrv-pencil) center / contain no-repeat;
 }
 :is(#hrv-layer, .hrv-layer) .hrv-marker:hover { box-shadow: 0 0 0 1px var(--hrv-accent), 0 4px 16px rgba(0, 0, 0, 0.45); }
+/* A reply you haven't opened: a green speech bubble in place of the pencil. Opening the box
+   puts the pencil back. Nothing moves. */
+:is(#hrv-layer, .hrv-layer) .hrv-marker.hrv-answered::before {
+  background: var(--hrv-reply); -webkit-mask-image: var(--hrv-bubble); mask-image: var(--hrv-bubble);
+}
 
-/* The marker's tooltip: the directive text, in the material, monospace like the directive field. */
+/* The marker's tooltip: whatever was said last in the thread, in the material, in prose type.
+   A reply wears the green rule. */
 :is(#hrv-layer, .hrv-layer) .hrv-tip {
   position: absolute; width: max-content; max-width: 280px; padding: 6px 8px; background: var(--hrv-surface);
-  box-shadow: var(--hrv-material); font: var(--hrv-mono); white-space: pre-wrap; overflow-wrap: anywhere;
+  box-shadow: var(--hrv-material); font: var(--hrv-font); white-space: pre-wrap; overflow-wrap: anywhere;
   pointer-events: none; z-index: 2;
 }
+:is(#hrv-layer, .hrv-layer) .hrv-tip.hrv-tip-reply { border-left: 2px solid var(--hrv-reply); }
 
 /* Crop marks: four square corners just outside an element. The client sizes .hrv-crop to the
    element's box plus --hrv-crop-gap on each side, so the marks never touch what they mark.
@@ -124,8 +135,17 @@ html:not([data-hrv-review="off"]) [data-hrv]:not(html, body) { cursor: copy !imp
   border: 1px solid var(--hrv-line); background: var(--hrv-field); color: var(--hrv-text);
   resize: none; overflow: auto; white-space: pre-wrap; cursor: text;
 }
-/* The directive is an instruction headed into an HTML comment: monospace. */
-:is(#hrv-layer, .hrv-layer) .hrv-box textarea.hrv-directive { font: var(--hrv-mono); }
+/* The directive is what you say: prose type, like the thread. Only Content is monospace. */
+:is(#hrv-layer, .hrv-layer) .hrv-box textarea.hrv-directive { font: var(--hrv-font); }
+/* The thread, once the agent replies: one turn per block, between Content and your field.
+   A rule at the left says whose turn it is, magenta yours, green the agent's, and so does the
+   word above it. It grows to 240px, then scrolls; it opens scrolled to the end. */
+:is(#hrv-layer, .hrv-layer) .hrv-thread { display: block; max-height: 240px; overflow: auto; margin-top: 6px; }
+:is(#hrv-layer, .hrv-layer) .hrv-turn { display: block; padding: 4px 0 4px 8px; margin-top: 4px; border-left: 2px solid var(--hrv-accent); }
+:is(#hrv-layer, .hrv-layer) .hrv-turn:first-child { margin-top: 0; }
+:is(#hrv-layer, .hrv-layer) .hrv-turn.hrv-agent { border-left-color: var(--hrv-reply); }
+:is(#hrv-layer, .hrv-layer) .hrv-who { display: block; color: var(--hrv-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
+:is(#hrv-layer, .hrv-layer) .hrv-says { display: block; white-space: pre-wrap; overflow-wrap: anywhere; }
 /* The Text field holds the element's markdown, syntax and all: monospace too. */
 :is(#hrv-layer, .hrv-layer) .hrv-box textarea.hrv-text { font: var(--hrv-mono); height: 32px; min-height: 32px; }
 :is(#hrv-layer, .hrv-layer) .hrv-box textarea::placeholder { color: var(--hrv-muted); }
