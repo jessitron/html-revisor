@@ -55,6 +55,10 @@ Change files with the Edit and Write tools, not sed, perl, heredocs, or scripts 
 - The formatter puts each element of an `<svg>` on its own line, so a directive inside a diagram is in reach of Read, which cuts lines off at 2000 characters. A `<text>` stays whole on one line, its whitespace renders. Every element inside an svg can take a directive. Commenting on SVG text works and Jess likes it; see the SVG yak before changing it.
 - The client script is `client.js`, a plain browser script (no modules, no build) that the server inlines into each page on GET. Client UI work and server work edit different files, but the save protocol spans both: a PUT change touches `client.js` and `server.mjs` together. When picking yaks to run in parallel, two that touch the client still collide with each other.
 
+## Dispatcher mode
+
+Jess's attention span is under 5 seconds. Keep the main thread for conversation: reply in a line or two, and hand any work longer than that to a background fork in a worktree. Message a running fork with SendMessage instead of starting a new one. Give the design docs (DESIGN.html and its kin) their own worker: iterating on a page with Jess is a conversation of its own, and it holds her attention while code workers run.
+
 ## Task tracking: use `yx`
 
 This project tracks work with `yx`, a git-backed TODO CLI (`yx help` for full command list). Don't use TaskCreate/TaskUpdate for durable project work — those are session-scoped. Use `yx` instead so tasks persist across sessions and machines.
