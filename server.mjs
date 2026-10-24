@@ -386,6 +386,9 @@ async function applyChange(res, file, urlPath, { id, base, directive, markdown, 
     if (answer.spill.length) span?.setAttribute('hrv.spill.made', answer.spill.length);
   }
   const written = inSpan('serialize', {}, () => serialize(document));
+  // A save the canonical file can't tell from what it holds writes nothing: a directive
+  // differing only in edge whitespace (it's trimmed), markdown differing only in a trailing space.
+  span?.setAttribute('hrv.wrote', written !== onDisk);
   if (written !== onDisk) {
     await inSpan('write file', {}, () => writeText(file, written));
     live.wrote(file, written, kind, id);

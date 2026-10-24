@@ -92,7 +92,7 @@ async function getAndPut(base, traceparent) {
     body: JSON.stringify({ id, base: bases[id], directive: 'make it shorter' }),
   });
   assert.equal(res.status, 200);
-  return id;
+  return { id, base: (await res.json()).bases[id] };
 }
 
 const traceId = () => crypto.randomBytes(16).toString('hex');
@@ -114,7 +114,15 @@ test('with HRV_TELEMETRY, a GET and a PUT send spans for their steps', () =>
     let id;
     await withServer(env, async ({ base, stdout }) => {
       assert.match(stdout(), /telemetry on, to http:\/\/127\.0\.0\.1/);
-      id = await getAndPut(base, `00-${trace}-${parent}-01`);
+      const put = await getAndPut(base, `00-${trace}-${parent}-01`);
+      id = put.id;
+      // The same directive with a trailing space: trimmed, the file comes out the same.
+      const again = await fetch(base + 'page.html', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, base: put.base, directive: 'make it shorter ' }),
+      });
+      assert.equal(again.status, 200);
     });
     assert.ok(collector.bodies.every((b) => b.url === '/v1/traces'));
     const spans = collector.spans();
@@ -134,8 +142,11 @@ test('with HRV_TELEMETRY, a GET and a PUT send spans for their steps', () =>
       assert.ok(getSteps.includes(step), `GET has no ${step} step; it has ${getSteps}`);
     }
 
-    const [put] = named('PUT change');
+    const [put, same] = named('PUT change').sort((a, b) => (BigInt(a.startTimeUnixNano) < BigInt(b.startTimeUnixNano) ? -1 : 1));
     assert.ok(put, 'no PUT change span');
+    assert.equal(put.attributes['hrv.wrote'], true);
+    assert.equal(same.attributes['hrv.wrote'], false, 'a save that changes nothing says so');
+    assert.ok(!spans.some((s) => s.parentSpanId === same.spanId && s.name === 'write file'), 'a save that changes nothing writes nothing');
     assert.equal(put.attributes['hrv.change.kind'], 'directive');
     assert.equal(put.attributes['hrv.scope.id'], id);
     assert.equal(put.attributes['hrv.directive.count'], 1);
@@ -221,7 +232,7 @@ test('with HRV_TELEMETRY, Done nests under the browser done span and says whethe
     const env = cleanEnv({ HRV_TELEMETRY: '1', OTEL_EXPORTER_OTLP_ENDPOINT: collector.endpoint });
     const trace = traceId(), done = 'c'.repeat(16);
     await withServer(env, async ({ base }) => {
-      const id = await getAndPut(base, `00-${traceId()}-${'1'.repeat(16)}-01`);
+      const { id } = await getAndPut(base, `00-${traceId()}-${'1'.repeat(16)}-01`);
       const t0 = Date.now();
       const res = await fetch(base + 'page.html', {
         method: 'POST',
