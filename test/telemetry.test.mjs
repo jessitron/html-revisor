@@ -143,7 +143,29 @@ test('with HRV_TELEMETRY, a GET and a PUT send spans for their steps', () =>
     for (const step of ['read file', 'parse', 'check base', 'set directive', 'serialize', 'write file', 'reparse', 'bases']) {
       assert.ok(putSteps.includes(step), `PUT has no ${step} step; it has ${putSteps}`);
     }
+
+    // Steps run one after another, so each starts after the one before; whole milliseconds would tie.
+    const starts = spans.filter((s) => s.parentSpanId === put.spanId).map((s) => BigInt(s.startTimeUnixNano)).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+    for (let i = 1; i < starts.length; i++) assert.ok(starts[i] > starts[i - 1], `two PUT steps start at ${starts[i]} ns`);
+    assert.ok(starts.some((t) => t % 1_000_000n !== 0n), 'PUT step starts fall on whole milliseconds');
+    assert.ok(BigInt(put.startTimeUnixNano) <= starts[0] && BigInt(put.endTimeUnixNano) >= starts.at(-1), 'the steps lie inside the PUT');
   }));
+
+test('the span clock has a fraction of a millisecond and follows the wall clock', async () => {
+  const { makeClock, spanTime } = await import('../interface/telemetry.mjs');
+  const a = spanTime(), b = spanTime();
+  assert.ok(b > a, 'two readings in a row differ');
+  assert.ok(Math.abs(a - Date.now()) < 3, 'the clock reads epoch milliseconds');
+
+  // A sleep stops the monotonic clock and not the wall clock: the anchor moves.
+  let wall = 1_000_000, mono = 10.25;
+  const clock = makeClock({ wall: () => wall, mono: () => mono, origin: wall - mono });
+  assert.equal(clock(), 1_000_000);
+  mono = 10.75, wall = 1_000_000;
+  assert.equal(clock(), 1_000_000.5, 'within the slack, the monotonic clock rules');
+  wall += 3_600_000, mono += 5;
+  assert.equal(clock(), wall, 'after a sleep, the clock reads the wall clock');
+});
 
 // The browser's spans for one directive save, as client.js posts them, around a real PUT that
 // carries the client PUT span as its traceparent.

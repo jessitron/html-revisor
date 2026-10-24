@@ -21,7 +21,7 @@ import {
   wants, openEventStream,
 } from './interface/http.mjs';
 import { announce } from './interface/stdout.mjs';
-import { trace, inSpan, requestSpan, startTelemetry, recordBrowserSpans } from './interface/telemetry.mjs';
+import { trace, inSpan, requestSpan, startTelemetry, recordBrowserSpans, spanTime } from './interface/telemetry.mjs';
 
 export function parseArgs(argv) {
   const config = { root: process.cwd(), port: 7777, author: '@AI' };
@@ -47,7 +47,7 @@ export function createServer({ root, author, telemetry = false }) {
     if (req.method === 'GET' && wants(req) === 'events') return streamEvents(req, res, config).catch((err) => sendError(res, err));
     requestSpan(req, res, (span) =>
       route(req, res, config).catch((err) => {
-        span.recordException(err);
+        span.recordException(err, spanTime());
         sendError(res, err);
       }),
     );

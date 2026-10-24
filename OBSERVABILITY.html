@@ -160,7 +160,7 @@
         </tbody>
       </table>
       <p class="note">
-        Browser spans carry <code>hrv.side = browser</code>. A conflict or a failed save marks the browser's spans as errors. A text attribute stops at 50,000 characters, under Honeycomb's 64 KB limit; its <code>.length</code> is the full count.
+        Browser spans carry <code>hrv.side = browser</code>. A conflict or a failed save marks the browser's spans as errors. A text attribute stops at 50,000 characters, under Honeycomb's 64 KB limit; its <code>.length</code> is the full count. Server spans take their times from <code>performance.now()</code> on an anchor to the wall clock, so steps in one request start in order, to the microsecond.
       </p>
     </section>
     <section>
