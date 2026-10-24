@@ -239,7 +239,11 @@
     <div class="swatches">
       <div class="swatch" data-var="--hrv-accent">
         <div class="chip"></div>
-        <div>accent: icon, crop marks, main action, focus</div>
+        <div>accent: icon, crop marks, main action, focus; your turns</div>
+      </div>
+      <div class="swatch" data-var="--hrv-reply">
+        <div class="chip"></div>
+        <div>reply: the agent's voice, its turns and the unread bubble</div>
       </div>
       <div class="swatch" data-var="--hrv-error">
         <div class="chip"></div>
@@ -310,7 +314,23 @@
           </div>
         </div>
         <p class="note">
-          <code>.hrv-marker</code>: the icon on a 20px tile of the material, outside its element's box and flush against it, so it never covers what it marks and never reads as a neighbor's. It sits left of the first line, top edges aligned, over the crop mark at that corner; with no room on the left, above the top-left corner. The pencil tip points at the element either way. A marker that would land on another steps outward, left or up, and the inner element keeps the nearest spot. Hovering a marker shows crop marks on its element and <code>.hrv-tip</code>: the directive in the material, above the marker, or below it when there is no room.
+          <code>.hrv-marker</code>: the icon on a 20px tile of the material, outside its element's box and flush against it, so it never covers what it marks and never reads as a neighbor's. It sits left of the first line, top edges aligned, over the crop mark at that corner; with no room on the left, above the top-left corner. The pencil tip points at the element either way. A marker that would land on another steps outward, left or up, and the inner element keeps the nearest spot. Hovering a marker shows crop marks on its element and <code>.hrv-tip</code>: whatever was said last in the thread, in the material, above the marker, or below it when there is no room.
+        </p>
+      </div>
+      <div>
+        <div class="stage" style="height: 150px;">
+          <div style="margin: 40px 0 0 26px;">
+            <p data-mark="hover">The agent replied here, and you haven't opened it.</p>
+          </div>
+          <div class="hrv-layer">
+            <div class="hrv-marker hrv-answered" style="left: 30px; top: 64px;"></div>
+            <div class="hrv-tip hrv-tip-reply" style="left: 30px; top: 18px;">
+              Added a sequence diagram below this paragraph.
+            </div>
+          </div>
+        </div>
+        <p class="note">
+          <code>.hrv-answered</code>: a reply you haven't opened. A green speech bubble takes the pencil's place; opening the box puts the pencil back, and the browser remembers it across reloads. Nothing moves. Its tip is the reply, with <code>.hrv-tip-reply</code>'s green rule.
         </p>
       </div>
     </div>
@@ -362,6 +382,43 @@
         <p class="note">
           A directive box with editor, for a scope: its field holds the scope's markdown. Above it, the notch below.
         </p>
+      </div>
+    </div>
+    <h2 id="thread">Thread</h2>
+    <p class="note">
+      Once the agent replies, <code>.hrv-thread</code> shows the turns between Content and your field, one <code>.hrv-turn</code> each. A rule at the left and a word say whose: magenta you, green agent (<code>.hrv-agent</code>). The turns stay as written. Your field becomes You, and what you type is your next turn. Resolve, beside Done, ends the thread: the directive and its replies go. The thread grows to 240px, then scrolls, and opens scrolled to the end.
+    </p>
+    <div class="row">
+      <div>
+        <div class="stage" style="height: 330px;">
+          <p data-mark="selected">Where it's headed</p>
+          <div class="hrv-layer">
+            <div class="hrv-box" data-side="below" style="left: 24px; top: 62px; --hrv-notch: 60px;">
+              <div class="hrv-head">
+                <span class="hrv-icon"></span> <span class="hrv-what">p · Where it's headed</span>
+              </div>
+              <div class="hrv-label">Content</div>
+              <textarea class="hrv-text">Where it's headed</textarea>
+              <div class="hrv-thread">
+                <div class="hrv-turn">
+                  <span class="hrv-who">you</span> <span class="hrv-says">Add a diagram of the PUT flow here</span>
+                </div>
+                <div class="hrv-turn hrv-agent">
+                  <span class="hrv-who">agent</span> <span class="hrv-says">Added a sequence diagram below this paragraph. I left out the retry path: it doubled the size. Want it as a second diagram?</span>
+                </div>
+              </div>
+              <div class="hrv-label">
+                You <button type="button" class="hrv-btn hrv-quiet hrv-field-action" title="Empty the turn you haven't sent (⌥⌘⌫)"> Clear </button>
+              </div>
+              <textarea class="hrv-directive" placeholder="Add to the thread">Yes, a second one</textarea>
+              <div class="hrv-row">
+                <div class="hrv-hint hrv-status">saved</div>
+                <button type="button" class="hrv-btn" title="End the thread: remove the directive and its replies">Resolve</button> <button type="button" class="hrv-btn hrv-done">Done</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="note">Answered, and you're typing the next turn.</p>
       </div>
     </div>
     <h2 id="revert">Revert and Clear</h2>
