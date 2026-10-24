@@ -33,8 +33,7 @@ const examples = (document) => [...document.querySelectorAll('.ex')].map((ex, i)
 const LEGEND_KEY = 'legend';
 const isReport = (node) => node?.nodeType === 1 && node.classList.contains('scope-report');
 
-// Removes this tool's marks, and those of chunks.mjs, the earlier version of this tool. Returns
-// the reports it took, by key: each example's, and the legend.
+// Removes this tool's marks. Returns the reports it took, by key: each example's, and the legend.
 function takeAnnotations(document) {
   const taken = new Map();
   for (const [key, ex] of examples(document)) {
@@ -47,8 +46,7 @@ function takeAnnotations(document) {
   const legend = document.querySelector('#scopes > p.scope-report');
   if (legend) taken.set(LEGEND_KEY, [legend]);
   const holders = new Map([...taken].map(([key, els]) => [key, holding(document, els)]));
-  document.querySelectorAll('.scope-report, #scope-view, .chunk-report, #chunk-view').forEach((el) => el.remove());
-  document.querySelectorAll('[data-chunk]').forEach((el) => el.removeAttribute('data-chunk'));
+  document.querySelectorAll('.scope-report, #scope-view').forEach((el) => el.remove());
   return holders;
 }
 

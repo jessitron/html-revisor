@@ -36,7 +36,7 @@ function holdsBlocks(el) {
 export const isBlock = (el) => BLOCK.has(el.localName) || holdsBlocks(el);
 
 // Attributes the tool adds. Markdown doesn't carry them; the prior HTML does.
-const IGNORED_ATTRS = new Set(['data-chunk', 'data-hrv']);
+const IGNORED_ATTRS = new Set(['data-hrv']);
 const attrNames = (el) => [...el.attributes].map((a) => a.name).filter((a) => !IGNORED_ATTRS.has(a));
 export const hasAttrs = (el) => attrNames(el).length > 0;
 
@@ -574,7 +574,7 @@ function sameNodes(prior, html) {
 // ids: keep element IDs, to check that they survive a save.
 export function canonicalHTML(document, nodes, { ids = false } = {}) {
   const holder = document.createElement('div');
-  for (const n of nodes) holder.appendChild(bare(n, ids ? new Set(['data-chunk']) : IGNORED_ATTRS));
+  for (const n of nodes) holder.appendChild(bare(n, ids ? new Set() : IGNORED_ATTRS));
   return formatElement(holder);
 }
 
