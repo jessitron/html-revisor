@@ -20,9 +20,9 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
     </p>
     <section id="status" class="status">
       <h2>Status</h2>
-      <p class="status-value">working</p>
+      <p class="status-value">merged-ready</p>
       <p class="status-why">
-        Links edit as markdown and pair with their originals; Decided table and annotation next.
+        Links edit as markdown and carry their other attributes back; suite green.
       </p>
     </section>
     <section id="plan" class="plan">
@@ -49,7 +49,13 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
           2026-10-24 15:10: started. Any link with an href writes as <code>[text](href "title")</code>; <code>restore()</code> pairs links and carries their other attributes back.
         </li>
         <li>
-          2026-10-24 15:40: in a generated page, a markdown link took the original of an HTML-written link beside it. Links and images that markdown wrote now carry a mark, <code>hrv-md</code>, so <code>pairs()</code> can tell them from ones written as HTML.
+          2026-10-24 15:40: in a generated page, a markdown link took the original of an HTML-written link beside it. Links and images that markdown wrote now carry a mark, <code>hrv-md</code>, so <code>pairs()</code> can tell them from ones written as HTML. Committed <code>50d587d</code>.
+        </li>
+        <li>
+          2026-10-24 16:00: <code>6b59068</code> a Links row in SCOPES-DESIGN's Decided table; <code>a9255b3</code> the annotation, which changed only B2.
+        </li>
+        <li>
+          2026-10-24 16:10: OVERVIEW's fidelity trail swaps "Links round-trip" for "Inline fallback" (<code>inline-fallback-per-element-not-per-run-8hlj</code>). Yak done.
         </li>
       </ul>
     </section>
@@ -89,15 +95,39 @@ code { font-family: ui-monospace, monospace; font-size: .85em; }
     </section>
     <section id="result" class="result">
       <h2>Result</h2>
-      <p>Not yet.</p>
+      <ul>
+        <li>
+          <code>50d587d</code> Links edit as markdown and carry their other attributes back
+        </li>
+        <li><code>6b59068</code> SCOPES-DESIGN: links edit as markdown</li>
+        <li><code>a9255b3</code> SCOPES-DESIGN: annotate B2, a link as markdown</li>
+        <li>This page's last update and the OVERVIEW swap ride in the final commit.</li>
+        <li>
+          Tests: <code>node --test --test-reporter=tap</code>: <code># pass 238</code>, <code># fail 0</code>. Five new tests in <code>test/scopes.test.mjs</code>.
+        </li>
+        <li>
+          For a user: a link with a class, target, or rel shows as <code>[text](href)</code> in the Content field. Editing its text or href keeps its class and target. Writing a link or image as HTML keeps exactly the attributes written.
+        </li>
+      </ul>
     </section>
     <section id="gotchas" class="gotchas">
       <h2>Gotchas</h2>
-      <p>None yet.</p>
+      <ul>
+        <li>
+          A first draft of the pairing compared all attributes before text, so a markdown link took the original of an HTML link with the same href. Only the generated round-trip test (seed 140) caught it; the hand-written tests had one link each. A test with a markdown link beside an HTML link of the same href would have caught it first.
+        </li>
+        <li>
+          A <code>const image</code> at the bottom of <code>domain/scopes.mjs</code> clashed with the function <code>image()</code>, and every test file failed to load at once. The failure list named files, not the error; <code>node -e "import('./domain/scopes.mjs')"</code> showed it.
+        </li>
+      </ul>
     </section>
     <section id="new-yaks" class="new-yaks">
       <h2>New yaks</h2>
-      <p>None yet.</p>
+      <ul>
+        <li>
+          <code>a-link-whose-href-and-text-both-change-loses-its-class-and-target-pair-by-place-as-a-last-resort-n6a7</code>: A link whose href and text both change loses its class and target: pair by place as a last resort?
+        </li>
+      </ul>
     </section>
   </body>
 </html>
