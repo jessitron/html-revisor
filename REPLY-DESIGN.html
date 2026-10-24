@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-hrv-next="577" lang="en">
+<html data-hrv-next="595" lang="en">
   <head>
     <meta charset="utf-8">
     <title>html-revisor: reply design</title>
@@ -160,63 +160,34 @@
     <p data-hrv="49" class="note">
       An agent replies today with <code>node reply.mjs &lt;page URL&gt; &lt;id&gt; &lt;thread&gt; &lt;text&gt;</code>, the id and thread from the Announcement. The marker turns to the bubble without a reload; an open box shows a notice until Thread arrives live lands. The “built” column in <a data-hrv="543" href="#decided">Decided</a> marks each decision the code has.
     </p>
-    <h2 data-hrv="554" id="for-jess">
-      <!-- @AI: ok great. all of this looks fine. Go ahead and move a few things to "for later" (yaks we create) and anything super crucial to Decisions, but mostly, remove everything from here that I've seen. Then this section can have new stuff. -->
-      For you, when you're back
-    </h2>
+    <h2 data-hrv="554" id="for-jess">For you</h2>
     <p data-hrv="555" class="note">
-      Work went on while you were out. Click an item to answer; I'll reply there.
+      What's new since you looked. What you've seen goes; what's settled moves to Decided or to a yak.
     </p>
     <h3 data-hrv="556">Updates</h3>
     <ol data-hrv="557">
+      <li data-hrv="577">
+        <strong>I watch the server's output now.</strong> Each Done reaches me as you make it, so a reply comes without “your turn”.
+      </li>
+      <li data-hrv="578">
+        <strong>The client subagent has three of its five yaks committed</strong> on its branch: the thread arrives live in an open box (a save typed before a reply is refused, so no duplicate turn), new stays new, and working. It stopped at the usage limit in the docket's replies row; I resumed it.
+      </li>
+      <li data-hrv="579">
+        <strong>Two yaks from your answers:</strong> “Lighten the skill's reply loop” (one commit per reply, and no path for a directive written by hand) and “Rethink who edits the live file”.
+      </li>
+      <li data-hrv="580">
+        <strong>Decided gained three rows:</strong> how the agent hears a Resolve, how it finds the server, and when it replies in the page.
+      </li>
+    </ol>
+    <h3 data-hrv="581">Your questions</h3>
+    <ol data-hrv="582">
       <li data-hrv="558">
         <!-- @AI: does the agent even see anything on Clear? I don't know why it would, it sees things on Done -->
         <strong>Announce Resolve is merged.</strong> A Resolve prints one Announcement with <code>resolved</code>: the turns that ended. A Clear never has them, so the agent can tell the two apart.
       </li>
-      <li data-hrv="559">
-        <strong>Live notice is merged.</strong> Each tab holds an event stream to its page. A reply, another tab's save, or a write around the server (an agent's hand edit) reaches the tab with no reload: markers appear, go, or turn to the bubble, and the docket count follows.
-      </li>
-      <li data-hrv="560">
-        <strong>I merged them in that order and resolved the conflicts in <code>server.mjs</code> and the README by keeping both sides.</strong> 192 tests pass, 1 skipped (Honeycomb).
-      </li>
-      <li data-hrv="561">
-        <strong>A subagent is building the client yaks, in order:</strong> thread arrives live in an open box (with the duplicate-turn fix), new stays new, directive status (working), the docket's replies row, and review off hiding the arrows.
-      </li>
-      <li data-hrv="562">
-        <strong>The iterate-on-docs side is written,</strong> on its branch <code>replies-in-the-page</code>, three commits: the Contract carry, the skill's reply loop (watch Announcements, answer with <code>reply.mjs</code>, commit after each reply), and the README. Its main is as it was, so your plugin doesn't change under you. Not yet run against a live server; the vendored html-revisor there is 46 commits behind and has no <code>reply.mjs</code> until a deploy.
-      </li>
-      <li data-hrv="563">
-        <strong>The server restarts when work merges,</strong> on the same port. Reload the page after.
-      </li>
-    </ol>
-    <h3 data-hrv="564">Questions: my guesses, to confirm</h3>
-    <ol data-hrv="565">
-      <li data-hrv="566">
-        <!-- @AI: great -->
-        <strong>Resolve announces through Done, not on its PUT.</strong> The server keeps the ended turns until the box's Done, so one box session is one Announcement. OK?
-      </li>
-      <li data-hrv="567">
-        <!-- @AI: yep, that's later -->
-        <strong>Content changed on disk still needs a reload.</strong> Swapping it in live is a yak of its own (“Disk edits, live” on the road). OK to leave it for later?
-      </li>
       <li data-hrv="568">
         <!-- @AI: is this for, like, when the directive box is open while a reply came it? -->
         <strong>Live notice added two docket messages:</strong> “a reply came in here; close the box to see it” and “this directive changed on disk; close the box to see it”. The first goes away when the thread arrives live in the box. Keep the second?
-      </li>
-      <li data-hrv="569">
-        <!-- @AI: seems accurate -->
-        <strong><code>reply.mjs</code> finds the server by the page URL</strong> the server prints at startup, not by the file path. OK?
-      </li>
-      <li data-hrv="570">
-        <!-- @AI: hmm the deploy could happen without the release because I don't think anything we've done breaks anything - the agent just doesn't have the instructions to reply. It doesn't matter much though, I'm running it from here for initial testing -->
-        <strong>Deploy and release wait for you.</strong> I'll deploy html-revisor and merge the iterate-on-docs branch together once you've tried the client work. Want me to deploy without you, and only hold the release?
-      </li>
-      <li data-hrv="571">
-        <!-- @AI: yes -->
-        <strong>The skill's reply loop replaces the turn loop</strong> whenever the agent can watch the server's output (Monitor, in Claude Code). Markdown, and an agent that can't watch, keep the turn loop. You don't choose. OK?
-      </li>
-      <li data-hrv="572">
-        <strong>The server's output goes to a log in TMPDIR, and Monitor tails it.</strong> Running the server under Monitor would kill it when the monitor expires (30 minutes at most).
       </li>
       <li data-hrv="573">
         <!-- @AI: that seems like a lot of work for the agent. Make a yak for optimizing this -->
@@ -232,9 +203,6 @@ I think we need the server to do those edits too, don't we? hrmm this is a large
         <!-- @AI: what how would that even happen
 No human is editing the HTML directly -->
         <strong>A directive written by hand in an editor</strong> has no Announcement and no thread base, so the agent carries it out and removes it, the old way.
-      </li>
-      <li data-hrv="576">
-        <strong>An edit with no directive gets no reply.</strong> Replies on edits come later.
       </li>
     </ol>
     <h2 data-hrv="150" id="flow">Flow</h2>
@@ -1009,6 +977,30 @@ No human is editing the HTML directly -->
           <td data-hrv="146">A directive. Replies on edits come later.</td>
           <td data-hrv="147">✓</td>
           <td data-hrv="148"><a data-hrv="149" href="#later">later</a></td>
+        </tr>
+        <tr>
+          <td data-hrv="583">How does the agent hear a Resolve?</td>
+          <td data-hrv="584">
+            Through the box's Done: its Announcement carries <code>resolved</code>, the turns that ended. One box session is one Announcement.
+          </td>
+          <td data-hrv="585">✓</td>
+          <td data-hrv="586"></td>
+        </tr>
+        <tr>
+          <td data-hrv="587">How does the agent find the server?</td>
+          <td data-hrv="588">
+            <code>reply.mjs</code> takes the page URL the server prints when it starts.
+          </td>
+          <td data-hrv="589">✓</td>
+          <td data-hrv="590"></td>
+        </tr>
+        <tr>
+          <td data-hrv="591">When does the agent reply in the page?</td>
+          <td data-hrv="592">
+            Whenever it can watch the server's output. Markdown, or an agent that can't watch, takes turns.
+          </td>
+          <td data-hrv="593">on a branch</td>
+          <td data-hrv="594"></td>
         </tr>
       </tbody>
     </table>
