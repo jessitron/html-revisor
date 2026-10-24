@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-hrv-next="545" lang="en">
+<html data-hrv-next="571" lang="en">
   <head>
     <meta charset="utf-8">
     <title>html-revisor: reply design</title>
@@ -103,15 +103,15 @@
       The agent answers in the page. Each element carries its own small conversation, and many run at once while you keep reviewing.
     </p>
     <h2 data-hrv="4" id="status">Where it stands</h2>
-    <svg data-hrv="5" class="flow road" viewBox="0 0 900 280" role="img" aria-label="Build road for replies: four pieces built, four ready, two waiting, one later">
+    <svg data-hrv="5" class="flow road" viewBox="0 0 900 340" role="img" aria-label="Build road for replies: five pieces built, five building, deploy waiting on Jess, three later">
       <defs data-hrv="6">
         <marker data-hrv="7" id="road-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
           <path data-hrv="8" d="M0 0L10 5L0 10z" fill="context-stroke"></path>
         </marker>
       </defs>
       <text data-hrv="9" class="lane" x="10" y="26">built</text>
-      <text data-hrv="10" class="lane" x="240" y="26">ready now</text>
-      <text data-hrv="11" class="lane" x="470" y="26">waits</text>
+      <text data-hrv="10" class="lane" x="240" y="26">building now</text>
+      <text data-hrv="11" class="lane" x="470" y="26">waits on you</text>
       <text data-hrv="12" class="lane" x="700" y="26">later</text>
       <rect data-hrv="13" class="built" x="10" y="44" width="190" height="46" rx="6"></rect>
       <text data-hrv="14" x="20" y="63">✓ Reply format in the file</text>
@@ -122,36 +122,87 @@
       <rect data-hrv="19" class="built" x="10" y="160" width="190" height="46" rx="6"></rect>
       <text data-hrv="20" x="20" y="179">✓ Server writes replies</text>
       <text data-hrv="21" class="sub" x="20" y="196">reply.mjs, refused when stale</text>
-      <rect data-hrv="22" class="ready" x="240" y="44" width="190" height="46" rx="6" stroke-width="3"></rect>
-      <text data-hrv="23" x="250" y="63">Live notice</text>
-      <text data-hrv="24" class="sub" x="250" y="80">building now</text>
-      <rect data-hrv="25" class="ready" x="240" y="102" width="190" height="46" rx="6"></rect>
-      <text data-hrv="26" x="250" y="121">Docket counts replies</text>
-      <text data-hrv="27" class="sub" x="250" y="138">a second row: new replies</text>
+      <rect data-hrv="22" class="built" x="10" y="276" width="190" height="46" rx="6"></rect>
+      <text data-hrv="23" x="20" y="295">✓ Live notice</text>
+      <text data-hrv="24" class="sub" x="20" y="312">the tab hears every change</text>
+      <rect data-hrv="25" class="ready" x="240" y="218" width="190" height="46" rx="6"></rect>
+      <text data-hrv="26" x="250" y="237">Docket counts replies</text>
+      <text data-hrv="27" class="sub" x="250" y="254">a second row: new replies</text>
       <rect data-hrv="28" class="built" x="10" y="218" width="190" height="46" rx="6"></rect>
       <text data-hrv="29" x="20" y="237">✓ Announce Resolve</text>
       <text data-hrv="30" class="sub" x="20" y="254">with the turns that ended</text>
-      <rect data-hrv="31" class="ready" x="240" y="160" width="190" height="46" rx="6"></rect>
-      <text data-hrv="32" x="250" y="179">Carry the Contract</text>
-      <text data-hrv="33" class="sub" x="250" y="196">into iterate-on-docs</text>
-      <line data-hrv="35" class="msg" x1="430" y1="67" x2="466" y2="67" marker-end="url(#road-arrow)"></line>
-      <rect data-hrv="36" class="waits" x="470" y="44" width="190" height="46" rx="6"></rect>
-      <text data-hrv="37" x="480" y="63">Thread arrives live</text>
-      <text data-hrv="38" class="sub" x="480" y="80">no reload needed</text>
-      <line data-hrv="39" class="msg" x1="565" y1="90" x2="565" y2="112" marker-end="url(#road-arrow)"></line>
-      <rect data-hrv="40" class="waits" x="470" y="116" width="190" height="46" rx="6"></rect>
-      <text data-hrv="41" x="480" y="135">iterate-on-docs replies</text>
-      <text data-hrv="42" class="sub" x="480" y="152">agent answers in the page</text>
-      <rect data-hrv="43" class="ready" x="240" y="218" width="190" height="46" rx="6"></rect>
-      <text data-hrv="44" x="250" y="237">Directive status</text>
-      <text data-hrv="45" class="sub" x="250" y="254">working: your turn is last</text>
+      <rect data-hrv="36" class="ready" x="240" y="44" width="190" height="46" rx="6" stroke-width="3"></rect>
+      <text data-hrv="37" x="250" y="63">Thread arrives live</text>
+      <text data-hrv="38" class="sub" x="250" y="80">in an open box, no duplicate</text>
+      <rect data-hrv="545" class="ready" x="240" y="102" width="190" height="46" rx="6"></rect>
+      <text data-hrv="546" x="250" y="121">New stays new</text>
+      <text data-hrv="547" class="sub" x="250" y="138">until you answer or Resolve</text>
+      <rect data-hrv="43" class="ready" x="240" y="160" width="190" height="46" rx="6"></rect>
+      <text data-hrv="44" x="250" y="179">Directive status</text>
+      <text data-hrv="45" class="sub" x="250" y="196">working: your turn is last</text>
+      <rect data-hrv="40" class="ready" x="240" y="276" width="190" height="46" rx="6"></rect>
+      <text data-hrv="41" x="250" y="295">iterate-on-docs replies</text>
+      <text data-hrv="42" class="sub" x="250" y="312">Contract too, on a branch</text>
+      <line data-hrv="35" class="msg" x1="430" y1="299" x2="466" y2="299" marker-end="url(#road-arrow)"></line>
+      <rect data-hrv="31" class="waits" x="470" y="276" width="190" height="46" rx="6"></rect>
+      <text data-hrv="32" x="480" y="295">Deploy and release</text>
+      <text data-hrv="33" class="sub" x="480" y="312">when you say so</text>
       <rect data-hrv="46" class="later" x="700" y="44" width="190" height="46" rx="6"></rect>
       <text data-hrv="47" x="710" y="63">Replies on edits</text>
       <text data-hrv="48" class="sub" x="710" y="80">a yak of its own now</text>
+      <rect data-hrv="548" class="later" x="700" y="102" width="190" height="46" rx="6"></rect>
+      <text data-hrv="549" x="710" y="121">Modes</text>
+      <text data-hrv="550" class="sub" x="710" y="138">a page with no agent</text>
+      <rect data-hrv="551" class="later" x="700" y="160" width="190" height="46" rx="6"></rect>
+      <text data-hrv="552" x="710" y="179">Disk edits, live</text>
+      <text data-hrv="553" class="sub" x="710" y="196">content swaps in, no reload</text>
     </svg>
     <p data-hrv="49" class="note">
-      An agent replies today with <code>node reply.mjs &lt;page URL&gt; &lt;id&gt; &lt;thread&gt; &lt;text&gt;</code>, the id and thread from the Announcement. The reply shows after a reload. The “built” column in <a data-hrv="543" href="#decided">Decided</a> marks each decision the code has.
+      An agent replies today with <code>node reply.mjs &lt;page URL&gt; &lt;id&gt; &lt;thread&gt; &lt;text&gt;</code>, the id and thread from the Announcement. The marker turns to the bubble without a reload; an open box shows a notice until Thread arrives live lands. The “built” column in <a data-hrv="543" href="#decided">Decided</a> marks each decision the code has.
     </p>
+    <h2 data-hrv="554" id="for-jess">For you, when you're back</h2>
+    <p data-hrv="555" class="note">
+      Work went on while you were out. Click an item to answer; I'll reply there.
+    </p>
+    <h3 data-hrv="556">Updates</h3>
+    <ol data-hrv="557">
+      <li data-hrv="558">
+        <strong>Announce Resolve is merged.</strong> A Resolve prints one Announcement with <code>resolved</code>: the turns that ended. A Clear never has them, so the agent can tell the two apart.
+      </li>
+      <li data-hrv="559">
+        <strong>Live notice is merged.</strong> Each tab holds an event stream to its page. A reply, another tab's save, or a write around the server (an agent's hand edit) reaches the tab with no reload: markers appear, go, or turn to the bubble, and the docket count follows.
+      </li>
+      <li data-hrv="560">
+        <strong>I merged them in that order and resolved the conflicts in <code>server.mjs</code> and the README by keeping both sides.</strong> 192 tests pass, 1 skipped (Honeycomb).
+      </li>
+      <li data-hrv="561">
+        <strong>A subagent is building the client yaks, in order:</strong> thread arrives live in an open box (with the duplicate-turn fix), new stays new, directive status (working), the docket's replies row, and review off hiding the arrows.
+      </li>
+      <li data-hrv="562">
+        <strong>A second subagent is writing the iterate-on-docs side on a branch there,</strong> <code>replies-in-the-page</code>: the Contract carry, and the skill watching Announcements and answering with <code>reply.mjs</code>. Its main stays as it was, so your plugin doesn't change under you.
+      </li>
+      <li data-hrv="563">
+        <strong>The server restarts when work merges,</strong> on the same port. Reload the page after.
+      </li>
+    </ol>
+    <h3 data-hrv="564">Questions: my guesses, to confirm</h3>
+    <ol data-hrv="565">
+      <li data-hrv="566">
+        <strong>Resolve announces through Done, not on its PUT.</strong> The server keeps the ended turns until the box's Done, so one box session is one Announcement. OK?
+      </li>
+      <li data-hrv="567">
+        <strong>Content changed on disk still needs a reload.</strong> Swapping it in live is a yak of its own (“Disk edits, live” on the road). OK to leave it for later?
+      </li>
+      <li data-hrv="568">
+        <strong>Live notice added two docket messages:</strong> “a reply came in here; close the box to see it” and “this directive changed on disk; close the box to see it”. The first goes away when the thread arrives live in the box. Keep the second?
+      </li>
+      <li data-hrv="569">
+        <strong><code>reply.mjs</code> finds the server by the page URL</strong> the server prints at startup, not by the file path. OK?
+      </li>
+      <li data-hrv="570">
+        <strong>Deploy and release wait for you.</strong> I'll deploy html-revisor and merge the iterate-on-docs branch together once you've tried the client work. Want me to deploy without you, and only hold the release?
+      </li>
+    </ol>
     <h2 data-hrv="150" id="flow">Flow</h2>
     <p data-hrv="151">
       One directive, start to answer. The Announcement on stdout already exists; the rest is new. Magenta arrows are the server pushing to the tab.
@@ -824,7 +875,7 @@
           <td data-hrv="79">
             The server pushes each change it makes to the open tab. It also watches the file, for a write that goes around it.
           </td>
-          <td data-hrv="80"></td>
+          <td data-hrv="80">✓</td>
           <td data-hrv="81"><a data-hrv="82" href="#flow">flow</a></td>
         </tr>
         <tr>
