@@ -129,9 +129,10 @@ html:not([data-hrv-review="off"]) [data-hrv]:not(html, body) { cursor: copy !imp
 /* The header names the element: the icon, the tag, the start of its text. */
 :is(#hrv-layer, .hrv-layer) .hrv-head { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
 :is(#hrv-layer, .hrv-layer) .hrv-what { display: block; flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-/* Fields grow with their text (the client sets the height) up to max-height, then scroll. */
+/* Fields grow with their text (the client sets the height) up to --hrv-field-max, then scroll.
+   Dragging the grip sets it; a box so sized (.hrv-sized) holds Content at that height. */
 :is(#hrv-layer, .hrv-layer) .hrv-box textarea {
-  display: block; width: 100%; height: 56px; min-height: 56px; max-height: 240px; padding: 6px;
+  display: block; width: 100%; height: 56px; min-height: 56px; max-height: var(--hrv-field-max, 240px); padding: 6px;
   border: 1px solid var(--hrv-line); background: var(--hrv-field); color: var(--hrv-text);
   resize: none; overflow: auto; white-space: pre-wrap; cursor: text;
 }
@@ -148,6 +149,14 @@ html:not([data-hrv-review="off"]) [data-hrv]:not(html, body) { cursor: copy !imp
 :is(#hrv-layer, .hrv-layer) .hrv-says { display: block; white-space: pre-wrap; overflow-wrap: anywhere; }
 /* The Text field holds the element's markdown, syntax and all: monospace too. */
 :is(#hrv-layer, .hrv-layer) .hrv-box textarea.hrv-text { font: var(--hrv-mono); height: 32px; min-height: 32px; }
+:is(#hrv-layer, .hrv-layer) .hrv-box.hrv-sized textarea.hrv-text { min-height: var(--hrv-field-max); }
+/* The grip: three diagonal ticks in the box's bottom-right corner, on a 20px target that
+   overhangs the corner so it's easy to catch. Drag it either way to resize the box. */
+:is(#hrv-layer, .hrv-layer) .hrv-grip {
+  position: absolute; right: -4px; bottom: -4px; display: block; width: 20px; height: 20px; cursor: nwse-resize; touch-action: none;
+  background: linear-gradient(135deg, transparent 45%, var(--hrv-muted) 45%, var(--hrv-muted) 51%, transparent 51%, transparent 61%, var(--hrv-muted) 61%, var(--hrv-muted) 67%, transparent 67%, transparent 77%, var(--hrv-muted) 77%, var(--hrv-muted) 83%, transparent 83%);
+}
+:is(#hrv-layer, .hrv-layer) .hrv-grip:hover { --hrv-muted: var(--hrv-accent); }
 :is(#hrv-layer, .hrv-layer) .hrv-box textarea::placeholder { color: var(--hrv-muted); }
 /* Each field's label: small muted capitals, with the field's action (Revert, Clear) at the right. */
 :is(#hrv-layer, .hrv-layer) .hrv-label {

@@ -286,6 +286,67 @@
   var BOX_GAP = 16;     // between the element and the box: the crop gap, the notch, air
   var NOTCH_END = 12;   // the notch stays this far from the box's corners
 
+  // The box is 320px wide and its fields grow to 240px, until you drag the grip in its corner:
+  // across for width, down for field height. Content then holds that height even when short.
+  // The dragged size holds for every box, across reloads; a double-click on the grip goes back.
+  var BOX_WIDTH = 320, FIELD_MAX = 240;
+  var SIZE_KEY = 'hrv-box-size';
+  var boxSize = readBoxSize();
+
+  function readBoxSize() {
+    try { return JSON.parse(localStorage.getItem(SIZE_KEY)) || null; } catch (e) { return null; }
+  }
+
+  function saveBoxSize() {
+    try {
+      if (boxSize) localStorage.setItem(SIZE_KEY, JSON.stringify(boxSize));
+      else localStorage.removeItem(SIZE_KEY);
+    } catch (e) { /* storage off: the size holds for this tab only */ }
+  }
+
+  function applyBoxSize() {
+    if (!box) return;
+    box.classList.toggle('hrv-sized', !!boxSize);
+    box.style.setProperty('--hrv-field-max', (boxSize ? boxSize.field : FIELD_MAX) + 'px');
+    box.querySelectorAll('textarea').forEach(fit);
+    positionBox();
+  }
+
+  function grip() {
+    var g = document.createElement('span');
+    g.className = 'hrv-grip';
+    g.title = 'Drag to resize the box. Double-click for the usual size.';
+    var start = null;
+    g.addEventListener('pointerdown', function (e) {
+      e.preventDefault();
+      g.setPointerCapture(e.pointerId);
+      var field = boxSize ? boxSize.field : FIELD_MAX;
+      start = { x: e.clientX, y: e.clientY, width: box.offsetWidth, field: field };
+    });
+    g.addEventListener('pointermove', function (e) {
+      if (!start) return;
+      var vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
+      boxSize = {
+        width: Math.round(clamp(start.width + e.clientX - start.x, 240, vw - 2 * BOX_MARGIN)),
+        field: Math.round(clamp(start.field + e.clientY - start.y, 56, vh * 0.8))
+      };
+      applyBoxSize();
+    });
+    function end() {
+      if (!start) return;
+      start = null;
+      saveBoxSize();
+    }
+    g.addEventListener('pointerup', end);
+    g.addEventListener('pointercancel', end);
+    g.addEventListener('dblclick', function () {
+      boxSize = null;
+      saveBoxSize();
+      applyBoxSize();
+    });
+    return g;
+  }
+
   function clamp(n, lo, hi) {
     return Math.max(lo, Math.min(n, hi));
   }
@@ -304,7 +365,7 @@
     if (isHidden(r)) return;
     var vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
     var m = BOX_MARGIN, g = BOX_GAP;
-    var w = Math.min(320, vw - 2 * m);
+    var w = Math.min(boxSize ? boxSize.width : BOX_WIDTH, vw - 2 * m);
     box.style.width = w + 'px';
     var h = box.offsetHeight;
 
@@ -1017,13 +1078,13 @@
 
     box.appendChild(ta);
     box.appendChild(row);
+    box.appendChild(grip());
     // Keep keystrokes in the box away from the page's own shortcuts.
     ['keydown', 'keyup', 'keypress'].forEach(function (type) {
       box.addEventListener(type, function (e) { e.stopPropagation(); });
     });
     layer.appendChild(box);
-    if (textArea) fit(textArea);
-    fit(ta);
+    applyBoxSize();
     if (thread) thread.scrollTop = thread.scrollHeight;
     markRead(id);
     syncMarker(id);
