@@ -9,6 +9,7 @@ import { elementById } from '../domain/identity.mjs';
 import { baseOf, threadBaseOf } from '../domain/bases.mjs';
 import { announcementOf } from '../domain/announcements.mjs';
 import { cleanup } from '../domain/cleanup.mjs';
+import { tabStateOf } from '../domain/served-page.mjs';
 import { placeReply, threadOf, threadsOf, collectDirectives, removeThreads, removeThread, setDirective } from '../domain/directives.mjs';
 
 const page = (body) => parse(normalize(body));
@@ -189,4 +190,15 @@ test('cleanup takes out replies, and lists only the directives', () => {
   const { html, removed } = cleanup(normalize('<p><!-- @AI: one --><!-- @Human: two -->text</p>'));
   assert.doesNotMatch(html, /@Human/);
   assert.deepEqual(removed, ['one']);
+});
+
+test('the tab state lifts the threads out, and runs each step through the step port', () => {
+  const document = page('<p><!-- @AI: one --><!-- @Human: two -->text</p>');
+  const id = idOf(document, 'p');
+  const steps = [];
+  const state = tabStateOf(document, '@AI', (name, fn) => (steps.push(name), fn()));
+  assert.deepEqual(steps, ['directives', 'bases']);
+  assert.deepEqual(state.threads[id], turns(['@AI', 'one'], ['@Human', 'two']));
+  assert.doesNotMatch(serialize(document), /@Human/);
+  assert.deepEqual(tabStateOf(page('<p><!-- @AI: one -->text</p>'), '@AI').directives, { [id]: 'one' });
 });

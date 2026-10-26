@@ -14,14 +14,14 @@ import { scopeElements, editable } from './domain/scopes.mjs';
 import { fingerprint, baseOf, basesOf, threadBaseOf, around } from './domain/bases.mjs';
 import { markdownsOf, committedMarkdowns, saveMarkdown, spillOf, settle, spillIds, servedHTML, holderOf } from './domain/markdown-edits.mjs';
 import { announcementOf } from './domain/announcements.mjs';
-import { injectClient } from './domain/served-page.mjs';
+import { injectClient, tabStateOf } from './domain/served-page.mjs';
 import { readText, readBytes, writeText, listDirectory, isDirectory, readCommitted, readClientAssets, watchFile } from './interface/files.mjs';
 import {
   HttpError, decodeRequestPath, resolveUnderRoot, readJson, sendFile, sendHtml, sendJson, sendNoContent, redirect, sendError, directoryListing,
   wants, openEventStream,
 } from './interface/http.mjs';
 import { announce } from './interface/stdout.mjs';
-import { trace, inSpan, requestSpan, startTelemetry, recordBrowserSpans, spanTime } from './interface/telemetry.mjs';
+import { trace, inSpan, step, requestSpan, startTelemetry, recordBrowserSpans, spanTime } from './interface/telemetry.mjs';
 
 export function parseArgs(argv) {
   const config = { root: process.cwd(), port: 7777, author: '@AI' };
@@ -211,7 +211,7 @@ async function getPage(res, file, urlPath, { author, telemetry, inTurn, live }) 
     return normalized;
   });
   const document = inSpan('parse', {}, () => parse(formatted));
-  const { directives, threads, bases } = stateOf(document, author);
+  const { directives, threads, bases } = tabStateOf(document, author, step);
   const markdowns = inSpan('markdowns', {}, () => markdownsOf(scopeElements(document)));
   const committed = await inSpan('committed', {}, async (child) => {
     const found = committedMarkdowns(await readCommitted(file), author);
@@ -233,18 +233,6 @@ async function getPage(res, file, urlPath, { author, telemetry, inTurn, live }) 
   sendHtml(res, html);
 }
 
-// What a tab keeps of the page besides its HTML: each element's directive, the settled turns of
-// each thread, and every element's base. Lifts the threads out of the document.
-function stateOf(document, author) {
-  const { directives, threads } = inSpan('directives', {}, () => {
-    const found = { directives: collectDirectives(document, author), threads: threadsOf(document, author) };
-    removeThreads(document, author);
-    return found;
-  });
-  const bases = inSpan('bases', {}, () => basesOf(document.querySelectorAll(`[${ID}]`), author));
-  return { directives, threads, bases };
-}
-
 // GET with Accept: application/json, from a tab that heard the file changed: the page's state
 // now, {"version", "directives", "threads", "bases"}, as GET would serve it. It writes nothing,
 // so a file an agent is still writing isn't written back: the IDs it numbers are the ones the
@@ -258,7 +246,7 @@ async function getState(res, file, urlPath, { author, inTurn }) {
     assignIds(doc);
     return doc;
   });
-  const body = JSON.stringify({ version: fingerprint(onDisk), ...stateOf(document, author) });
+  const body = JSON.stringify({ version: fingerprint(onDisk), ...tabStateOf(document, author, step) });
   span?.setAttribute('hrv.answer.bytes', body.length);
   sendJson(res, 200, body);
 }

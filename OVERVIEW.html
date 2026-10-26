@@ -834,7 +834,9 @@ first.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;one&lt;/li&gt;&lt;li&gt;two&lt;/li&gt;&lt;/u
         </li>
         <li>A save can't overwrite an element its tab didn't see (conflict check).</li>
         <li>An element ID never changes and is never reused.</li>
-        <li>Dependencies point down: orchestration → domain → interface.</li>
+        <li>
+          Dependencies point down: orchestration calls domain and interface. The domain imports no interface; when it needs one mid-step, it declares a port and orchestration passes the adapter in.
+        </li>
       </ul>
     </section>
     <section id="terms">
