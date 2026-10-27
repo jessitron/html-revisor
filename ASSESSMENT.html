@@ -411,9 +411,7 @@
             Tests of conflict rules move from acceptance (HTTP, temp files) to plain function calls. Faster, and closer to the rule.
           </li>
           <li data-hrv="277">
-            <!-- @AI: omg this is so important, can you (a subagent) do this rn?
-... wait, I had a different agent do this already. It also documented the port pattern -->
-            Telemetry: the domain can't import <code>interface/telemetry.mjs</code>. Pass a <code>step(name, fn)</code> function in; it defaults to <code>(n, f) =&gt; f()</code>. This is a port in the DDD sense, and it keeps the spans OBSERVABILITY.html queries.
+            Telemetry: the step port is in place. <code>tabStateOf</code> in <code>domain/served-page.mjs</code> takes <code>step(name, fn)</code>, and <code>server.mjs</code> passes the adapter from <code>interface/telemetry.mjs</code>; CLAUDE.md and README document the pattern. <code>revision.mjs</code> takes the same port, and the spans OBSERVABILITY.html queries stay.
           </li>
           <li data-hrv="278">
             Makes <em>Rethink who edits the live file</em> cheaper: whatever the answer, it needs the rules in one place.
@@ -423,9 +421,7 @@
       <div data-hrv="279" class="rec" id="r2">
         <h3 data-hrv="280">2 · Split <code>scopes.mjs</code> by idea</h3>
         <p data-hrv="281">
-          <!-- @AI: is the import circular? 
-Yeah, this one certainly needs broken up. Go ahead and have a subagent do it -->
-          806 lines, four ideas, and most open fidelity yaks land here: link pairing, tables, inline fallback, button text, blank lines. <code>identity.mjs</code> imports <code>canonicalHTML</code>, <code>isBlock</code>, and <code>hasAttrs</code> from it, so the module that "knows nothing of IDs" sits under the one that assigns them. Two modules each define a <code>BLOCK</code> set, and the sets differ: canonical's means "laid out on its own line", scopes' means "a block you can pick".
+          806 lines, four ideas, and most open fidelity yaks land here: link pairing, tables, inline fallback, button text, blank lines. <code>identity.mjs</code> imports <code>canonicalHTML</code>, <code>isBlock</code>, and <code>hasAttrs</code> from it. That import is not circular: <code>scopes.mjs</code> imports only <code>canonical</code>, <code>likeness</code>, and markdown-it, and the architecture test checks for cycles. But it puts the module that "knows nothing of IDs" under the one that assigns them, for helpers that are about canonical form, not scopes. Two modules each define a <code>BLOCK</code> set, and the sets differ: canonical's means "laid out on its own line", scopes' means "a block you can pick".
         </p>
         <svg data-hrv="282" viewBox="0 0 1000 250" role="img" aria-label="scopes.mjs split">
           <defs data-hrv="283">
@@ -472,7 +468,7 @@ Yeah, this one certainly needs broken up. Go ahead and have a subagent do it -->
           <text data-hrv="322" x="820" y="178" class="small goodtext">and isBlock from scopes</text>
         </svg>
         <p data-hrv="323">
-          Mechanical, covered by the round-trip tests, and it lets two fidelity yaks run in parallel without colliding in one file. Do it before the next round of table and link work. CLAUDE.md warns about parallel branches that move code between domain modules: do this one alone.
+          Mechanical, covered by the round-trip tests, and it lets two fidelity yaks run in parallel without colliding in one file. In progress: a subagent is doing the split in its own worktree, alone, since CLAUDE.md warns about parallel branches that move code between domain modules.
         </p>
       </div>
       <div data-hrv="324" class="rec" id="r3">
