@@ -1,0 +1,1 @@
+Split domain/scopes.mjs by idea: scope kinds, to-markdown, from-markdown, report to annotation; canonicalHTML/rawHTML/hasAttrs to canonical
