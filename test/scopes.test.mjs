@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { normalize } from '../domain/format.mjs';
-import { parse, serialize } from '../domain/canonical.mjs';
-import { scopeOf, scopesWithin, scopeMarkdown, roundTrips, canonicalHTML, editable, EDIT_LIMIT, scopeElements } from '../domain/scopes.mjs';
+import { parse, serialize, canonicalHTML } from '../domain/canonical.mjs';
+import { scopeOf, scopesWithin, scopeMarkdown, roundTrips, editable, EDIT_LIMIT, scopeElements } from '../domain/scopes.mjs';
 import { scopeFromMarkdown } from '../domain/markdown-edits.mjs';
 
 const body = (html) => parse(`<html><body>${html}</body></html>`).querySelector('body');

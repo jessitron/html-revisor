@@ -9,7 +9,7 @@
 // module is the markdown language alone: element IDs and directives ride across a save in
 // identity.mjs (reconcile) and directives.mjs (carryDirectives), which scopeFromMarkdown in
 // markdown-edits.mjs puts together (SCOPES-DESIGN.html#identity). test/roundtrip-*.test.mjs.
-import { trimAscii, formatElement, VOID } from './canonical.mjs';
+import { trimAscii, formatElement, VOID, IGNORED_ATTRS, attrNames, hasAttrs, canonicalHTML, bare, rawHTML, stripForDisplay } from './canonical.mjs';
 import { likeness } from './likeness.mjs';
 import { MarkdownIt } from '../vendor/markdown-it.mjs';
 
@@ -35,11 +35,6 @@ function holdsBlocks(el) {
   return [...el.children].some((c) => BLOCK.has(c.localName) || (!NONPROSE.has(c.localName) && holdsBlocks(c)));
 }
 export const isBlock = (el) => BLOCK.has(el.localName) || holdsBlocks(el);
-
-// Attributes the tool adds. Markdown doesn't carry them; the prior HTML does.
-const IGNORED_ATTRS = new Set(['data-hrv']);
-const attrNames = (el) => [...el.attributes].map((a) => a.name).filter((a) => !IGNORED_ATTRS.has(a));
-export const hasAttrs = (el) => attrNames(el).length > 0;
 
 // ---- Scopes -------------------------------------------------------------
 
@@ -642,37 +637,6 @@ function nodesOf(el, html) {
 function sameNodes(prior, html) {
   const document = prior[0].ownerDocument;
   return canonicalHTML(document, prior) === canonicalHTML(document, restore(prior, nodesOf(prior[0], html)));
-}
-
-// ids: keep element IDs, to check that they survive a save.
-export function canonicalHTML(document, nodes, { ids = false } = {}) {
-  const holder = document.createElement('div');
-  for (const n of nodes) holder.appendChild(bare(n, ids ? new Set() : IGNORED_ATTRS));
-  return formatElement(holder);
-}
-
-// A copy without directives or the attributes the tool adds.
-function bare(node, attrs) {
-  const copy = node.cloneNode(true);
-  if (copy.nodeType === 1) stripForDisplay(copy, attrs);
-  return copy;
-}
-
-// The element's HTML minus directives and annotation, in the canonical layout the file has
-// without element IDs: an ID can push a short line past the width and split it, and
-// linkedom's outerHTML writes &#160; and <rect /> where the file says &nbsp; and <rect></rect>.
-export function rawHTML(el) {
-  const copy = el.cloneNode(true);
-  stripForDisplay(copy);
-  return formatElement(copy);
-}
-
-function stripForDisplay(el, attrs = IGNORED_ATTRS) {
-  for (const n of [...el.childNodes]) {
-    if (n.nodeType === 8) n.remove();
-    else if (n.nodeType === 1) stripForDisplay(n, attrs);
-  }
-  if (el.removeAttribute) for (const a of attrs) el.removeAttribute(a);
 }
 
 // ---- Report -------------------------------------------------------------

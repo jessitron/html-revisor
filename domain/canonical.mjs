@@ -1,5 +1,7 @@
 // Canonical form: parse an HTML document, add a missing skeleton, rewrite into canonical
-// forms, and serialize in canonical layout. Tier II, pure functions over a DOM.
+// forms, and serialize in canonical layout; and an element's content in that layout apart from
+// the tool's marks (directives, element IDs), which is how two pieces of HTML compare. Tier II,
+// pure functions over a DOM.
 import { parseHTML } from '../vendor/linkedom.mjs';
 import { ID } from './id-attribute.mjs';
 
@@ -7,7 +9,8 @@ import { ID } from './id-attribute.mjs';
 
 export const VOID = new Set('area base br col embed hr img input link meta param source track wbr'.split(' '));
 export const RAW = new Set('pre textarea script style template'.split(' ')); // inner content is kept as-is
-const BLOCK = new Set(
+// Each on its own line in the layout. Not the blocks you can pick: those are scopes.mjs's.
+const LAID_OUT_AS_BLOCK = new Set(
   `html head body main header footer nav section article aside div p h1 h2 h3 h4 h5 h6
    ul ol li dl dt dd table thead tbody tfoot tr th td blockquote pre figure figcaption hr
    form fieldset details summary meta link script style noscript template iframe video
@@ -52,7 +55,7 @@ function mendBrokenParagraph(stray) {
   for (; node; node = node.previousSibling) {
     if (node.nodeType === 1 && node.localName === 'p') break;
     if (node.nodeType === 1 && CLOSES_P.has(node.localName)) { blocks++; runs.unshift([]); continue; }
-    if (node.nodeType === 1 && BLOCK.has(node.localName)) return;
+    if (node.nodeType === 1 && LAID_OUT_AS_BLOCK.has(node.localName)) return;
     if (node.nodeType !== 1 && node.nodeType !== 3 && node.nodeType !== 8) return;
     runs[0].unshift(node);
   }
@@ -188,7 +191,7 @@ function childrenOf(parent) {
 
 // A block element by name, an element of an SVG drawing, or any element holding a block element.
 function isBlockish(el) {
-  return BLOCK.has(el.localName) || isDrawn(el) || [...el.childNodes].some((n) => n.nodeType === 1 && isBlockish(n));
+  return LAID_OUT_AS_BLOCK.has(el.localName) || isDrawn(el) || [...el.childNodes].some((n) => n.nodeType === 1 && isBlockish(n));
 }
 
 // Inside an <svg>, whitespace between elements doesn't render, so each element gets its own
@@ -279,4 +282,43 @@ function openTag(el) {
 // linkedom writes U+00A0 as &#160;; use the named entity instead.
 function rawInner(el) {
   return el.innerHTML.replace(/&#160;/g, '&nbsp;');
+}
+
+// ---- Content apart from the tool's marks --------------------------------
+
+// Attributes the tool adds. Markdown doesn't carry them; the prior HTML does.
+export const IGNORED_ATTRS = new Set([ID]);
+export const attrNames = (el) => [...el.attributes].map((a) => a.name).filter((a) => !IGNORED_ATTRS.has(a));
+export const hasAttrs = (el) => attrNames(el).length > 0;
+
+// The nodes in canonical layout, without directives or element IDs: two pieces of HTML are
+// the same content when these match. ids: keep element IDs, to check that they survive a save.
+export function canonicalHTML(document, nodes, { ids = false } = {}) {
+  const holder = document.createElement('div');
+  for (const n of nodes) holder.appendChild(bare(n, ids ? new Set() : IGNORED_ATTRS));
+  return formatElement(holder);
+}
+
+// A copy without directives or the attributes the tool adds.
+export function bare(node, attrs) {
+  const copy = node.cloneNode(true);
+  if (copy.nodeType === 1) stripForDisplay(copy, attrs);
+  return copy;
+}
+
+// The element's HTML minus directives and annotation, in the canonical layout the file has
+// without element IDs: an ID can push a short line past the width and split it, and
+// linkedom's outerHTML writes &#160; and <rect /> where the file says &nbsp; and <rect></rect>.
+export function rawHTML(el) {
+  const copy = el.cloneNode(true);
+  stripForDisplay(copy);
+  return formatElement(copy);
+}
+
+export function stripForDisplay(el, attrs = IGNORED_ATTRS) {
+  for (const n of [...el.childNodes]) {
+    if (n.nodeType === 8) n.remove();
+    else if (n.nodeType === 1) stripForDisplay(n, attrs);
+  }
+  if (el.removeAttribute) for (const a of attrs) el.removeAttribute(a);
 }

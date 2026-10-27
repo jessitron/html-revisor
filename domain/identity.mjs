@@ -2,7 +2,8 @@
 // through a rewrite. Tier II, pure functions over a DOM. The attribute names live in
 // id-attribute.mjs, below canonical.mjs, which needs them too; this module passes them on.
 import { ID, NEXT_ID } from './id-attribute.mjs';
-import { scopeElements, canonicalHTML, isBlock, hasAttrs } from './scopes.mjs';
+import { canonicalHTML, hasAttrs } from './canonical.mjs';
+import { scopeElements, isBlock } from './scopes.mjs';
 import { likeness } from './likeness.mjs';
 
 export { ID, NEXT_ID };
