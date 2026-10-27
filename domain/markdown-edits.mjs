@@ -3,7 +3,9 @@
 import { parse, serialize, trimAscii } from './canonical.mjs';
 import { ID, assignIds, reconcile, elementById } from './identity.mjs';
 import { removeThreads, carryDirectives } from './directives.mjs';
-import { scopeElements, scopeMarkdown, nodesFromMarkdown, editable } from './scopes.mjs';
+import { scopeElements, editable } from './scopes.mjs';
+import { scopeMarkdown } from './to-markdown.mjs';
+import { nodesFromMarkdown } from './from-markdown.mjs';
 import { normalize } from './format.mjs';
 
 // Each scope's markdown, by ID: what the box shows. Not body's, which nobody picks, and not a
@@ -30,7 +32,7 @@ export function committedMarkdowns(html, author) {
 }
 
 // The nodes that replace a scope's element when its markdown is saved: what the markdown says
-// (scopes.mjs), with the IDs (identity.mjs) and directives (directives.mjs) of the elements you
+// (from-markdown.mjs), with the IDs (identity.mjs) and directives (directives.mjs) of the elements you
 // left or changed. Saving it unchanged gives back the same HTML, element IDs and directives
 // included (SCOPES-DESIGN.html#identity).
 // A spill is the elements beside the scope that its last save made, as the file holds them

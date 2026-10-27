@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parse, serialize } from '../domain/canonical.mjs';
 import { normalize } from '../domain/format.mjs';
-import { scopeOf } from '../domain/scopes.mjs';
+import { scopeOf } from '../domain/scope-report.mjs';
 import { annotate } from '../domain/annotation.mjs';
 
 const page = (examples) => `<html><head></head><body><section id="scopes"><p>Cases.</p>${examples}</section></body></html>`;

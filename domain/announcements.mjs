@@ -3,7 +3,8 @@ import { trimAscii } from './canonical.mjs';
 import { ID, elementById } from './identity.mjs';
 import { collectDirectives, removeThreads, escapeDirectiveText, threadOf } from './directives.mjs';
 import { threadBaseOf } from './bases.mjs';
-import { scopeElements, scopeMarkdown, editable } from './scopes.mjs';
+import { scopeElements, editable } from './scopes.mjs';
+import { scopeMarkdown } from './to-markdown.mjs';
 
 // What one box session changed on its element, from what the box opened with to the document
 // now: the directive, and for a scope its content, a revision. Each is {before, after}, and only

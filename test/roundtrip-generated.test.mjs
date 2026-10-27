@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { normalize } from '../domain/format.mjs';
 import { parse, canonicalHTML } from '../domain/canonical.mjs';
-import { scopeMarkdown } from '../domain/scopes.mjs';
+import { scopeMarkdown } from '../domain/to-markdown.mjs';
 import { SEEDS, random, generator, directEverything, scopeElements, roundTripFailure } from './roundtrip-lib.mjs';
 
 for (const tidy of [false, true]) {

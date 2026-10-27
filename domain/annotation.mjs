@@ -1,12 +1,12 @@
 // Annotation: under each .ex example in SCOPES-DESIGN.html, its HTML and a table of its scopes,
-// which scopes.mjs builds. Tier II, pure functions over a DOM. Annotating again replaces each
+// which scope-report.mjs builds. Tier II, pure functions over a DOM. Annotating again replaces each
 // report the way a markdown save replaces a scope: the report elements that came back keep
 // their IDs (identity.mjs) and directives (directives.mjs), so a rerun's diff shows only
 // what the examples changed.
 import { canonicalize } from './canonical.mjs';
 import { ID, NEXT_ID, assignIds, reconcile } from './identity.mjs';
 import { carryDirectives } from './directives.mjs';
-import { exampleReport } from './scopes.mjs';
+import { exampleReport } from './scope-report.mjs';
 
 // The page comes out in canonical form, its tables sectioned as parse sections them. A page
 // that carries element IDs comes out with them, as the formatter writes it; one without

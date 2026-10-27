@@ -1,5 +1,5 @@
 // How alike two pieces of HTML are. Tier II, a pure function over strings: reconcile
-// (identity.mjs) pairs elements with it, and restore (scopes.mjs) pairs stand-ins.
+// (identity.mjs) pairs elements with it, and restore (from-markdown.mjs) pairs stand-ins.
 
 // How alike two elements of one tag are, by their content: of the character pairs in the
 // shorter, the share the other holds too. Typing more into an item keeps it alike; its tags,

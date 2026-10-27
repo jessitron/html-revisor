@@ -25,7 +25,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { normalize } from '../domain/format.mjs';
 import { parse, canonicalHTML } from '../domain/canonical.mjs';
-import { scopeElements as allScopes, scopeMarkdown, editable } from '../domain/scopes.mjs';
+import { scopeElements as allScopes, editable } from '../domain/scopes.mjs';
+import { scopeMarkdown } from '../domain/to-markdown.mjs';
 import { scopeFromMarkdown } from '../domain/markdown-edits.mjs';
 import { allComments, directiveOwner, placeDirective, attachComments } from '../domain/directives.mjs';
 

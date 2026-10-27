@@ -159,14 +159,14 @@
           <tr>
             <td>Where markdown converts</td>
             <td>
-              On the server, where <code>scopes.mjs</code> and linkedom run; the client stays small. No live preview.
+              On the server, where <code>to-markdown.mjs</code>, <code>from-markdown.mjs</code>, and linkedom run; the client stays small. No live preview.
             </td>
             <td></td>
           </tr>
           <tr>
             <td>Parser and writer</td>
             <td>
-              markdown-it parses. The writer is our own, in <code>scopes.mjs</code>, because it carries the rules in this table; a general HTML-to-markdown library would need each one overridden.
+              markdown-it parses. The writer is our own, in <code>to-markdown.mjs</code>, because it carries the rules in this table; a general HTML-to-markdown library would need each one overridden.
             </td>
             <td></td>
           </tr>
