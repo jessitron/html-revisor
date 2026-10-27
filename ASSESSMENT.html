@@ -411,6 +411,8 @@
             Tests of conflict rules move from acceptance (HTTP, temp files) to plain function calls. Faster, and closer to the rule.
           </li>
           <li data-hrv="277">
+            <!-- @AI: omg this is so important, can you (a subagent) do this rn?
+... wait, I had a different agent do this already. It also documented the port pattern -->
             Telemetry: the domain can't import <code>interface/telemetry.mjs</code>. Pass a <code>step(name, fn)</code> function in; it defaults to <code>(n, f) =&gt; f()</code>. This is a port in the DDD sense, and it keeps the spans OBSERVABILITY.html queries.
           </li>
           <li data-hrv="278">
@@ -421,6 +423,8 @@
       <div data-hrv="279" class="rec" id="r2">
         <h3 data-hrv="280">2 · Split <code>scopes.mjs</code> by idea</h3>
         <p data-hrv="281">
+          <!-- @AI: is the import circular? 
+Yeah, this one certainly needs broken up. Go ahead and have a subagent do it -->
           806 lines, four ideas, and most open fidelity yaks land here: link pairing, tables, inline fallback, button text, blank lines. <code>identity.mjs</code> imports <code>canonicalHTML</code>, <code>isBlock</code>, and <code>hasAttrs</code> from it, so the module that "knows nothing of IDs" sits under the one that assigns them. Two modules each define a <code>BLOCK</code> set, and the sets differ: canonical's means "laid out on its own line", scopes' means "a block you can pick".
         </p>
         <svg data-hrv="282" viewBox="0 0 1000 250" role="img" aria-label="scopes.mjs split">
@@ -474,6 +478,8 @@
       <div data-hrv="324" class="rec" id="r3">
         <h3 data-hrv="325">3 · Give the client's sync protocol a home without a DOM</h3>
         <p data-hrv="326">
+          <!-- @AI: seems like this is a whole little app now. 
+It needs its own orchestration/domain/interface layering. And a clear protocol for talking to the backend, as you pointed out -->
           <code>client.js</code> is the largest file, and its hardest part has no shape: twenty top-level variables that together are a state machine for "what the file holds, what this tab typed, what's in flight, what came back". Every client test drives it through a linkedom tab with a faked focus model and a fast clock, and four CLAUDE.md gotchas are about that harness.
         </p>
         <svg data-hrv="327" viewBox="0 0 1000 230" role="img" aria-label="Client state grouped">
