@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-hrv-next="399" lang="en">
+<html data-hrv-next="449" lang="en">
   <head>
     <meta charset="utf-8">
     <title>html-revisor — architecture and code quality assessment</title>
@@ -104,7 +104,7 @@
                   <code>domain/scopes.mjs</code> is four modules in one, and <code>identity.mjs</code> reaches into it.
                 </li>
                 <li data-hrv="21">
-                  <code>client.js</code> keeps the sync protocol in 20 loose variables beside DOM code.
+                  <code>client.js</code> is a whole app in one file, with no tiers; its sync state is 20 loose variables beside DOM code.
                 </li>
                 <li data-hrv="22">The wire protocol has three written copies and no single owner.</li>
                 <li data-hrv="23">
@@ -319,7 +319,7 @@
           <tr>
             <td data-hrv="197">3</td>
             <td data-hrv="198">
-              <a data-hrv="199" href="#r3">Give the client's sync protocol a home without a DOM</a>
+              <a data-hrv="199" href="#r3">The client is an app: give it tiers and a protocol</a>
             </td>
             <td data-hrv="200"><span class="pill high">high</span></td>
             <td data-hrv="201">high</td>
@@ -472,11 +472,12 @@
         </p>
       </div>
       <div data-hrv="324" class="rec" id="r3">
-        <h3 data-hrv="325">3 · Give the client's sync protocol a home without a DOM</h3>
+        <h3 data-hrv="325">3 · The client is an app: give it tiers and a protocol</h3>
         <p data-hrv="326">
-          <!-- @AI: seems like this is a whole little app now. 
-It needs its own orchestration/domain/interface layering. And a clear protocol for talking to the backend, as you pointed out -->
-          <code>client.js</code> is the largest file, and its hardest part has no shape: twenty top-level variables that together are a state machine for "what the file holds, what this tab typed, what's in flight, what came back". Every client test drives it through a linkedom tab with a faked focus model and a fast clock, and four CLAUDE.md gotchas are about that harness.
+          <code>client.js</code> is the largest file, 1,474 lines, and a whole little app: a view, a sync engine, a server conversation, its own telemetry. It has none of the layering the server has. Its hardest part has no shape: twenty top-level variables that together are a state machine for "what the file holds, what this tab typed, what's in flight, what came back". Every client test drives it through a linkedom tab with a faked focus model and a fast clock, and four CLAUDE.md gotchas are about that harness.
+        </p>
+        <p data-hrv="399">
+          Give it the same three tiers, under the same architecture test, and one protocol module that both sides import.
         </p>
         <svg data-hrv="327" viewBox="0 0 1000 230" role="img" aria-label="Client state grouped">
           <rect data-hrv="328" x="10" y="20" width="230" height="190" rx="8" class="t2"></rect>
@@ -505,15 +506,70 @@ It needs its own orchestration/domain/interface layering. And a clear protocol f
           <path data-hrv="351" d="M498 222 L988 222" class="arrow"></path>
           <text data-hrv="352" x="498" y="216" class="small muted">stays DOM code, subscribes to the sync object</text>
         </svg>
+        <p data-hrv="400" class="sub">
+          The twenty variables today, grouped by what they mean. Above: what moves to the client's domain. Below: where each group lands.
+        </p>
+        <svg data-hrv="401" viewBox="0 0 1000 400" role="img" aria-label="Client in three tiers, with a protocol module shared with the server">
+          <defs data-hrv="402">
+            <marker data-hrv="403" id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path data-hrv="404" d="M0,0 L10,5 L0,10 z" fill="#646b78"></path>
+            </marker>
+          </defs>
+          <text data-hrv="405" x="10" y="20" class="bold">Browser: client/</text>
+          <rect data-hrv="406" x="10" y="32" width="600" height="70" rx="8" class="t1"></rect>
+          <text data-hrv="407" x="22" y="54" class="mono small bold">client/main.mjs · Tier I</text>
+          <text data-hrv="408" x="22" y="74" class="small">wires events: click → open box, type → domain, answer → view</text>
+          <text data-hrv="409" x="22" y="92" class="small muted">no state of its own</text>
+          <rect data-hrv="410" x="10" y="122" width="600" height="110" rx="8" class="t2"></rect>
+          <text data-hrv="411" x="22" y="144" class="mono small bold">client/domain/ · Tier II, no DOM, no fetch</text>
+          <text data-hrv="412" x="22" y="166" class="small"><tspan data-hrv="413" class="mono">sync.mjs</tspan>: mirror of the file, save queue, merge on live notice</text>
+          <text data-hrv="414" x="22" y="184" class="small"><tspan data-hrv="415" class="mono">box-session.mjs</tspan>: what the box opened with, sent, behind; Done</text>
+          <text data-hrv="416" x="22" y="202" class="small"><tspan data-hrv="417" class="mono">docket.mjs</tspan>: which directives, in what order, what's new</text>
+          <text data-hrv="418" x="22" y="222" class="small muted">tested in plain node, with a fake clock passed in</text>
+          <rect data-hrv="419" x="10" y="252" width="190" height="80" rx="8" class="t3"></rect>
+          <text data-hrv="420" x="22" y="274" class="mono small bold">view.mjs</text>
+          <text data-hrv="421" x="22" y="294" class="small">markers, crops, box,</text>
+          <text data-hrv="422" x="22" y="310" class="small">docket, positions</text>
+          <rect data-hrv="423" x="215" y="252" width="190" height="80" rx="8" class="t3"></rect>
+          <text data-hrv="424" x="227" y="274" class="mono small bold">server.mjs gateway</text>
+          <text data-hrv="425" x="227" y="294" class="small">PUT, POST Done,</text>
+          <text data-hrv="426" x="227" y="310" class="small">EventSource, state</text>
+          <rect data-hrv="427" x="420" y="252" width="190" height="80" rx="8" class="t3"></rect>
+          <text data-hrv="428" x="432" y="274" class="mono small bold">spans.mjs · storage.mjs</text>
+          <text data-hrv="429" x="432" y="294" class="small">browser telemetry,</text>
+          <text data-hrv="430" x="432" y="310" class="small">box size</text>
+          <text data-hrv="431" x="22" y="352" class="small muted">client/interface/ · Tier III</text>
+          <path data-hrv="432" d="M310 102 L310 122" class="arrow" marker-end="url(#a3)"></path>
+          <path data-hrv="433" d="M310 232 L310 252" class="arrow" marker-end="url(#a3)"></path>
+          <text data-hrv="434" x="660" y="20" class="bold">Shared kernel</text>
+          <rect data-hrv="435" x="660" y="122" width="328" height="110" rx="8" class="hot"></rect>
+          <text data-hrv="436" x="672" y="144" class="mono small bold">domain/protocol.mjs</text>
+          <text data-hrv="437" x="672" y="166" class="small">each body shape: PUT change, reply, Done,</text>
+          <text data-hrv="438" x="672" y="184" class="small">answer, change notice, state</text>
+          <text data-hrv="439" x="672" y="202" class="small">a validator and its error message beside each</text>
+          <text data-hrv="440" x="672" y="222" class="small muted">imports nothing, so it runs in both places</text>
+          <path data-hrv="441" d="M405 292 C 520 360, 760 340, 790 232" class="goodarrow" marker-end="url(#a3)"></path>
+          <rect data-hrv="442" x="660" y="282" width="328" height="70" rx="8" class="t2"></rect>
+          <text data-hrv="443" x="672" y="304" class="mono small bold">domain/revision.mjs (rec. 1)</text>
+          <text data-hrv="444" x="672" y="324" class="small">validates each change with protocol.mjs</text>
+          <path data-hrv="445" d="M824 282 L824 232" class="goodarrow" marker-end="url(#a3)"></path>
+          <text data-hrv="446" x="10" y="390" class="small muted">Arrows: imports, pointing down. The architecture test walks client/ with the same rules as the server.</text>
+        </svg>
         <ul data-hrv="353" class="tight">
           <li data-hrv="354">
-            No build step needed: the server already reads <code>client.js</code> on each GET. Let it read <code>client/*.js</code> in a listed order and inline them as one script. Each file adds to one namespace.
+            No build step needed. Serve the client as ES modules from a dot path, <code>/.hrv/client/…</code>, the way <code>/.hrv/spans</code> takes the browser's spans, and load it with one <code>&lt;script type="module"&gt;</code>. Then the architecture test reads its imports like any other module's. The published pages on GitHub Pages carry no client, so nothing changes there.
+          </li>
+          <li data-hrv="447">
+            <code>domain/protocol.mjs</code> is the shared kernel in DDD terms: the one piece both contexts own, kept small and changed together. It's how recommendation 4 lands, and the server serves it to the browser under the same dot path.
           </li>
           <li data-hrv="355">
-            The sync object is where the yaks <em>urgent: notify if the server is down</em>, <em>Live notice shows content edited on disk</em>, and <em>A half-typed save can drop a directive</em> land. They get cheaper to build and to test.
+            The client's domain is where the yaks <em>urgent: notify if the server is down</em>, <em>Live notice shows content edited on disk</em>, and <em>A half-typed save can drop a directive</em> land. They get cheaper to build and to test.
+          </li>
+          <li data-hrv="448">
+            Cost: <code>test/client.test.mjs</code> evaluates one inlined script today. Its tab has to load modules, or most of its tests move down to plain domain tests and the tab keeps a few end-to-end ones. The second is the better trade.
           </li>
           <li data-hrv="356">
-            Largest effort here. Worth a design pass in REPLY-DESIGN style first.
+            Largest effort here. Worth a design pass in REPLY-DESIGN style first, and it goes after recommendation 1, which settles the server side of the protocol.
           </li>
         </ul>
       </div>
@@ -524,7 +580,7 @@ It needs its own orchestration/domain/interface layering. And a clear protocol f
         </p>
         <ul data-hrv="360" class="tight">
           <li data-hrv="361">
-            The validators move to the domain with recommendation 1, each beside the shape it checks. The error message comes from the same place.
+            The shapes and their validators go in <code>domain/protocol.mjs</code>, each validator beside the shape it checks, with its error message. The server's <code>revision.mjs</code> (recommendation 1) and the client (recommendation 3) both import it.
           </li>
           <li data-hrv="362">
             README keeps one short table of the shapes and links the module, the way it links SCOPES-DESIGN for scope rules. The Design section gets bullets a person can read in one breath.
@@ -576,10 +632,10 @@ It needs its own orchestration/domain/interface layering. And a clear protocol f
         </defs>
         <rect data-hrv="383" x="10" y="20" width="200" height="60" rx="8" class="t2"></rect>
         <text data-hrv="384" x="22" y="44" class="bold small">2 · split scopes.mjs</text>
-        <text data-hrv="385" x="22" y="62" class="small muted">alone, one session</text>
+        <text data-hrv="385" x="22" y="62" class="small muted">in progress, alone</text>
         <path data-hrv="386" d="M210 50 L250 50" class="arrow" marker-end="url(#a5)"></path>
         <rect data-hrv="387" x="250" y="20" width="230" height="60" rx="8" class="t1"></rect>
-        <text data-hrv="388" x="262" y="44" class="bold small">1 + 4 · domain/revision.mjs</text>
+        <text data-hrv="388" x="262" y="44" class="bold small">1 + 4 · revision + protocol</text>
         <text data-hrv="389" x="262" y="62" class="small muted">rules and shapes move together</text>
         <path data-hrv="390" d="M480 50 L520 50" class="arrow" marker-end="url(#a5)"></path>
         <rect data-hrv="391" x="520" y="20" width="200" height="60" rx="8" class="box"></rect>
@@ -587,7 +643,7 @@ It needs its own orchestration/domain/interface layering. And a clear protocol f
         <text data-hrv="393" x="532" y="62" class="small muted">into OVERVIEW</text>
         <path data-hrv="394" d="M720 50 L760 50" class="arrow" marker-end="url(#a5)"></path>
         <rect data-hrv="395" x="760" y="20" width="228" height="60" rx="8" class="browser"></rect>
-        <text data-hrv="396" x="772" y="44" class="bold small">3 · client sync object</text>
+        <text data-hrv="396" x="772" y="44" class="bold small">3 · client in tiers</text>
         <text data-hrv="397" x="772" y="62" class="small muted">design pass first</text>
       </svg>
       <p data-hrv="398">5 rides along with whichever change touches the file.</p>
