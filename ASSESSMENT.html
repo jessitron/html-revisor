@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-hrv-next="449" lang="en">
+<html data-hrv-next="492" lang="en">
   <head>
     <meta charset="utf-8">
     <title>html-revisor — architecture and code quality assessment</title>
@@ -468,7 +468,7 @@
           <text data-hrv="322" x="820" y="178" class="small goodtext">and isBlock from scopes</text>
         </svg>
         <p data-hrv="323">
-          Mechanical, covered by the round-trip tests, and it lets two fidelity yaks run in parallel without colliding in one file. In progress: a subagent is doing the split in its own worktree, alone, since CLAUDE.md warns about parallel branches that move code between domain modules.
+          Mechanical, covered by the round-trip tests, and it lets two fidelity yaks run in parallel without colliding in one file. Done, on main: <code>scopes.mjs</code> (100 lines, kinds and picking), <code>to-markdown.mjs</code> (252), <code>from-markdown.mjs</code> (367), <code>scope-report.mjs</code> (77), and <code>canonical.mjs</code> took the canonical-form helpers. The two markdown halves need each other: the writer checks each piece by reading it back. So <code>to-markdown</code> imports <code>from-markdown</code>, and the shapes both use live in <code>from-markdown</code>. <code>scopeOf</code> went to the report module, since it calls the writer.
         </p>
       </div>
       <div data-hrv="324" class="rec" id="r3">
@@ -572,6 +572,88 @@
             Largest effort here. Worth a design pass in REPLY-DESIGN style first, and it goes after recommendation 1, which settles the server side of the protocol.
           </li>
         </ul>
+        <h3 data-hrv="449" id="r3-safety">Is there enough test coverage to do it safely?</h3>
+        <p data-hrv="450">
+          Not yet. The server side of every case is covered: 46 acceptance tests over real HTTP, 412s and spills included. The tab has 14 tests, and they cluster on threads, the docket, and focus. The sync engine, the part that moves to <code>client/domain/</code>, is the part with the least coverage in the tab.
+        </p>
+        <table data-hrv="451">
+          <thead>
+            <tr>
+              <th data-hrv="452">Tab behavior</th>
+              <th data-hrv="453">Tab tests</th>
+              <th data-hrv="454">Moves in the split</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td data-hrv="455">
+                Directive save, replies joining a thread, a turn refused for a reply
+              </td>
+              <td data-hrv="456"><span class="pill low">6</span></td>
+              <td data-hrv="457">sync</td>
+            </tr>
+            <tr>
+              <td data-hrv="458">Docket counts and stepping, review off, marker click</td>
+              <td data-hrv="459"><span class="pill low">3</span></td>
+              <td data-hrv="460">docket</td>
+            </tr>
+            <tr>
+              <td data-hrv="461">Focus back to the element after Done</td>
+              <td data-hrv="462"><span class="pill low">2</span></td>
+              <td data-hrv="463">view</td>
+            </tr>
+            <tr>
+              <td data-hrv="464">A typed <code>&lt;p&gt;</code> splits the scope; the spill</td>
+              <td data-hrv="465"><span class="pill low">1</span></td>
+              <td data-hrv="466">sync</td>
+            </tr>
+            <tr>
+              <td data-hrv="467">
+                Markdown save swaps in the answer's HTML, the box follows the holder ID
+              </td>
+              <td data-hrv="468"><span class="pill high">0</span></td>
+              <td data-hrv="469">sync</td>
+            </tr>
+            <tr>
+              <td data-hrv="470">412, element changed on disk: "not saved", the box keeps its text</td>
+              <td data-hrv="471"><span class="pill high">0</span></td>
+              <td data-hrv="472">sync</td>
+            </tr>
+            <tr>
+              <td data-hrv="473">Another element changed on disk: "the page changed"</td>
+              <td data-hrv="474"><span class="pill high">0</span></td>
+              <td data-hrv="475">sync</td>
+            </tr>
+            <tr>
+              <td data-hrv="476">Server down: "save failed", then recovers</td>
+              <td data-hrv="477"><span class="pill high">0</span></td>
+              <td data-hrv="478">sync</td>
+            </tr>
+            <tr>
+              <td data-hrv="479">A directive added or removed on disk shows without a reload</td>
+              <td data-hrv="480"><span class="pill high">0</span></td>
+              <td data-hrv="481">sync</td>
+            </tr>
+            <tr>
+              <td data-hrv="482">Revert, Clear and ⌘Z, a second box commits the first</td>
+              <td data-hrv="483"><span class="pill high">0</span></td>
+              <td data-hrv="484">box session</td>
+            </tr>
+            <tr>
+              <td data-hrv="485">Two tabs on one page</td>
+              <td data-hrv="486"><span class="pill high">0</span></td>
+              <td data-hrv="487">sync</td>
+            </tr>
+            <tr>
+              <td data-hrv="488">Crop marks, marker spots, box placement, dark mode</td>
+              <td data-hrv="489"><span class="pill med">manual</span></td>
+              <td data-hrv="490">view, unchanged</td>
+            </tr>
+          </tbody>
+        </table>
+        <p data-hrv="491">
+          The fix is one step before the split: characterization tests, in the tab harness as it stands, for each zero row. They pin what the client does today, and they're end-to-end, so they keep passing while the code moves under them. Once the domain exists, some of them move down to plain node tests. Layout stays manual: linkedom has no layout, and the view code moves least.
+        </p>
       </div>
       <div data-hrv="357" class="rec" id="r4">
         <h3 data-hrv="358">4 · One owner for the wire protocol</h3>
@@ -632,7 +714,7 @@
         </defs>
         <rect data-hrv="383" x="10" y="20" width="200" height="60" rx="8" class="t2"></rect>
         <text data-hrv="384" x="22" y="44" class="bold small">2 · split scopes.mjs</text>
-        <text data-hrv="385" x="22" y="62" class="small muted">in progress, alone</text>
+        <text data-hrv="385" x="22" y="62" class="small goodtext">done</text>
         <path data-hrv="386" d="M210 50 L250 50" class="arrow" marker-end="url(#a5)"></path>
         <rect data-hrv="387" x="250" y="20" width="230" height="60" rx="8" class="t1"></rect>
         <text data-hrv="388" x="262" y="44" class="bold small">1 + 4 · revision + protocol</text>
