@@ -99,6 +99,44 @@ test('another element changed on disk: the docket says the page changed, and a d
     tab.close();
   }));
 
+// Checklist: "Add `<!-- @AI: … -->` to an element on disk: its marker shows without a reload.
+// Delete it: the marker goes."
+test('a directive added on disk shows its marker without a reload, and deleting it takes the marker away', () =>
+  withServer(async (s) => {
+    const tab = await openTab(s, 'page.html');
+    const page = s.read('page.html');
+    s.write('page.html', page.replace('>First paragraph', '><!-- @AI: from the agent -->First paragraph'));
+    await until(() => tab.marker('p'));
+    assert.equal(tab.marker('p').getAttribute('aria-label'), 'Agent working on: from the agent');
+    assert.equal(tab.count(), '1 directive');
+    assert.equal(tab.message(), '', 'a directive is no content change: no reload notice');
+    tab.open('p');
+    assert.deepEqual(tab.turns(), [['you', 'from the agent'], ['agent', 'working']], 'the box opens on it');
+    tab.done();
+    s.write('page.html', page);
+    await until(() => !tab.marker('p'));
+    assert.equal(tab.count(), '0 directives');
+    tab.close();
+  }));
+
+// The README's Live notice: "A change on disk to the open box's directive alone waits until the
+// box closes."
+test('the open box\'s directive changed on disk: the docket says so, and it shows when the box closes', () =>
+  withServer(async (s) => {
+    const tab = await openTab(s, 'page.html');
+    tab.open('p');
+    tab.type('say more');
+    await until(() => tab.hint() === 'saved');
+    s.write('page.html', s.read('page.html').replace('@AI: say more', '@AI: say less'));
+    await until(() => tab.message() === 'this directive changed on disk; close the box to see it');
+    assert.equal(tab.field().value, 'say more', 'nothing changes under your typing');
+    tab.done();
+    await until(() => tab.marker('p').getAttribute('aria-label') === 'Agent working on: say less');
+    assert.equal(tab.message(), '');
+    assert.ok(s.read('page.html').includes('<!-- @AI: say less -->'), 'Done writes nothing over it');
+    tab.close();
+  }));
+
 // Checklist: "Stopping the server and typing shows `save failed: ...` on the docket; restarting
 // and typing again saves and clears it."
 // The tab's live notices go on through this; a stopped server would end them too.
