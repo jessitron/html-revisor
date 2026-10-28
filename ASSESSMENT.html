@@ -574,7 +574,7 @@
         </ul>
         <h3 data-hrv="449" id="r3-safety">Is there enough test coverage to do it safely?</h3>
         <p data-hrv="450">
-          Not yet. The server side of every case is covered: 46 acceptance tests over real HTTP, 412s and spills included. The tab has 14 tests, and they cluster on threads, the docket, and focus. The sync engine, the part that moves to <code>client/domain/</code>, is the part with the least coverage in the tab.
+          Yes, for the sync engine, the part that moves to <code>client/domain/</code>. The server side of every case is covered: 46 acceptance tests over real HTTP, 412s and spills included. The tab has 26 tests: 14 in <code>client.test.mjs</code> on threads, the docket, and focus, and 12 in <code>client-sync.test.mjs</code>, one or more for each sync row below.
         </p>
         <table data-hrv="451">
           <thead>
@@ -611,48 +611,48 @@
               <td data-hrv="467">
                 Markdown save swaps in the answer's HTML, the box follows the holder ID
               </td>
-              <td data-hrv="468"><span class="pill high">0</span></td>
+              <td data-hrv="468"><span class="pill low">2</span></td>
               <td data-hrv="469">sync</td>
             </tr>
             <tr>
               <td data-hrv="470">412, element changed on disk: "not saved", the box keeps its text</td>
-              <td data-hrv="471"><span class="pill high">0</span></td>
+              <td data-hrv="471"><span class="pill low">1</span></td>
               <td data-hrv="472">sync</td>
             </tr>
             <tr>
               <td data-hrv="473">Another element changed on disk: "the page changed"</td>
-              <td data-hrv="474"><span class="pill high">0</span></td>
+              <td data-hrv="474"><span class="pill low">1</span></td>
               <td data-hrv="475">sync</td>
             </tr>
             <tr>
               <td data-hrv="476">Server down: "save failed", then recovers</td>
-              <td data-hrv="477"><span class="pill high">0</span></td>
+              <td data-hrv="477"><span class="pill low">1</span></td>
               <td data-hrv="478">sync</td>
             </tr>
             <tr>
               <td data-hrv="479">A directive added or removed on disk shows without a reload</td>
-              <td data-hrv="480"><span class="pill high">0</span></td>
+              <td data-hrv="480"><span class="pill low">2</span></td>
               <td data-hrv="481">sync</td>
             </tr>
             <tr>
-              <td data-hrv="482">Revert, Clear and ⌘Z, a second box commits the first</td>
-              <td data-hrv="483"><span class="pill high">0</span></td>
+              <td data-hrv="482">Revert, Clear and ⌥⌘⌫, a second box commits the first</td>
+              <td data-hrv="483"><span class="pill low">3</span></td>
               <td data-hrv="484">box session</td>
             </tr>
             <tr>
               <td data-hrv="485">Two tabs on one page</td>
-              <td data-hrv="486"><span class="pill high">0</span></td>
+              <td data-hrv="486"><span class="pill low">2</span></td>
               <td data-hrv="487">sync</td>
             </tr>
             <tr>
-              <td data-hrv="488">Crop marks, marker spots, box placement, dark mode</td>
+              <td data-hrv="488">Crop marks, marker spots, box placement, dark mode; ⌘Z after Clear or Revert, the browser's undo</td>
               <td data-hrv="489"><span class="pill med">manual</span></td>
               <td data-hrv="490">view, unchanged</td>
             </tr>
           </tbody>
         </table>
         <p data-hrv="491">
-          The fix is one step before the split: characterization tests, in the tab harness as it stands, for each zero row. They pin what the client does today, and they're end-to-end, so they keep passing while the code moves under them. Once the domain exists, some of them move down to plain node tests. Layout stays manual: linkedom has no layout, and the view code moves least.
+          The sync tests are characterization tests, in the tab harness both client test files share, <code>client-lib.mjs</code>. They pin what the client does today, and they're end-to-end, so they keep passing while the code moves under them. Once the domain exists, some of them move down to plain node tests. Layout and the browser's undo stay manual: linkedom has neither, and the view code moves least. One gap they pinned is a yak: a markdown save in another tab reads as "the page changed on disk" here, and that element refuses saves until a reload.
         </p>
         <h3 data-hrv="492" id="r3-brief">Brief for the agent who writes them</h3>
         <ol data-hrv="493">
@@ -660,7 +660,7 @@
             Read CLAUDE.md's gotchas on the client test tab first: the fast clock, the faked focus, waiting on the tab's DOM, comparing elements with <code>assert.ok(a === b)</code>, <code>closeAllConnections</code>.
           </li>
           <li data-hrv="495">
-            One tab test per zero row in the table above. README's "Manual client checklist" says what each should do; name the checklist line in the test.
+            One tab test per sync and box-session row in the table above. README's "Manual client checklist" says what each should do; name the checklist line in the test.
           </li>
           <li data-hrv="496">
             Pin what happens now. Don't change <code>client.js</code> or <code>server.mjs</code>. A bug found gets a test pinning today's behavior, a comment naming the bug, and a yak tagged <code>@mountain:fidelity</code>.
