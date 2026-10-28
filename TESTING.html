@@ -69,6 +69,10 @@
         <div class="bar" title="roundtrip-pages.test.mjs: 13 tests, 3.7 s">
           <span style="width: 18.5%"></span>3.7 s
         </div>
+        <div><code>client-sync.test.mjs</code></div>
+        <div class="bar" title="client-sync.test.mjs: 12 tests, 3.1 s">
+          <span style="width: 15.5%"></span>3.1 s
+        </div>
         <div><code>client.test.mjs</code></div>
         <div class="bar" title="client.test.mjs: 14 tests, 2.4 s, from 12.4 s">
           <span style="width: 12%"></span>2.4 s
@@ -93,13 +97,13 @@
         <div class="bar" title="cleanup.test.mjs: 10 tests, 0.47 s">
           <span style="width: 2.4%"></span>0.47 s
         </div>
-        <div>the other seven files</div>
-        <div class="bar" title="scopes, annotation, threads, normalize, ids, architecture, and the two -lib files: 0.11 to 0.17 s each">
+        <div>the other nine files</div>
+        <div class="bar" title="scopes, annotation, spill, threads, normalize, ids, architecture, and the three -lib files: 0.09 to 0.17 s each">
           <span style="width: .8%"></span>0.17 s or less each
         </div>
       </div>
       <p class="note">
-        Each file run alone on a 14-core Mac, Node 25.6, startup included. The whole suite together: 7.8 s wall, measured 2026-10-24, from 20.5 s before the round-trip split. <code>roundtrip-generated-edits.test.mjs</code> is the long bar: the suite waits on it. Client was the long bar at 12.4 s, almost all of it waiting: a 3 s server close held by a keep-alive socket, the 400 ms save debounce and the 2 s green ring at full length, and a 100 ms sleep for each tab to connect. Its server now closes its sockets, its tab's clock runs ten times fast, and a tab waits for the server's connect event. Acceptance was the long bar at 9.4 s, about 100 ms a test in starting a server process; its tests now run the server in-process, from <code>createServer</code>, and the live notice tests, which spend 3.6 s waiting to hear that nothing comes, run beside them in their own file. The two share <code>acceptance-lib.mjs</code>. node --test runs every <code>.mjs</code> under <code>test/</code>, so each <code>-lib</code> file counts as one test.
+        Each file run alone on a 14-core Mac, Node 25.6, startup included. The whole suite together: 8.7 s wall, measured 2026-10-27, from 20.5 s before the round-trip split; the sync tests added 0.2 s to it. <code>roundtrip-generated-edits.test.mjs</code> is the long bar: the suite waits on it. Client was the long bar at 12.4 s, almost all of it waiting: a 3 s server close held by a keep-alive socket, the 400 ms save debounce and the 2 s green ring at full length, and a 100 ms sleep for each tab to connect. Its server now closes its sockets, its tab's clock runs ten times fast, and a tab waits for the server's connect event. Acceptance was the long bar at 9.4 s, about 100 ms a test in starting a server process; its tests now run the server in-process, from <code>createServer</code>, and the live notice tests, which spend 3.6 s waiting to hear that nothing comes, run beside them in their own file. The two share <code>acceptance-lib.mjs</code>. The client's two files share their tab, <code>client-lib.mjs</code>, and run side by side. node --test runs every <code>.mjs</code> under <code>test/</code>, so each <code>-lib</code> file counts as one test.
       </p>
       <table>
         <thead>
@@ -134,6 +138,13 @@
             <td class="n">14</td>
             <td>
               <code>client.js</code> in a tab made of linkedom, against a real server: what the box, the markers, and the docket say, and what reaches the file. The tab's timers run at a tenth of their length.
+            </td>
+          </tr>
+          <tr>
+            <td><code>client-sync.test.mjs</code></td>
+            <td class="n">12</td>
+            <td>
+              The client's sync engine in the same tab: a save's answer in the page, 412s, the file changing under the tab, the server down, Clear and Revert, two tabs. Each test names the line of README's manual checklist it stands for.
             </td>
           </tr>
           <tr>

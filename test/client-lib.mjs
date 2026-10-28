@@ -153,7 +153,9 @@ export async function openTab(s, name, { storage = new Map() } = {}) {
   return tab;
 }
 
+// ms is how long to wait. A message there would make the wait endless, so it is refused.
 export async function until(check, ms = 3000) {
+  if (typeof ms !== 'number') throw new TypeError(`until waits ms, not ${JSON.stringify(ms)}`);
   const end = Date.now() + ms;
   for (;;) {
     const got = await check();
