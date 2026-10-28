@@ -4,9 +4,18 @@
 // the line of README's "Manual client checklist" it stands for.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { withServer, openTab, until } from './client-lib.mjs';
 
 const RELOAD = 'the page changed on disk; reload to see it';
+
+// Make the server's root a repository and commit everything in it, as it stands.
+function commitAll(dir) {
+  const run = (...args) => execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', ...args], { cwd: dir, stdio: 'ignore' });
+  run('init', '-q');
+  run('add', '.');
+  run('commit', '-q', '-m', 'turn');
+}
 
 // Checklist: "Typing in the Content field changes the file within about half a second, and the
 // page when the save answers."
@@ -134,6 +143,89 @@ test('the open box\'s directive changed on disk: the docket says so, and it show
     await until(() => tab.marker('p').getAttribute('aria-label') === 'Agent working on: say less');
     assert.equal(tab.message(), '');
     assert.ok(s.read('page.html').includes('<!-- @AI: say less -->'), 'Done writes nothing over it');
+    tab.close();
+  }));
+
+// Checklist: "While writing a new directive, Clear (or emptying the text, or `⌥⌘⌫` in the box)
+// removes the directive and the marker. Clear shows only when there is a directive, in both
+// boxes, and its tooltip names the hotkey. Clear leaves the box open with the Content field as
+// you left it, and `⌘Z` brings the directive back."
+// ⌘Z is the browser's undo of typeOver's execCommand; linkedom has neither, so it isn't here.
+test('Clear, and ⌥⌘⌫, take the directive and its marker away and leave the box open', () =>
+  withServer(async (s) => {
+    const tab = await openTab(s, 'page.html');
+    tab.open('p');
+    const clear = () => tab.button('Clear');
+    assert.ok(clear().hidden, 'no directive, no Clear');
+    assert.equal(clear().title, 'Clear the directive (⌥⌘⌫)');
+    tab.type('First paragraph, edited', tab.content());
+    const ways = {
+      Clear: () => tab.click(clear()),
+      '⌥⌘⌫': () => {
+        const e = new tab.window.Event('keydown', { bubbles: true, cancelable: true });
+        Object.assign(e, { key: 'Backspace', altKey: true, metaKey: true });
+        tab.field().dispatchEvent(e);
+      },
+    };
+    for (const [how, clearIt] of Object.entries(ways)) {
+      tab.type('say more');
+      assert.ok(!clear().hidden, `${how}: Clear shows`);
+      await until(() => s.read('page.html').includes('<!-- @AI: say more -->'));
+      clearIt();
+      assert.equal(tab.field().value, '', `${how}: the field empties`);
+      assert.equal(tab.marker('p'), null, `${how}: the marker goes`);
+      assert.ok(clear().hidden, `${how}: Clear hides`);
+      await until(() => !s.read('page.html').includes('@AI'));
+      assert.ok(tab.box(), `${how}: the box stays open`);
+      assert.equal(tab.content().value, 'First paragraph, edited', `${how}: Content as you left it`);
+    }
+    tab.close();
+  }));
+
+// Checklist: "In a committed page, Revert shows on the Content line only after you change a
+// scope. Clicking it puts the committed markdown back and saves. Delete a list item, then Revert
+// the list: the item returns."
+// ⌘Z taking the revert back is the browser's undo, out of the tab's reach.
+test('Revert shows once a scope differs from the commit, and puts the committed markdown back', () =>
+  withServer(async (s) => {
+    commitAll(s.dir);
+    const tab = await openTab(s, 'page.html');
+    tab.open('p');
+    const revert = () => tab.button('Revert');
+    assert.ok(revert().hidden, 'as committed, no Revert');
+    tab.type('First paragraph, edited', tab.content());
+    assert.ok(!revert().hidden, 'changed, Revert shows');
+    await until(() => s.read('page.html').includes('First paragraph, edited'));
+    tab.click(revert());
+    assert.equal(tab.content().value, 'First paragraph');
+    assert.ok(revert().hidden);
+    await until(() => !s.read('page.html').includes('edited') && tab.el('p').textContent === 'First paragraph');
+    tab.done();
+
+    tab.open('ul');
+    assert.equal(tab.content().value, '- one\n- two');
+    tab.type('- one', tab.content());
+    await until(() => !s.read('page.html').includes('>two</li>'));
+    tab.click(revert());
+    await until(() => s.read('page.html').includes('>two</li>'));
+    assert.deepEqual([...tab.document.querySelectorAll('li')].map((li) => li.textContent), ['one', 'two'], 'the item returns');
+    tab.close();
+  }));
+
+// Checklist: "Opening a second box commits and closes the first."
+test('opening a second box commits the first: its Done goes out after its save, and the box moves', () =>
+  withServer(async (s) => {
+    const tab = await openTab(s, 'page.html');
+    tab.open('p');
+    tab.type('say more');
+    tab.open('h1');
+    assert.equal(tab.layer.querySelectorAll('.hrv-box').length, 1);
+    assert.equal(tab.layer.querySelector('.hrv-box .hrv-what').textContent, 'h1 · Title');
+    assert.ok(tab.marker('p').classList.contains('hrv-working'), 'the first box\'s turn is the agent\'s');
+    await until(() => s.announcements().length === 1);
+    assert.ok(s.read('page.html').includes('<!-- @AI: say more -->'), 'its save landed before its Done');
+    assert.equal(s.announcements()[0].id, tab.idOf('p'));
+    assert.deepEqual(s.announcements()[0].directive, { before: '', after: 'say more' });
     tab.close();
   }));
 
