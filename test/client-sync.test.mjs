@@ -229,6 +229,48 @@ test('opening a second box commits the first: its Done goes out after its save, 
     tab.close();
   }));
 
+// Checklist: "With two tabs on one page, a directive typed in one shows its marker in the other."
+test('two tabs: a directive typed in one shows its marker in the other, and the other can add to it', () =>
+  withServer(async (s) => {
+    const one = await openTab(s, 'page.html');
+    const two = await openTab(s, 'page.html');
+    one.open('p');
+    one.type('say more');
+    await until(() => two.marker('p'));
+    assert.equal(two.marker('p').getAttribute('aria-label'), 'Agent working on: say more');
+    assert.equal(two.count(), '1 directive');
+    assert.equal(two.message(), '', 'a directive is no reason to reload');
+    one.done();
+    two.open('p');
+    assert.deepEqual(two.turns(), [['you', 'say more'], ['agent', 'working']]);
+    two.type('and a caption');
+    await until(() => s.read('page.html').includes('<!-- @AI: say more\nand a caption -->'));
+    two.done();
+    await until(() => one.marker('p').getAttribute('aria-label') === 'Agent working on: say more\nand a caption');
+    one.close();
+    two.close();
+  }));
+
+// A markdown save in one tab is content the other can't show: it says to reload, as for an
+// edit on disk, and a save there on that element is refused.
+test('two tabs: a markdown save in one asks the other to reload', () =>
+  withServer(async (s) => {
+    const one = await openTab(s, 'page.html');
+    const two = await openTab(s, 'page.html');
+    one.open('p');
+    one.type('First paragraph, edited', one.content());
+    await until(() => two.message() === RELOAD);
+    assert.equal(two.el('p').textContent, 'First paragraph');
+    two.open('p');
+    two.type('say more');
+    await until(() => two.hint() === 'not saved');
+    two.open('h1');
+    two.type('a better title');   // an element the other tab left alone saves
+    await until(() => s.read('page.html').includes('<!-- @AI: a better title -->'));
+    one.close();
+    two.close();
+  }));
+
 // Checklist: "Stopping the server and typing shows `save failed: ...` on the docket; restarting
 // and typing again saves and clears it."
 // The tab's live notices go on through this; a stopped server would end them too.
