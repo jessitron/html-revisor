@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-hrv-next="492" lang="en">
+<html data-hrv-next="501" lang="en">
   <head>
     <meta charset="utf-8">
     <title>html-revisor — architecture and code quality assessment</title>
@@ -232,8 +232,7 @@
     <section data-hrv="130" id="context-map">
       <h2 data-hrv="131">Context map</h2>
       <p data-hrv="132" class="sub">
-        <!-- @AI: is that the scope file? -->
-        Four contexts share one file. The language at each boundary is different, and one boundary has no rules.
+        Four contexts share one file: the HTML page under review, the one you're reading now. The language at each boundary is different, and one boundary has no rules.
       </p>
       <svg data-hrv="133" viewBox="0 0 1000 380" role="img" aria-label="Context map: tab, revision server, page file, agent">
         <defs data-hrv="134">
@@ -655,6 +654,30 @@
         <p data-hrv="491">
           The fix is one step before the split: characterization tests, in the tab harness as it stands, for each zero row. They pin what the client does today, and they're end-to-end, so they keep passing while the code moves under them. Once the domain exists, some of them move down to plain node tests. Layout stays manual: linkedom has no layout, and the view code moves least.
         </p>
+        <h3 data-hrv="492" id="r3-brief">Brief for the agent who writes them</h3>
+        <ol data-hrv="493">
+          <li data-hrv="494">
+            Read CLAUDE.md's gotchas on the client test tab first: the fast clock, the faked focus, waiting on the tab's DOM, comparing elements with <code>assert.ok(a === b)</code>, <code>closeAllConnections</code>.
+          </li>
+          <li data-hrv="495">
+            One tab test per zero row in the table above. README's "Manual client checklist" says what each should do; name the checklist line in the test.
+          </li>
+          <li data-hrv="496">
+            Pin what happens now. Don't change <code>client.js</code> or <code>server.mjs</code>. A bug found gets a test pinning today's behavior, a comment naming the bug, and a yak tagged <code>@mountain:fidelity</code>.
+          </li>
+          <li data-hrv="497">
+            What the harness can't reach (layout, real focus): say so in the report, don't fake it.
+          </li>
+          <li data-hrv="498">
+            New file <code>test/client-sync.test.mjs</code>, with the harness pulled out of <code>client.test.mjs</code> into a lib, so the files run side by side. Time each file before and after; update TESTING.html if the bars change.
+          </li>
+          <li data-hrv="499">
+            Worktree, a commit per group of tests, rebase, full suite with <code>--test-reporter=tap</code>, fast-forward main, remove the worktree. Mark the yak done; don't push or <code>yx sync</code>.
+          </li>
+          <li data-hrv="500">
+            Report: rows covered and by which tests, bugs and their yaks, what couldn't be reached, suite time before and after, side effects outside the repo.
+          </li>
+        </ol>
       </div>
       <div data-hrv="357" class="rec" id="r4">
         <h3 data-hrv="358">4 · One owner for the wire protocol</h3>
