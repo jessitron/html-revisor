@@ -97,7 +97,9 @@
             </td>
             <td>
               <ul class="tight">
-                <li>The save rules live in <code>server.mjs</code>, Tier I, the most-changed file.</li>
+                <li>
+                  The save rules lived in <code>server.mjs</code>, Tier I, the most-changed file, until recommendation 1 moved them.
+                </li>
                 <li>
                   <code>domain/scopes.mjs</code> is four modules in one, and <code>identity.mjs</code> reaches into it.
                 </li>
@@ -298,7 +300,7 @@
         <tbody>
           <tr>
             <td>1</td>
-            <td><a href="#r1">Move the save rules into the domain</a></td>
+            <td><a href="#r1">Move the save rules into the domain</a> (done)</td>
             <td><span class="pill high">high</span></td>
             <td>medium</td>
             <td>fidelity</td>
@@ -334,17 +336,17 @@
         </tbody>
       </table>
       <div class="rec" id="r1">
-        <h3>1 · Move the save rules into the domain</h3>
+        <h3>1 · Move the save rules into the domain: done</h3>
         <p>
-          <code>applyChange</code> in <code>server.mjs</code> is 80 lines, and most of them are domain rules: a base that doesn't match is a conflict, a spill that moved is a conflict, a reply since is a conflict, a grown scope loses its markdown. Tier I decides all of that today. That is why <code>server.mjs</code> changed in 44 commits since September, more than any other file.
+          <code>applyChange</code> in <code>server.mjs</code> was 80 lines, and most of them were domain rules: a base that doesn't match is a conflict, a spill that moved is a conflict, a reply since is a conflict, a grown scope loses its markdown. Tier I decided all of that, which is why <code>server.mjs</code> changed in 44 commits since September, more than any other file. Those rules, and the reply's, are in <code>domain/revision.mjs</code> now.
         </p>
-        <svg viewBox="0 0 1000 300" role="img" aria-label="Save flow now and proposed">
+        <svg viewBox="0 0 1000 300" role="img" aria-label="Save flow before and now">
           <defs>
             <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
               <path d="M0,0 L10,5 L0,10 z" fill="#646b78"></path>
             </marker>
           </defs>
-          <text x="10" y="20" class="bold">Now: PUT change, all in server.mjs</text>
+          <text x="10" y="20" class="bold">Before: PUT change, all in server.mjs</text>
           <rect x="10" y="32" width="80" height="44" rx="5" class="io"></rect>
           <text x="20" y="58" class="small">read</text>
           <rect x="98" y="32" width="96" height="44" rx="5" class="box"></rect>
@@ -374,7 +376,7 @@
           <text x="856" y="68" class="small">null for grown</text>
           <text x="10" y="100" class="small warntext">orange: domain rules living in Tier I</text>
           <text x="300" y="100" class="small muted">33 inSpan calls and 19 attribute sets woven through; parse+assignIds written three times</text>
-          <text x="10" y="150" class="bold">Proposed: domain/revision.mjs decides, server.mjs does I/O</text>
+          <text x="10" y="150" class="bold">Now: domain/revision.mjs decides, server.mjs does I/O</text>
           <rect x="10" y="164" width="200" height="110" rx="8" class="t1"></rect>
           <text x="22" y="186" class="mono small bold">server.mjs</text>
           <text x="22" y="206" class="small">inTurn: read file</text>
@@ -388,25 +390,25 @@
           <rect x="300" y="164" width="400" height="110" rx="8" class="t2"></rect>
           <text x="312" y="186" class="mono small bold">domain/revision.mjs</text>
           <text x="312" y="206" class="small">readRevision(text): parse, assignIds</text>
-          <text x="312" y="224" class="small">check(change): conflict, with why and current state</text>
-          <text x="312" y="242" class="small">apply(change): written text, ended turns, answer</text>
+          <text x="312" y="224" class="small">revise: conflict, with why and current state</text>
+          <text x="312" y="242" class="small">or the text to write, ended turns · answerOf, after the write</text>
           <text x="312" y="260" class="small muted">step(name, fn) passed in, so spans stay fine-grained</text>
           <rect x="730" y="164" width="258" height="110" rx="8" class="box"></rect>
           <text x="742" y="186" class="small bold">Outcome</text>
           <text x="742" y="206" class="small mono">{conflict: why, …now}</text>
-          <text x="742" y="224" class="small mono">{written, ended, answer}</text>
+          <text x="742" y="224" class="small mono">{refused} | {written, ended, …}</text>
           <text x="742" y="248" class="small muted">testable without HTTP</text>
-          <text x="742" y="264" class="small muted">reply takes the same shape</text>
+          <text x="742" y="264" class="small muted">reviseThread: the same shape</text>
         </svg>
         <ul class="tight">
           <li>
-            Tests of conflict rules move from acceptance (HTTP, temp files) to plain function calls. Faster, and closer to the rule.
+            Tests of conflict rules are plain function calls in <code>test/revision.test.mjs</code>. Acceptance keeps what HTTP makes of them.
           </li>
           <li>
-            Telemetry: the step port is in place. <code>tabStateOf</code> in <code>domain/served-page.mjs</code> takes <code>step(name, fn)</code>, and <code>server.mjs</code> passes the adapter from <code>interface/telemetry.mjs</code>; CLAUDE.md and README document the pattern. <code>revision.mjs</code> takes the same port, and the spans OBSERVABILITY.html queries stay.
+            Telemetry: the step port is in place. <code>tabStateOf</code> in <code>domain/served-page.mjs</code> takes <code>step(name, fn)</code>, and <code>server.mjs</code> passes the adapter from <code>interface/telemetry.mjs</code>; CLAUDE.md and README document the pattern. <code>revision.mjs</code> takes the same port, and the spans OBSERVABILITY.html queries stayed.
           </li>
           <li>
-            Makes <em>Rethink who edits the live file</em> cheaper: whatever the answer, it needs the rules in one place.
+            Makes <em>Rethink who edits the live file</em> cheaper: whatever the answer, it needs the rules in one place, and they are.
           </li>
         </ul>
       </div>
@@ -690,7 +692,7 @@
             <code>server.mjs</code> imports <code>formatFiles</code> from <code>formatter.mjs</code>, Tier I to Tier I. The rule allows it, but it makes one entry point a library of another. Fine as is; name it in the architecture test's comment so it reads as chosen.
           </li>
           <li>
-            <code>parse(onDisk)</code> then <code>assignIds</code>, three times in <code>server.mjs</code>. Folds into <code>readRevision</code> with recommendation 1.
+            Done: <code>parse(onDisk)</code> then <code>assignIds</code>, three times in <code>server.mjs</code>, folded into <code>readRevision</code>.
           </li>
           <li>
             The constants <code>STAND_IN</code>, <code>STOPS</code>, <code>FROM_MARKDOWN</code> sit at the end of <code>scopes.mjs</code>, after the code that uses them. They move with the split.
@@ -730,7 +732,7 @@
         <path d="M210 50 L250 50" class="arrow" marker-end="url(#a5)"></path>
         <rect x="250" y="20" width="230" height="60" rx="8" class="t1"></rect>
         <text x="262" y="44" class="bold small">1 + 4 · revision + protocol</text>
-        <text x="262" y="62" class="small muted">rules and shapes move together</text>
+        <text x="262" y="62" class="small goodtext">1 done; 4 next</text>
         <path d="M480 50 L520 50" class="arrow" marker-end="url(#a5)"></path>
         <rect x="520" y="20" width="200" height="60" rx="8" class="box"></rect>
         <text x="532" y="44" class="bold small">context map</text>
