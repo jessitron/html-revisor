@@ -102,6 +102,8 @@ Whenever you discover something that we should do, but right this instant is not
 
 Whenever the user mentions something additional to do, before you start investigating, add a yak!
 
+When you hit trouble with the tool, add a yak, not a GitHub issue. `CONTRIBUTING.md` says what it holds.
+
 When you want the human to do something, make me a yak! Start the name with 👩🏽‍🦱 so that I can tell it's a job for a human.
 
 ### Mountains
