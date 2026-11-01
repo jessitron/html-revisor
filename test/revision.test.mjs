@@ -134,21 +134,21 @@ test('each change goes through its steps, in order, and notes what the spans car
   const { id, base } = at(text, 'p');
   const directive = recorder();
   answerOf(revise(text, { id, base, directive: 'mine' }, 'directive', AI, directive.step), AI, directive.step);
-  assert.deepEqual(directive.steps, ['parse', 'check base', 'set directive', 'serialize', 'reparse', 'bases']);
+  assert.deepEqual(directive.steps, ['parse', 'set directive', 'serialize', 'reparse', 'bases']);
   assert.ok(directive.notes.bases['hrv.element.count'] > 0);
 
   const resolve = recorder();
   revise(text, { id, base, resolve: true }, 'resolve', AI, resolve.step);
-  assert.deepEqual(resolve.steps, ['parse', 'check base', 'resolve', 'serialize']);
+  assert.deepEqual(resolve.steps, ['parse', 'resolve', 'serialize']);
 
   const markdown = recorder();
   answerOf(revise(text, { id, base, markdown: 'uno' }, 'markdown', AI, markdown.step), AI, markdown.step);
-  assert.deepEqual(markdown.steps, ['parse', 'check base', 'set markdown', 'settle', 'served html', 'serialize', 'reparse', 'bases', 'markdowns']);
+  assert.deepEqual(markdown.steps, ['parse', 'set markdown', 'settle', 'served html', 'serialize', 'reparse', 'bases', 'markdowns']);
   assert.equal(markdown.notes.markdowns['hrv.scope.count'], 2, 'the paragraph and the body around it');
 
   const stale = recorder();
   revise(text, { id, base: 'x', directive: 'mine' }, 'directive', AI, stale.step);
-  assert.deepEqual(stale.steps, ['parse', 'check base']);
+  assert.deepEqual(stale.steps, ['parse']);
 });
 
 test('a reply lands after the thread, and the answer carries the new thread base', () => {

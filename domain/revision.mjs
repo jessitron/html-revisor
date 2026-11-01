@@ -31,9 +31,9 @@ export function readRevision(text, step = justRun) {
 // A change holds when it starts from the element as it stands: the base matches, the spill sits
 // beside the element, and no reply came since the turn was typed. Gives the spill's elements, or
 // a conflict.
-function check(el, { id, base, replies, spill = [] }, kind, author, step) {
+function check(el, { id, base, replies, spill = [] }, kind, author) {
   if (!el) return conflict('no such element', 'that element is gone from the file', `conflict on element ${id} (no such element)`);
-  if (step('check base', () => baseOf(el, author)) !== base) {
+  if (baseOf(el, author) !== base) {
     return conflict('changed on disk', 'that element changed on disk', `conflict on element ${id} (it changed on disk)`);
   }
   const spilled = spillOf(el, spill);
@@ -70,7 +70,7 @@ function reviseMarkdown(document, el, { id, markdown }, spilled, author, step) {
 export function revise(text, change, kind, author, step = justRun) {
   const document = readRevision(text, step);
   const el = elementById(document, change.id);
-  const checked = check(el, change, kind, author, step);
+  const checked = check(el, change, kind, author);
   if (checked.conflict) return checked;
   const ended = kind === 'resolve' ? threadOf(el, author) : [];
   if (kind === 'directive') step('set directive', () => setDirective(el, change.directive, author));
