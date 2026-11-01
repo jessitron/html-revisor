@@ -212,6 +212,64 @@ test('Revert shows once a scope differs from the commit, and puts the committed 
     tab.close();
   }));
 
+// The tab's save markdown spans, once count of them have been posted.
+const markdownSaves = (tab, count) => until(async () => {
+  const saves = (await tab.spans()).filter((span) => span.name === 'save markdown');
+  return saves.length >= count && saves;
+});
+
+test('a save that carries a Revert says so; the saves around it say not', () =>
+  withServer(async (s) => {
+    commitAll(s.dir);
+    const tab = await openTab(s, 'page.html');
+    tab.open('p');
+    tab.type('First paragraph, edited', tab.content());
+    await until(() => tab.hint() === 'saved');
+    tab.click(tab.button('Revert'));
+    await until(() => tab.hint() === 'saved');
+    tab.type('First paragraph, again', tab.content());
+    await until(() => tab.hint() === 'saved');
+    const saves = await markdownSaves(tab, 3);
+    assert.deepEqual(saves.map((span) => span.attributes['hrv.reverted']), [false, true, false]);
+    assert.equal(saves[1].attributes['hrv.markdown.before'], 'First paragraph, edited', 'what Revert threw away');
+    assert.equal(saves[1].attributes['hrv.markdown.after'], 'First paragraph', 'the committed scope');
+    tab.close();
+  }, { telemetry: true }));
+
+test('a Revert joins a save still waiting: one save, marked, that counts it as an edit', () =>
+  withServer(async (s) => {
+    commitAll(s.dir);
+    const tab = await openTab(s, 'page.html');
+    tab.open('p');
+    tab.type('First paragraph, edited', tab.content());
+    tab.click(tab.button('Revert'));
+    await until(() => tab.hint() === 'saved');
+    const saves = await markdownSaves(tab, 1);
+    assert.equal(saves.length, 1);
+    assert.equal(saves[0].attributes['hrv.reverted'], true);
+    assert.equal(saves[0].attributes['hrv.edits'], 2);
+    tab.close();
+  }, { telemetry: true }));
+
+test('a Revert whose save failed stays marked when a later edit retries it', () =>
+  withServer(async (s) => {
+    commitAll(s.dir);
+    const tab = await openTab(s, 'page.html');
+    tab.open('p');
+    tab.type('First paragraph, edited', tab.content());
+    await until(() => tab.hint() === 'saved');
+    s.down = true;
+    tab.click(tab.button('Revert'));
+    await until(() => tab.message().includes('save failed'));
+    s.down = false;
+    tab.type('First paragraph', tab.content());
+    await until(() => tab.hint() === 'saved');
+    const saves = await markdownSaves(tab, 3);
+    assert.ok(saves[1].error, 'the save that failed');
+    assert.deepEqual(saves.map((span) => span.attributes['hrv.reverted']), [false, true, true]);
+    tab.close();
+  }, { telemetry: true }));
+
 // Checklist: "Opening a second box commits and closes the first."
 test('opening a second box commits the first: its Done goes out after its save, and the box moves', () =>
   withServer(async (s) => {

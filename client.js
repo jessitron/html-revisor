@@ -732,6 +732,7 @@
     }
     if (change.kind === 'resolve') return span;
     var markdown = change.kind === 'markdown';
+    if (markdown) a['hrv.reverted'] = !!change.reverted;
     var before = (markdown ? markdowns[change.id] : savedDirectives[change.id]) || '';
     var after = (markdown ? edits[change.id] : directives[change.id]) || '';
     a['hrv.' + change.kind + '.before'] = capped(before);
@@ -898,6 +899,7 @@
       failed = 'save failed: ' + (err && err.message ? err.message : err);
       endSpan(put, failed);
       addUnsent(change.kind, change.id, change.session); // a later edit retries it
+      if (change.reverted) markReverted(change.id);
       boxStatus('');
       showProblem(failed);
     }).then(function () {
@@ -1224,9 +1226,14 @@
     typeOver(ta, '');
   }
 
-  // Put back the scope's markdown at the last commit.
+  // Put back the scope's markdown at the last commit. Typing over it saves; mark that save.
   function revert(textArea, id) {
     typeOver(textArea, committed[id]);
+    markReverted(id);
+  }
+
+  function markReverted(id) {
+    unsent.forEach(function (c) { if (c.kind === 'markdown' && c.id === id) c.reverted = true; });
   }
 
   // The turns, one block each: who said it, then what. A turn {working: true} is the agent's
