@@ -16,8 +16,10 @@
     <p><a href="index.html">Back to the index</a>. Wave 1, size S.</p>
     <section id="status" class="status">
       <h2>Status</h2>
-      <p class="status-value">working</p>
-      <p class="status-why">Timing each kind of edit alone.</p>
+      <p class="status-value">merged-ready</p>
+      <p class="status-why">
+        Suite green at 5.3 s wall, from 8.8 s; the branch is ready for the coordinator.
+      </p>
     </section>
     <section id="plan" class="plan">
       <h2>Plan</h2>
@@ -49,8 +51,9 @@
           2026-11-01 13:40: The suite takes 1 s more than the longest file alone. Spawned every file at once and timed each exit: computing files run a quarter longer side by side, waiting files don't. Added a yak; the cause is open.
         </li>
         <li>
-          2026-11-01 13:50: <code>TESTING.html</code> re-measured: bars, note, test counts, round-trip tables, recommendation. Added the missing <code>spill.test.mjs</code> row.
+          2026-11-01 13:50: <code>TESTING.html</code> re-measured: bars, note, test counts, round-trip tables, recommendation. Added the missing <code>spill.test.mjs</code> row. Commit <code>a69abf6</code>.
         </li>
+        <li>2026-11-01 13:55: Full suite green. Marked <code>8rd0</code> done.</li>
       </ul>
     </section>
     <section id="guesses" class="guesses">
@@ -107,7 +110,21 @@
     </section>
     <section id="result" class="result">
       <h2>Result</h2>
-      <p>Not yet.</p>
+      <p>Commits:</p>
+      <ul>
+        <li>
+          <code>ae5122a</code> Split the generated edit tests into two files: suite 8.8 s to 5.4 s - claude
+        </li>
+        <li>
+          <code>a69abf6</code> TESTING: re-measure after the edit tests split; three files tie for the long bar - claude
+        </li>
+      </ul>
+      <p>
+        Tests: <code>npm test</code>, 265 tests, 264 pass, 0 fail, 1 skipped (the Honeycomb test, which needs a key). The 265 test names are the same before and after, by diff.
+      </p>
+      <p>
+        For a user: the suite takes 5.4 s, median of five, from 8.8 s. That falls short of the yak's "near 4 s", because computing files run a quarter longer side by side. Three files now tie for the long bar. Nothing a page's reader sees changed.
+      </p>
     </section>
     <section id="diff" class="diff">
       <!-- coordinator: diff -->
