@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Marshal Portwine</title>
+    <style>
+      body { font: 16px/1.5 system-ui, sans-serif; max-width: 52rem; margin: 2rem auto; padding: 0 1rem; color: #222; }
+      code { background: #f2f2f2; padding: 0 .2rem; overflow-wrap: anywhere; }
+      .status-value { font-weight: bold; }
+      .guess { border-left: 3px solid #ccc; padding-left: .8rem; margin-bottom: 1rem; }
+      #diff::before { content: "Diff"; display: block; font-size: 1.5em; font-weight: bold; margin: 1em 0 .5em; }
+    </style>
+  </head>
+  <body>
+    <h1>Marshal Portwine</h1>
+    <p><a href="index.html">Back to the index</a>. Wave 1, size M/L.</p>
+    <section id="status" class="status">
+      <h2>Status</h2>
+      <p class="status-value">planned</p>
+      <p class="status-why">Scaffold made this page; the work has not started.</p>
+    </section>
+    <section id="plan" class="plan">
+      <h2>Plan</h2>
+      <p>Yaks:</p>
+      <ul>
+        <li>
+          <code>domainrevisionmjs-move-put-change-and-reply-rules-out-of-servermjs-using-the-step-port-x30d</code>
+        </li>
+        <li>
+          <code>pull-the-save-rules-into-the-domain-applychange-with-the-step-port-per-assessmenthtml-paxn</code> (duplicate of the first)
+        </li>
+      </ul>
+      <p>
+        Work: move the conflict and apply rules of <code>applyChange</code> from <code>server.mjs</code> into <code>domain/revision.mjs</code>, a new module, with the step port. The port's shape is the one <code>tabStateOf</code> in <code>domain/served-page.mjs</code> takes. Span names stay. Behavior stays.
+      </p>
+      <p>Files:</p>
+      <ul>
+        <li><code>server.mjs</code></li>
+        <li><code>domain/revision.mjs</code> (new)</li>
+        <li>a new test file for the module</li>
+        <li><code>README.md</code>, Design section</li>
+        <li><code>OVERVIEW.html</code></li>
+        <li><code>ASSESSMENT.html</code></li>
+      </ul>
+      <p>Ottoline Slice works in the same wave. Stay out of her files.</p>
+    </section>
+    <section id="log" class="log">
+      <h2>Log</h2>
+      <ul>
+        <li>2026-11-01 13:17: Herald Trumpington made this page.</li>
+      </ul>
+    </section>
+    <section id="guesses" class="guesses">
+      <h2>Guesses</h2>
+      <div id="guess-outcome-value" class="guess">
+        <p>
+          <strong>Guess:</strong> the domain returns a plain value for a conflict or a refused save, and <code>server.mjs</code> turns it into the 412 or the <code>HttpError</code> 400, the <code>hrv.conflict</code> attribute, and the log line.
+        </p>
+        <p>
+          <strong>Why:</strong> the domain touches no console and no interface module, and those three are what an HTTP answer needs.
+        </p>
+        <p>
+          <strong>If wrong:</strong> change the return shape in <code>domain/revision.mjs</code> and the mapping in <code>server.mjs</code>.
+        </p>
+      </div>
+      <div id="guess-io-stays" class="guess">
+        <p>
+          <strong>Guess:</strong> the file read, the file write, <code>live.wrote</code>, and <code>resolved.note</code> stay in <code>server.mjs</code>, around the domain calls.
+        </p>
+        <p>
+          <strong>Why:</strong> orchestration does I/O around a domain call. The step port is for spans, and these are not spans the domain needs.
+        </p>
+        <p>
+          <strong>If wrong:</strong> add a port to <code>domain/revision.mjs</code> and pass the adapter from <code>server.mjs</code>.
+        </p>
+      </div>
+      <div id="guess-duplicate-yak" class="guess">
+        <p>
+          <strong>Guess:</strong> mark both yaks done when the work lands, with the second's context pointing at the first.
+        </p>
+        <p><strong>Why:</strong> they ask for the same move.</p>
+        <p>
+          <strong>If wrong:</strong> reopen <code>pull-the-save-rules-into-the-domain-applychange-with-the-step-port-per-assessmenthtml-paxn</code>.
+        </p>
+      </div>
+    </section>
+    <section id="result" class="result">
+      <h2>Result</h2>
+      <p>Not yet.</p>
+    </section>
+    <section id="diff" class="diff">
+      <!-- coordinator: diff -->
+    </section>
+    <section id="gotchas" class="gotchas">
+      <h2>Gotchas</h2>
+      <ul></ul>
+    </section>
+    <section id="new-yaks" class="new-yaks">
+      <h2>New yaks</h2>
+      <ul></ul>
+    </section>
+  </body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Ottoline Slice</title>
+    <style>
+      body { font: 16px/1.5 system-ui, sans-serif; max-width: 52rem; margin: 2rem auto; padding: 0 1rem; color: #222; }
+      code { background: #f2f2f2; padding: 0 .2rem; overflow-wrap: anywhere; }
+      .status-value { font-weight: bold; }
+      .guess { border-left: 3px solid #ccc; padding-left: .8rem; margin-bottom: 1rem; }
+      #diff::before { content: "Diff"; display: block; font-size: 1.5em; font-weight: bold; margin: 1em 0 .5em; }
+    </style>
+  </head>
+  <body>
+    <h1>Ottoline Slice</h1>
+    <p><a href="index.html">Back to the index</a>. Wave 1, size S.</p>
+    <section id="status" class="status">
+      <h2>Status</h2>
+      <p class="status-value">planned</p>
+      <p class="status-why">Scaffold made this page; the work has not started.</p>
+    </section>
+    <section id="plan" class="plan">
+      <h2>Plan</h2>
+      <p>Yak: <code>roundtrip-generated-editstestmjs-is-the-long-bar-8rd0</code></p>
+      <p>
+        Work: time each of the five <code>EDITS</code> kinds, then split them across two test files. <code>node --test</code> runs files side by side, so the suite's wall time is its slowest file.
+      </p>
+      <p>Files:</p>
+      <ul>
+        <li><code>test/roundtrip-generated-edits*.mjs</code></li>
+        <li><code>TESTING.html</code> (re-measure its bars)</li>
+      </ul>
+      <p>
+        <code>EDITS</code> itself lives in <code>test/roundtrip-lib.mjs</code>. Read it; change it only as the split needs, and say so in the Log. Marshal Portwine works in the same wave. Stay out of his files.
+      </p>
+    </section>
+    <section id="log" class="log">
+      <h2>Log</h2>
+      <ul>
+        <li>2026-11-01 13:17: Herald Trumpington made this page.</li>
+      </ul>
+    </section>
+    <section id="guesses" class="guesses">
+      <h2>Guesses</h2>
+      <div id="guess-split-by-time" class="guess">
+        <p>
+          <strong>Guess:</strong> pick the two groups by measured time, so the longer file is as short as the kinds allow.
+        </p>
+        <p>
+          <strong>Why:</strong> a kind can't split in two, and the measure decides what the split saves.
+        </p>
+        <p>
+          <strong>If wrong:</strong> move a kind between the two files in <code>test/roundtrip-generated-edits*.mjs</code>.
+        </p>
+      </div>
+      <div id="guess-new-kind-covered" class="guess">
+        <p>
+          <strong>Guess:</strong> one file names its kinds and the other takes the rest of <code>Object.keys(EDITS)</code>.
+        </p>
+        <p><strong>Why:</strong> a kind added later still runs, with no list to remember.</p>
+        <p><strong>If wrong:</strong> name the kinds in both files.</p>
+      </div>
+    </section>
+    <section id="result" class="result">
+      <h2>Result</h2>
+      <p>Not yet.</p>
+    </section>
+    <section id="diff" class="diff">
+      <!-- coordinator: diff -->
+    </section>
+    <section id="gotchas" class="gotchas">
+      <h2>Gotchas</h2>
+      <ul></ul>
+    </section>
+    <section id="new-yaks" class="new-yaks">
+      <h2>New yaks</h2>
+      <ul></ul>
+    </section>
+  </body>
+</html>
