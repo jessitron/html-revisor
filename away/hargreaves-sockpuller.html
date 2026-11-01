@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Hargreaves Sockpuller</title>
+    <style>
+      body { font: 16px/1.5 system-ui, sans-serif; max-width: 52rem; margin: 2rem auto; padding: 0 1rem; color: #222; }
+      code { background: #f2f2f2; padding: 0 .2rem; overflow-wrap: anywhere; }
+      .status-value { font-weight: bold; }
+      .guess { border-left: 3px solid #ccc; padding-left: .8rem; margin-bottom: 1rem; }
+      #diff::before { content: "Diff"; display: block; font-size: 1.5em; font-weight: bold; margin: 1em 0 .5em; }
+    </style>
+  </head>
+  <body>
+    <h1>Hargreaves Sockpuller</h1>
+    <p><a href="index.html">Back to the index</a>. Wave 2, size S.</p>
+    <section id="status" class="status">
+      <h2>Status</h2>
+      <p class="status-value">planned</p>
+      <p class="status-why">Scaffold made this page; the work has not started.</p>
+    </section>
+    <section id="plan" class="plan">
+      <h2>Plan</h2>
+      <p>
+        Yak: <code>live-noticetestmjs-close-the-servers-sockets-and-wait-on-conditions-uj0i</code>
+      </p>
+      <p>
+        Work: add <code>closeAllConnections</code> beside the <code>server.close</code> in <code>test/acceptance-lib.mjs</code>, and shorten the no-notice waits (<code>tab.none()</code> in <code>test/live-notice.test.mjs</code>).
+      </p>
+      <p>Files:</p>
+      <ul>
+        <li><code>test/live-notice.test.mjs</code></li>
+        <li><code>test/acceptance-lib.mjs</code></li>
+        <li><code>TESTING.html</code> (re-measure its bars)</li>
+      </ul>
+      <p>Lazarus Quill works in the same wave. Stay out of his files.</p>
+    </section>
+    <section id="log" class="log">
+      <h2>Log</h2>
+      <ul>
+        <li>2026-11-01 13:17: Herald Trumpington made this page.</li>
+      </ul>
+    </section>
+    <section id="guesses" class="guesses">
+      <h2>Guesses</h2>
+      <div id="guess-no-notice-wait" class="guess">
+        <p>
+          <strong>Guess:</strong> a no-notice wait stays long enough for a real notice to arrive, measured on this machine, and no shorter.
+        </p>
+        <p>
+          <strong>Why:</strong> a condition can't prove that nothing comes, and a wait that's too short lets a test pass on a broken server.
+        </p>
+        <p>
+          <strong>If wrong:</strong> raise the length in <code>test/live-notice.test.mjs</code>.
+        </p>
+      </div>
+    </section>
+    <section id="result" class="result">
+      <h2>Result</h2>
+      <p>Not yet.</p>
+    </section>
+    <section id="diff" class="diff">
+      <!-- coordinator: diff -->
+    </section>
+    <section id="gotchas" class="gotchas">
+      <h2>Gotchas</h2>
+      <ul></ul>
+    </section>
+    <section id="new-yaks" class="new-yaks">
+      <h2>New yaks</h2>
+      <ul></ul>
+    </section>
+  </body>
+</html>

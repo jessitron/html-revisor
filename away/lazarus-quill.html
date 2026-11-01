@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Lazarus Quill</title>
+    <style>
+      body { font: 16px/1.5 system-ui, sans-serif; max-width: 52rem; margin: 2rem auto; padding: 0 1rem; color: #222; }
+      code { background: #f2f2f2; padding: 0 .2rem; overflow-wrap: anywhere; }
+      .status-value { font-weight: bold; }
+      .guess { border-left: 3px solid #ccc; padding-left: .8rem; margin-bottom: 1rem; }
+      #diff::before { content: "Diff"; display: block; font-size: 1.5em; font-weight: bold; margin: 1em 0 .5em; }
+    </style>
+  </head>
+  <body>
+    <h1>Lazarus Quill</h1>
+    <p><a href="index.html">Back to the index</a>. Wave 2, size S.</p>
+    <section id="status" class="status">
+      <h2>Status</h2>
+      <p class="status-value">planned</p>
+      <p class="status-why">Scaffold made this page; the work has not started.</p>
+    </section>
+    <section id="plan" class="plan">
+      <h2>Plan</h2>
+      <p>
+        Yak: <code>mark-a-save-that-carries-a-revert-hrvreverted-on-save-markdown-zee4</code>
+      </p>
+      <p>
+        Work: the yak is marked done but never landed. <code>hrv.reverted</code> is absent from main's code, and <code>OBSERVABILITY.html</code> still lists it as Planned. Reopen the yak or add a new one. Port commit <code>987ea63</code> from branch <code>worktree-observability-revert</code> by hand, and add a client test.
+      </p>
+      <p>Files:</p>
+      <ul>
+        <li><code>client.js</code></li>
+        <li><code>test/client*.test.mjs</code></li>
+        <li><code>OBSERVABILITY.html</code></li>
+        <li><code>README.md</code>, Telemetry section</li>
+      </ul>
+      <p>Hargreaves Sockpuller works in the same wave. Stay out of his files.</p>
+    </section>
+    <section id="log" class="log">
+      <h2>Log</h2>
+      <ul>
+        <li>2026-11-01 13:17: Herald Trumpington made this page.</li>
+      </ul>
+    </section>
+    <section id="guesses" class="guesses">
+      <h2>Guesses</h2>
+      <div id="guess-yak-record" class="guess">
+        <p>
+          <strong>Guess:</strong> reopen the yak if <code>yx</code> has a way to; if not, add a new yak under the same name and say which one it follows.
+        </p>
+        <p>
+          <strong>Why:</strong> the record should show the work happened in this round, not before it.
+        </p>
+        <p>
+          <strong>If wrong:</strong> nothing in the code changes; fix the yak's state and context.
+        </p>
+      </div>
+      <div id="guess-port-by-hand" class="guess">
+        <p>
+          <strong>Guess:</strong> take the idea of <code>987ea63</code> and retype it against main; move the Revert row out of the "Not recorded yet" table in <code>OBSERVABILITY.html</code>, and leave the Opening a box row there.
+        </p>
+        <p>
+          <strong>Why:</strong> the commit's 46 changed lines in <code>OBSERVABILITY.html</code> sit on an older page, and main has moved on.
+        </p>
+        <p>
+          <strong>If wrong:</strong> compare <code>OBSERVABILITY.html</code> and <code>client.js</code> with <code>987ea63</code>.
+        </p>
+      </div>
+    </section>
+    <section id="result" class="result">
+      <h2>Result</h2>
+      <p>Not yet.</p>
+    </section>
+    <section id="diff" class="diff">
+      <!-- coordinator: diff -->
+    </section>
+    <section id="gotchas" class="gotchas">
+      <h2>Gotchas</h2>
+      <ul></ul>
+    </section>
+    <section id="new-yaks" class="new-yaks">
+      <h2>New yaks</h2>
+      <ul></ul>
+    </section>
+  </body>
+</html>
